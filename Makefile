@@ -1,5 +1,8 @@
 test:
-	python3 setup.py pytest --addopts '-v --cov=efu --cov-report=xml --junitxml=test-report.xml --pep8'
+	python3 setup.py pytest --addopts '-v --cov=efu --cov-report=xml --junitxml=test-report.xml --pep8 --ignore ./tests/functional'
+
+test-functional:
+	py.test ./tests/functional
 
 egg: test
 	python3 setup.py bdist_egg
