@@ -1,7 +1,14 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+from pip.req import parse_requirements
 from setuptools import setup
+
+
+def get_test_requirements():
+    file = parse_requirements('requirements-test.txt', session=False)
+    requirements = [str(req.req) for req in file]
+    return requirements
 
 
 setup(
@@ -12,7 +19,7 @@ setup(
     packages=['efu'],
     setup_requires=['pytest-runner'],
     test_suite='tests',
-    tests_require=['pep8', 'pytest-cov', 'pytest-pep8', 'pytest'],
+    tests_require=get_test_requirements(),
     author='O.S. Systems Software LTDA',
     author_email='contato@ossystems.com.br',
     url='http://www.ossystems.com.br',
