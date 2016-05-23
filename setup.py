@@ -11,11 +11,16 @@ def get_test_requirements():
     return requirements
 
 
+def get_version():
+    from efu import __version__
+    return __version__
+
+
 setup(
     name='easyfota-utils',
     description='Easy Firmware Over The Air command line utility',
     keywords='fota ota firmware update utility',
-    version='0.0.dev0',
+    version=get_version(),
     packages=['efu'],
     entry_points={
         'console_scripts': ['efu=efu.__main__:main']
