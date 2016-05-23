@@ -1,4 +1,7 @@
-test: test-unit
+init:
+	pip install -r requirements-test.txt
+
+test: init test-unit
 
 test-unit:
 	python3 setup.py pytest --addopts '-v --cov=efu --cov-report=xml --junitxml=test-report.xml --pep8 --ignore ./tests/functional'
