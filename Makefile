@@ -7,7 +7,7 @@ pep8:
 	pep8 --show-source efu tests
 
 test-unit:
-	python3 setup.py pytest --addopts '-v --cov=efu --cov-report=xml --junitxml=test-report.xml --ignore ./tests/functional'
+	python3 setup.py pytest --addopts 'tests/unit -v --cov=efu --cov-report=xml --junitxml=test-report.xml'
 
 test-functional:
 	py.test ./tests/functional
