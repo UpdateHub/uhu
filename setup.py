@@ -17,6 +17,9 @@ setup(
     keywords='fota ota firmware update utility',
     version='0.0.dev0',
     packages=['efu'],
+    entry_points={
+        'console_scripts': ['efu=efu.__main__:main']
+    },
     setup_requires=['pytest-runner'],
     test_suite='tests',
     tests_require=get_test_requirements(),
