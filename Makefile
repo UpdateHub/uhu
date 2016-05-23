@@ -1,10 +1,13 @@
 init:
 	pip install -r requirements-test.txt
 
-test: init test-unit
+test: init pep8 test-unit
+
+pep8:
+	pep8 --show-source efu tests
 
 test-unit:
-	python3 setup.py pytest --addopts '-v --cov=efu --cov-report=xml --junitxml=test-report.xml --pep8 --ignore ./tests/functional'
+	python3 setup.py pytest --addopts '-v --cov=efu --cov-report=xml --junitxml=test-report.xml --ignore ./tests/functional'
 
 test-functional:
 	py.test ./tests/functional
