@@ -2,6 +2,9 @@
 # This software is released under the MIT License
 
 import argparse
+import os
+
+from efu.upload import upload_patch
 
 
 class EFUParser(object):
@@ -27,9 +30,14 @@ class EFUParser(object):
 
     def upload_handler(self):
         """
-        This method will be responsible for calling the upload utility
+        This method will be responsible for validating arguments and
+        sending them to the upload utility
         """
-        print('uploading {}'.format(self.args.filename))
+        filename = self.args.filename
+        if os.path.isfile(filename):
+            upload_patch(filename)
+        else:
+            self.parser.error('file {} does not exist'.format(filename))
 
     def check_arguments(self):
         """
