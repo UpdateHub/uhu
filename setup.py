@@ -21,7 +21,7 @@ setup(
     description='Easy Firmware Over The Air command line utility',
     keywords='fota ota firmware update utility',
     version=get_version(),
-    packages=['efu'],
+    packages=['efu', 'efu.upload'],
     entry_points={
         'console_scripts': ['efu=efu.__main__:main']
     },

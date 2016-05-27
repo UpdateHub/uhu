@@ -4,7 +4,7 @@
 import argparse
 import sys
 
-from efu.upload import upload_patch
+from .upload import upload_patch
 
 
 class CLIParser(object):
