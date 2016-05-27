@@ -4,40 +4,41 @@
 import argparse
 import sys
 
-from .upload import upload_patch
+
+class CLIBaseSubparser(object):
+
+    def __init__(self):
+        self.parser = None
+
+    def set(self, parser):
+        """
+        This method must be responsible for adding itself as a
+        subparser into parser.
+        """
+        raise NotImplementedError
+
+    def handler(self):
+        """
+        This method must be responsible for the subparser main entry
+        point
+        """
+        raise NotImplementedError
 
 
 class CLIParser(object):
 
-    def __init__(self):
+    def __init__(self, subparsers=None):
         self.parser = argparse.ArgumentParser()
-        self.subparsers = self.parser.add_subparsers()
-        self.set_upload_parser()
+        self.set_subparsers(subparsers)
         self.args = self.parser.parse_args()
         self.check_has_arguments()
         self.run()
 
-    def set_upload_parser(self):
-        """
-        Creates and configures the upload parser
-        """
-        self.upload_parser = self.subparsers.add_parser(
-            'upload',
-            help='Uploads a patch',
-        )
-        self.upload_parser.add_argument('filename', help='patch file name')
-        self.upload_parser.set_defaults(handler=self.upload_handler)
-
-    def upload_handler(self):
-        """
-        This method will be responsible for validating arguments and
-        sending them to the upload utility
-        """
-        filename = self.args.filename
-        try:
-            upload_patch(filename)
-        except FileNotFoundError:
-            self.parser.error('file {} does not exist'.format(filename))
+    def set_subparsers(self, subparsers):
+        if subparsers is not None:
+            self.subparsers = self.parser.add_subparsers()
+            for parser in subparsers:
+                parser.set(self)
 
     def check_has_arguments(self):
         """
