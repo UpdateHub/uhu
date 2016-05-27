@@ -9,6 +9,7 @@ class CLIBaseSubparser(object):
 
     def __init__(self):
         self.parser = None
+        self.commands = None
 
     def set(self, parser):
         """

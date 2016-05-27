@@ -5,10 +5,13 @@
 import sys
 
 from .cliparser import CLIParser
+
 from .upload import parser as upload_parser
+from .config import parser as config_parser
 
 
 subparsers = [
+    config_parser,
     upload_parser,
 ]
 
