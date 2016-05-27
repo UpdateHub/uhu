@@ -2,7 +2,6 @@
 # This software is released under the MIT License
 
 import argparse
-import os
 import sys
 
 from efu.upload import upload_patch
@@ -35,9 +34,9 @@ class EFUParser(object):
         sending them to the upload utility
         """
         filename = self.args.filename
-        if os.path.isfile(filename):
+        try:
             upload_patch(filename)
-        else:
+        except FileNotFoundError:
             self.parser.error('file {} does not exist'.format(filename))
 
     def check_has_arguments(self):
