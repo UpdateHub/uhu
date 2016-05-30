@@ -3,7 +3,6 @@
 
 import json
 from functools import wraps
-from http.server import HTTPServer
 from http.server import BaseHTTPRequestHandler
 
 

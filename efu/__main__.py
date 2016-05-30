@@ -3,6 +3,7 @@
 
 import argparse
 import os
+import sys
 
 from efu.upload import upload_patch
 
@@ -14,7 +15,7 @@ class EFUParser(object):
         self.subparsers = self.parser.add_subparsers()
         self.set_upload_parser()
         self.args = self.parser.parse_args()
-        self.check_arguments()
+        self.check_has_arguments()
         self.run()
 
     def set_upload_parser(self):
@@ -39,12 +40,12 @@ class EFUParser(object):
         else:
             self.parser.error('file {} does not exist'.format(filename))
 
-    def check_arguments(self):
+    def check_has_arguments(self):
         """
         Checks if args is not empty. This is necessary since we are
         going to use subparser instead of common arguments.
         """
-        if not any((self.args._get_args(), self.args._get_kwargs())):
+        if len(sys.argv) == 1:
             self.parser.error('You must provide a command (e.g. upload)')
 
     def run(self):
@@ -57,5 +58,4 @@ def main():
 
 
 if __name__ == '__main__':
-    import sys
     sys.exit(main())
