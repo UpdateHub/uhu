@@ -59,10 +59,7 @@ class Config(object):
         """ Gets the value for the given a key """
         if not section:
             section = Sections.main
-        value = self.config.get(section, key, fallback=None)
-        if value is not None:
-            print(value)
-            return value
+        return self.config.get(section, key, fallback=None)
 
 
 config = Config()

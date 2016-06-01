@@ -2,7 +2,7 @@
 # This software is released under the MIT License
 
 from ..cliparser import CLIBaseSubparser
-from .config import config as efu_config
+from . import config as efu_config
 
 
 class ConfigParser(CLIBaseSubparser):
@@ -100,7 +100,9 @@ class ConfigParser(CLIBaseSubparser):
         )
 
     def get_handler(self):
-        efu_config.get(
+        value = efu_config.get(
             self.parser.args.key,
             section=self.parser.args.section,
         )
+        if value:
+            print(value)
