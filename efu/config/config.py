@@ -13,8 +13,10 @@ class Sections:
 class Config(object):
     """ This is the wrapper over ~/.efu configuration file. """
 
+    CONFIG_FILENAME = '~/.efu'
+
     def __init__(self):
-        self.file = os.path.expanduser('~/.efu')
+        self.file = self._get_config_filename()
         self.config = configparser.ConfigParser(
             default_section=Sections.main
         )
@@ -22,6 +24,9 @@ class Config(object):
         if not os.path.exists(self.file):
             self.write()
         self.read()
+
+    def _get_config_filename(self):
+        return os.path.expanduser(self.CONFIG_FILENAME)
 
     def write(self):
         with open(self.file, 'w') as fp:
