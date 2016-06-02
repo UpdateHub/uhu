@@ -3,8 +3,8 @@
 
 import requests
 
-from test_utils import BaseHTTPServerTestCase
-from httpd import GenericHTTPRequestHandler as handler
+from .test_utils import BaseHTTPServerTestCase
+from .httpd import GenericHTTPRequestHandler as handler
 
 
 class HTTPServerTestCase(BaseHTTPServerTestCase):

@@ -5,7 +5,7 @@ import threading
 import unittest
 from http.server import HTTPServer
 
-from httpd import GenericHTTPRequestHandler as handler
+from .httpd import GenericHTTPRequestHandler as handler
 
 
 class BaseHTTPServerTestCase(unittest.TestCase):

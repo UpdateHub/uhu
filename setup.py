@@ -5,12 +5,6 @@ from pip.req import parse_requirements
 from setuptools import setup
 
 
-def get_test_requirements():
-    file = parse_requirements('requirements-test.txt', session=False)
-    requirements = [str(req.req) for req in file]
-    return requirements
-
-
 def get_version():
     from efu import __version__
     return __version__
@@ -29,9 +23,6 @@ setup(
     entry_points={
         'console_scripts': ['efu=efu.__main__:main']
     },
-    setup_requires=['pytest-runner'],
-    test_suite='tests',
-    tests_require=get_test_requirements(),
     author='O.S. Systems Software LTDA',
     author_email='contato@ossystems.com.br',
     url='http://www.ossystems.com.br',
