@@ -3,7 +3,7 @@
 
 import requests
 
-from .test_utils import BaseHTTPServerTestCase
+from .utils import BaseHTTPServerTestCase
 from .httpd import GenericHTTPRequestHandler as handler
 
 
