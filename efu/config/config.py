@@ -35,18 +35,13 @@ class Config(object):
     def read(self):
         self.config.read(self.file)
 
-    def set_initial(self):
+    def set_initial(self, access_id, access_secret):
         """
         This set the initial required values (credentials) to run
         other efu commands.
         """
-        access_key_id = input('EasyFOTA Access Key ID: ')
-        access_secret_key = input('EasyFota Systems Secret Access Key: ')
-        self.config[Sections.auth] = {
-            'access_id': access_key_id,
-            'access_secret': access_secret_key,
-        }
-        self.write()
+        self.set('access_id', access_id, section=Sections.auth)
+        self.set('access_secret', access_secret, section=Sections.auth)
 
     def set(self, key, value, section=Sections.main):
         """ Adds a new entry on settings based on key and value """
@@ -59,7 +54,8 @@ class Config(object):
         """ Gets the value for the given a key """
         if not section:
             section = Sections.main
-        return self.config.get(section, key, fallback=None)
+        value = self.config.get(section, key, fallback=None)
+        return value
 
 
 config = Config()

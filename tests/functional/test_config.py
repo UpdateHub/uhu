@@ -11,11 +11,15 @@ class ConfigCommandTestCase(unittest.TestCase):
 
     def setUp(self):
         self.filename = os.path.expanduser('~/.efu')
+        self._backup = None
+
         if os.path.exists(self.filename):
             self._backup = open(self.filename).read()
+
         self.config = configparser.ConfigParser()
 
     def tearDown(self):
+        os.remove(self.filename)
         if self._backup:
             with open(self.filename, 'w') as fp:
                 fp.write(self._backup)

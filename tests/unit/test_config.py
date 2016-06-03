@@ -3,7 +3,6 @@
 
 import os
 import unittest
-from unittest.mock import partial, patch
 
 from efu.config.config import Config
 
@@ -64,3 +63,16 @@ class ConfigTestCase(unittest.TestCase):
         config = Config()
         config.set(key, value, section=section)
         self.assertEqual(config.get(key, section=section), value)
+
+    def test_set_initial_configuration(self):
+        expected_id = 'id'
+        expected_secret = 'secret'
+
+        config = Config()
+        config.set_initial(expected_id, expected_secret)
+
+        observed_id = config.get('access_id', section='auth')
+        observed_secret = config.get('access_secret', section='auth')
+
+        self.assertEqual(observed_id, expected_id)
+        self.assertEqual(observed_secret, expected_secret)

@@ -90,7 +90,9 @@ class ConfigParser(CLIBaseSubparser):
         init_command.set_defaults(handler=self.init_handler)
 
     def init_handler(self):
-        efu_config.set_initial()
+        access_id = input('EasyFOTA Access Key ID: ')
+        access_secret = input('EasyFota Systems Secret Access Key: ')
+        efu_config.set_initial(access_id, access_secret)
 
     def set_handler(self):
         efu_config.set(
