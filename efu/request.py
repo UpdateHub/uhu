@@ -16,11 +16,15 @@ class Request(object):
 
         self.date = datetime.datetime.utcnow()
         self.timestamp = self.date.timestamp()
+        self.payload_sha256 = self._generate_payload_sha256()
+
         self.headers = {
             'Host': self._url.hostname,
+            'Timestamp': self.timestamp,
+            'Content-sha256': self.payload_sha256,
         }
 
-    def _canonical_payload(self):
+    def _generate_payload_sha256(self):
         payload = self.payload
         if not isinstance(payload, bytes):
             payload = payload.encode()
@@ -35,7 +39,7 @@ class Request(object):
         return '&'.join(sorted(query))
 
     def _canonical_headers(self):
-        normalized_headers = [(k.strip().lower(), v.strip())
+        normalized_headers = [(k.strip().lower(), str(v).strip())
                               for k, v in self.headers.items()]
         headers = ['{}:{}'.format(header, value)
                    for header, value in normalized_headers]
@@ -48,5 +52,5 @@ class Request(object):
             uri=self._url.path,
             query=self._canonical_query(),
             headers=self._canonical_headers(),
-            payload=self._canonical_payload(),
+            payload=self.payload_sha256,
         )

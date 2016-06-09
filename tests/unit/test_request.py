@@ -3,6 +3,8 @@
 
 import hashlib
 import unittest
+from datetime import datetime, timezone
+from unittest.mock import patch
 
 from efu.auth import SignatureV1
 from efu.request import Request
@@ -10,7 +12,46 @@ from efu.request import Request
 
 class RequestTestCase(unittest.TestCase):
 
-    def test_canonical_request(self):
+    @patch('efu.request.datetime.datetime')
+    def test_request_has_minimal_headers(self, mock):
+        mock_date = datetime(1970, 1, 1, tzinfo=timezone.utc)
+        mock.utcnow.return_value = mock_date
+
+        request = Request('https://localhost/', 'post', b'\0')
+
+        host = request.headers.get('Host')
+        timestamp = request.headers.get('Timestamp')
+        sha256 = request.headers.get('Content-sha256')
+
+        self.assertEqual(len(request.headers), 3)
+        self.assertEqual(host, 'localhost')
+        self.assertEqual(timestamp, 0)
+        self.assertEqual(
+            sha256,
+            '6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d'
+        )
+
+    def test_header_content_sha256_when_bytes(self):
+        payload = b'bytes'
+        request = Request('localhost', 'post', payload)
+        expected = hashlib.sha256(payload).hexdigest()
+        observed = request.headers.get('Content-sha256')
+        self.assertEqual(observed, expected)
+
+    def test_header_content_sha256_when_string(self):
+        payload = 'string'
+        request = Request('localhost', 'post', payload)
+        expected = hashlib.sha256(payload.encode()).hexdigest()
+        observed = request.headers.get('Content-sha256')
+        self.assertEqual(observed, expected)
+
+
+class CanonicalRequestTestCase(unittest.TestCase):
+
+    @patch('efu.request.datetime.datetime')
+    def test_canonical_request(self, mock):
+        date = datetime(1970, 1, 1, tzinfo=timezone.utc)
+        mock.utcnow.return_value = date
         request = Request(
             'http://localhost/upload?c=3&b=2&a=1',
             'post',
@@ -19,24 +60,12 @@ class RequestTestCase(unittest.TestCase):
         expected = '''POST
 /upload
 a=1&b=2&c=3
+content-sha256:6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d
 host:localhost
+timestamp:0.0
 
 6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d'''
         self.assertEqual(request.canonical(), expected)
-
-    def test_canonical_payload_when_bytes(self):
-        payload = b'bytes'
-        request = Request('localhost', 'post', payload)
-        expected = hashlib.sha256(payload).hexdigest()
-        observed = request._canonical_payload()
-        self.assertEqual(observed, expected)
-
-    def test_canonical_payload_when_string(self):
-        payload = 'string'
-        request = Request('localhost', 'post', payload)
-        expected = hashlib.sha256(payload.encode()).hexdigest()
-        observed = request._canonical_payload()
-        self.assertEqual(observed, expected)
 
     def test_canonical_query(self):
         url = 'https://localhost/?c=000&bb=111&aaa=222'
@@ -70,16 +99,14 @@ host:localhost
         request = Request('http://foo.bar.com.br', 'post', '')
         request.headers = {
             'Host': 'foo.bar.com.br',
-            'x-efu-content-sha256': '1234',
-            'x-efu-date': ' 1 ',
-            'Date': 'Tue, 15 Nov 1994 08:12:31 GMT',
+            'Content-sha256': '1234',
+            'Timestamp': 123456.1234,
             'Accept': 'text/json',
         }
         expected = '''accept:text/json
-date:Tue, 15 Nov 1994 08:12:31 GMT
+content-sha256:1234
 host:foo.bar.com.br
-x-efu-content-sha256:1234
-x-efu-date:1'''
+timestamp:123456.1234'''
         observed = request._canonical_headers()
         self.assertEqual(observed, expected)
 
