@@ -1,6 +1,7 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+import hashlib
 import hmac
 
 
@@ -19,6 +20,10 @@ class SignatureV1(object):
         self._secret = secret
         self._timestamp = str(self._request.timestamp)
 
+    def _hashed_canonical_request(self):
+        cr = self._request.canonical()
+        return hashlib.sha256(cr.encode()).hexdigest()
+
     def _signed_headers(self):
         '''
         Generates a string listing alphabetically all the headers included
@@ -36,7 +41,7 @@ class SignatureV1(object):
         '''
         return 'EFU-V1\n{timestamp}\n{canonical_request}'.format(
             timestamp=self._request.timestamp,
-            canonical_request=self._request.canonical(),
+            canonical_request=self._hashed_canonical_request(),
         )
 
     def _key(self):
