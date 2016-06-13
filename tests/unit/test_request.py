@@ -45,6 +45,19 @@ class RequestTestCase(unittest.TestCase):
         observed = request.headers.get('Content-sha256')
         self.assertEqual(observed, expected)
 
+    def test_prepared_headers_are_strings(self):
+        request = Request('localhost', 'post', '')
+        headers = request.headers
+        prepared_headers = request._prepare_headers()
+
+        self.assertEqual(prepared_headers.keys(), headers.keys())
+
+        for value in prepared_headers.values():
+            self.assertIs(type(value), str)
+
+        for header in headers:
+            self.assertEqual(str(headers[header]), prepared_headers[header])
+
 
 class CanonicalRequestTestCase(unittest.TestCase):
 

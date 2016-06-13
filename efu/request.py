@@ -62,3 +62,13 @@ class Request(object):
         access_secret = config.get('access_secret', section='auth')
         signature = SignatureV1(self, access_id, access_secret)
         self.headers['Authorization'] = signature.signature
+
+    def _prepare_headers(self):
+        '''
+        Transforms all header values in strings.
+
+        This must be called before any real HTTP request to prevent
+        breaking any library that just expects strings as header
+        values.
+        '''
+        return {header: str(self.headers[header]) for header in self.headers}
