@@ -12,7 +12,7 @@ from efu.request import Request
 
 class RequestTestCase(unittest.TestCase):
 
-    @patch('efu.request.datetime.datetime')
+    @patch('efu.request.datetime')
     def test_request_has_minimal_headers(self, mock):
         mock_date = datetime(1970, 1, 1, tzinfo=timezone.utc)
         mock.utcnow.return_value = mock_date
@@ -48,7 +48,7 @@ class RequestTestCase(unittest.TestCase):
 
 class CanonicalRequestTestCase(unittest.TestCase):
 
-    @patch('efu.request.datetime.datetime')
+    @patch('efu.request.datetime')
     def test_canonical_request(self, mock):
         date = datetime(1970, 1, 1, tzinfo=timezone.utc)
         mock.utcnow.return_value = date

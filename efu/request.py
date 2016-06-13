@@ -1,7 +1,7 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-import datetime
+from datetime import datetime
 import hashlib
 from urllib.parse import quote, urlparse, parse_qs
 
@@ -17,7 +17,7 @@ class Request(object):
         self.method = method.upper()
         self.payload = payload
 
-        self.date = datetime.datetime.utcnow()
+        self.date = datetime.utcnow()
         self.timestamp = self.date.timestamp()
         self.payload_sha256 = self._generate_payload_sha256()
 
