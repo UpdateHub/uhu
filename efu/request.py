@@ -17,8 +17,7 @@ class Request(object):
         self.method = method.upper()
         self.payload = payload
 
-        self.date = datetime.utcnow()
-        self.timestamp = self.date.timestamp()
+        self.timestamp = datetime.utcnow().timestamp()
         self.payload_sha256 = self._generate_payload_sha256()
 
         self.headers = {
