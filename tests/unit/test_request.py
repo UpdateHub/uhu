@@ -6,6 +6,9 @@ import unittest
 from datetime import datetime, timezone
 from unittest.mock import patch
 
+import httpretty
+import requests
+
 from efu.auth import SignatureV1
 from efu.request import Request
 
@@ -57,6 +60,29 @@ class RequestTestCase(unittest.TestCase):
 
         for header in headers:
             self.assertEqual(str(headers[header]), prepared_headers[header])
+
+    @httpretty.activate
+    def test_send_request(self):
+        httpretty.register_uri(
+            httpretty.GET,
+            'https://localhost/',
+            body='{"status": "ok"}',
+        )
+        request = Request('https://localhost/', 'get', '')
+        response = request.send()
+        self.assertEqual(response.json()['status'], 'ok')
+
+    @httpretty.activate
+    def test_request_is_signed(self):
+        httpretty.register_uri(
+            httpretty.GET,
+            'https://localhost/',
+            body='{"status": "ok"}',
+        )
+        Request('https://localhost/', 'get', '').send()
+        response = httpretty.last_request()
+        auth_header = response.headers.get('Authorization')
+        self.assertIsNotNone(auth_header)
 
 
 class CanonicalRequestTestCase(unittest.TestCase):

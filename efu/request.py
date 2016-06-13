@@ -5,6 +5,8 @@ from datetime import datetime
 import hashlib
 from urllib.parse import quote, urlparse, parse_qs
 
+import requests
+
 from .auth import SignatureV1
 from .config import config
 
@@ -72,3 +74,14 @@ class Request(object):
         values.
         '''
         return {header: str(self.headers[header]) for header in self.headers}
+
+    def send(self):
+        self._sign()
+        headers = self._prepare_headers()
+        response = requests.request(
+            self.method,
+            self.url,
+            headers=headers,
+            data=self.payload
+        )
+        return response
