@@ -115,6 +115,9 @@ class SignedRequestTestCase(unittest.TestCase):
 
     def test_signed_request_has_the_authorization_header(self):
         request = Request('https://127.0.0.1/upload', 'post', '')
-        signed_request = SignatureV1(request, 'ACCESS_ID', 'SECRET').sign()
-        header = signed_request.headers.get('Authorization', None)
+        header = request.headers.get('Authorization', None)
+        self.assertIsNone(header)
+
+        request._sign()
+        header = request.headers.get('Authorization', None)
         self.assertIsNotNone(header)

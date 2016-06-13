@@ -5,6 +5,9 @@ import datetime
 import hashlib
 from urllib.parse import quote, urlparse, parse_qs
 
+from .auth import SignatureV1
+from .config import config
+
 
 class Request(object):
 
@@ -54,3 +57,9 @@ class Request(object):
             headers=self._canonical_headers(),
             payload=self.payload_sha256,
         )
+
+    def _sign(self):
+        access_id = config.get('access_id', section='auth')
+        access_secret = config.get('access_secret', section='auth')
+        signature = SignatureV1(self, access_id, access_secret)
+        self.headers['Authorization'] = signature.signature

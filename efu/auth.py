@@ -56,7 +56,7 @@ class SignatureV1(object):
         )
         return final_key.hexdigest()
 
-    def _signature(self):
+    def _signature_hash(self):
         '''
         Generates the signature using hmac-sha256 with the already
         computed key and message.
@@ -68,21 +68,15 @@ class SignatureV1(object):
         )
         return signature.hexdigest()
 
-    def _header_value(self):
+    @property
+    def signature(self):
         '''
         Creates the value for the Authorization header.
         '''
-        header = 'EFU-V1 Credential={}, SignedHeaders={}, Signature={}'
+        header = 'EFU-V1 Credential={}/{}, SignedHeaders={}, Signature={}'
         return header.format(
             self._access_id,
+            self._timestamp,
             self._signed_headers(),
-            self._signature(),
+            self._signature_hash(),
         )
-
-    def sign(self):
-        '''
-        Adds the authorization header with the computed value in the given
-        request.
-        '''
-        self._request.headers['Authorization'] = self._header_value()
-        return self._request

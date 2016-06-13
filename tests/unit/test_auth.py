@@ -65,7 +65,7 @@ class SignatureV1TestCase(unittest.TestCase):
         observed = signature._key()
         self.assertEqual(observed, expected)
 
-    def test_signature(self):
+    def test_signature_hash(self):
         '''
         The expected hash here comes from the previous generated ones. It
         is a hmac-sha256 using as key the expected value from the
@@ -74,28 +74,14 @@ class SignatureV1TestCase(unittest.TestCase):
         '''
         expected = '3e9d0bb3df49a1243201258d6390ddddeb6654ac722992cd9198d84f637e5929'  # nopep8
         signature = SignatureV1(self.request, '', 'SECRET')
-        observed = signature._signature()
+        observed = signature._signature_hash()
         self.assertEqual(observed, expected)
 
-    def test_header_value(self):
+    def test_final_signature(self):
         '''
         The signature hash used here is the same from test_signature method
         '''
-        expected = 'EFU-V1 Credential=123ACCESSID, SignedHeaders=bar;foo;host;x-efu-timestamp, Signature=3e9d0bb3df49a1243201258d6390ddddeb6654ac722992cd9198d84f637e5929'  # nopep8
+        expected = 'EFU-V1 Credential=123ACCESSID/1, SignedHeaders=bar;foo;host;x-efu-timestamp, Signature=3e9d0bb3df49a1243201258d6390ddddeb6654ac722992cd9198d84f637e5929'  # nopep8
         signature = SignatureV1(self.request, '123ACCESSID', 'SECRET')
-        observed = signature._header_value()
-        self.assertEqual(observed, expected)
-
-    def test_request_signature(self):
-        '''
-        The signature hash used here is the same from test_signature method
-        '''
-        expected = 'EFU-V1 Credential=123ACCESSID, SignedHeaders=bar;foo;host;x-efu-timestamp, Signature=3e9d0bb3df49a1243201258d6390ddddeb6654ac722992cd9198d84f637e5929'  # nopep8
-        signature = SignatureV1(self.request, '123ACCESSID', 'SECRET')
-        signed_request = signature.sign()
-        observed = signed_request.headers.get(
-            'Authorization',
-            None,
-        )
-        self.assertIsNotNone(observed)
+        observed = signature.signature
         self.assertEqual(observed, expected)
