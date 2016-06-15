@@ -6,7 +6,7 @@ from functools import wraps
 from http.server import BaseHTTPRequestHandler
 
 
-class GenericHTTPRequestHandler(BaseHTTPRequestHandler):
+class RequestHandler(BaseHTTPRequestHandler):
 
     body = None
     code = 200
@@ -28,7 +28,7 @@ class GenericHTTPRequestHandler(BaseHTTPRequestHandler):
             if self.body:
                 body = json.dumps(self.body).encode()
                 self.wfile.write(body)
-            GenericHTTPRequestHandler.reset_defaults()
+            RequestHandler.reset_defaults()
         return wrapped
 
     @generic_handler

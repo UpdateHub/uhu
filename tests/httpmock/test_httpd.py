@@ -4,7 +4,7 @@
 import requests
 
 from .utils import BaseHTTPServerTestCase
-from .httpd import GenericHTTPRequestHandler as handler
+from .httpd import RequestHandler as handler
 
 
 class HTTPServerTestCase(BaseHTTPServerTestCase):

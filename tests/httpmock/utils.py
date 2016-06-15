@@ -5,7 +5,7 @@ import threading
 import unittest
 from http.server import HTTPServer
 
-from .httpd import GenericHTTPRequestHandler as handler
+from .httpd import RequestHandler
 
 
 class BaseHTTPServerTestCase(unittest.TestCase):
@@ -14,7 +14,7 @@ class BaseHTTPServerTestCase(unittest.TestCase):
     def setUpClass(cls):
         cls.httpd = HTTPServer(
             ('127.0.0.1', 0),
-            handler,
+            RequestHandler,
         )
         cls.SERVER_ADDRESS, cls.SERVER_PORT = cls.httpd.server_address
         threading.Thread(target=cls.httpd.serve_forever).start()
