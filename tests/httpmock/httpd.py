@@ -2,8 +2,9 @@
 # This software is released under the MIT License
 
 import json
+import threading
 from functools import wraps
-from http.server import BaseHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 
 class RequestHandler(BaseHTTPRequestHandler):
@@ -50,3 +51,12 @@ class RequestHandler(BaseHTTPRequestHandler):
     @generic_handler
     def do_HEAD(self):
         pass
+
+
+class HTTPMockServer(HTTPServer):
+
+    def __init__(self):
+        super().__init__(('0.0.0.0', 0), RequestHandler)
+
+    def start(self):
+        threading.Thread(target=self.serve_forever).start()

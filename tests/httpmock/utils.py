@@ -1,23 +1,18 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-import threading
 import unittest
-from http.server import HTTPServer
 
-from .httpd import RequestHandler
+from .httpd import HTTPMockServer
 
 
 class BaseHTTPServerTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.httpd = HTTPServer(
-            ('127.0.0.1', 0),
-            RequestHandler,
-        )
+        cls.httpd = HTTPMockServer()
+        cls.httpd.start()
         cls.SERVER_ADDRESS, cls.SERVER_PORT = cls.httpd.server_address
-        threading.Thread(target=cls.httpd.serve_forever).start()
 
     @classmethod
     def tearDownClass(cls):
