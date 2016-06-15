@@ -2,7 +2,7 @@
 # This software is released under the MIT License
 
 from ..cliparser import CLIBaseSubparser
-from .upload import upload_patch
+from .upload import Transaction
 
 
 class UploadParser(CLIBaseSubparser):
@@ -29,6 +29,6 @@ class UploadParser(CLIBaseSubparser):
         """
         filename = self.parser.args.filename
         try:
-            upload_patch(filename)
+            Transaction(filename).run()
         except FileNotFoundError:
             self.parser.error('file {} does not exist'.format(filename))
