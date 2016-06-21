@@ -99,23 +99,38 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     @generic_handler
     def do_POST(self):
-        pass
+        '''
+        POST handler. Override it if you do not want to use generic
+        handler.
+        '''
 
     @generic_handler
     def do_GET(self):
-        pass
+        '''
+        GET handler. Override it if you do not want to use generic
+        handler.
+        '''
 
     @generic_handler
     def do_PUT(self):
-        pass
+        '''
+        PUT handler. Override it if you do not want to use generic
+        handler.
+        '''
 
     @generic_handler
     def do_DELETE(self):
-        pass
+        '''
+        DELETE handler. Override it if you do not want to use generic
+        handler.
+        '''
 
     @generic_handler
     def do_HEAD(self):
-        pass
+        '''
+        HEAD handler. Override it if you do not want to use generic
+        handler.
+        '''
 
 
 class HTTPMockServer(HTTPServer):
