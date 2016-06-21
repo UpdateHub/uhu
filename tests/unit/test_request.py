@@ -6,14 +6,15 @@ import unittest
 from datetime import datetime, timezone
 from unittest.mock import patch
 
-import httpretty
 import requests
 
 from efu.auth import SignatureV1
 from efu.request import Request
 
+from ..httpmock.utils import BaseHTTPServerTestCase
 
-class RequestTestCase(unittest.TestCase):
+
+class RequestTestCase(BaseHTTPServerTestCase):
 
     @patch('efu.request.datetime')
     def test_request_has_minimal_headers(self, mock):
@@ -61,26 +62,16 @@ class RequestTestCase(unittest.TestCase):
         for header in headers:
             self.assertEqual(str(headers[header]), prepared_headers[header])
 
-    @httpretty.activate
     def test_send_request(self):
-        httpretty.register_uri(
-            httpretty.GET,
-            'https://localhost/',
-            body='{"status": "ok"}',
-        )
-        request = Request('https://localhost/', 'get', '')
+        self.handler.register_response('/', body='{"status": "ok"}')
+        request = Request(self.url(), 'GET', '')
         response = request.send()
         self.assertEqual(response.json()['status'], 'ok')
 
-    @httpretty.activate
     def test_request_is_signed(self):
-        httpretty.register_uri(
-            httpretty.GET,
-            'https://localhost/',
-            body='{"status": "ok"}',
-        )
-        Request('https://localhost/', 'get', '').send()
-        response = httpretty.last_request()
+        self.handler.register_response('/signed', body='{"status": "ok"}')
+        Request(self.url('/signed'), 'GET', '').send()
+        response = self.handler.requests[-1]
         auth_header = response.headers.get('Authorization')
         self.assertIsNotNone(auth_header)
 
