@@ -1,34 +1,25 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-from ..cliparser import CLIBaseSubparser
+import click
+
 from .upload import Transaction
+from .exceptions import InvalidFileError, InvalidPackageFileError
 
 
-class UploadParser(CLIBaseSubparser):
-
-    def set(self, parser):
-        """
-        Creates and configures the upload parser
-        """
-        self.parser = parser
-        self.parser.upload_parser = self.parser.subparsers.add_parser(
-            'upload',
-            help='Uploads a patch',
-        )
-        self.parser.upload_parser.add_argument(
-            'filename',
-            help='patch file name',
-        )
-        self.parser.upload_parser.set_defaults(handler=self.handler)
-
-    def handler(self):
-        """
-        This method will be responsible for validating arguments and
-        sending them to the upload utility
-        """
-        filename = self.parser.args.filename
-        try:
-            Transaction(filename).run()
-        except FileNotFoundError:
-            self.parser.error('file {} does not exist'.format(filename))
+@click.command(name='upload')
+@click.argument('package_file', type=click.Path())
+def transaction_command(package_file):
+    """
+    Makes a upload transaction based on a package file.
+    Package file must be in json format.
+    """
+    try:
+        transaction = Transaction(package_file)
+        transaction.run()
+    except InvalidFileError:
+        click.echo('Invalid file within package')
+        raise click.BadParameter
+    except InvalidPackageFileError:
+        click.echo('Invalid package file')
+        raise click.BadParameter

@@ -11,14 +11,14 @@ from ..base import BaseTransactionTestCase
 class UploadCommandTestCase(BaseTransactionTestCase):
 
     def test_upload_command_exists(self):
-        response = subprocess.check_output(['efu', 'upload', '-h'])
+        response = subprocess.check_output(['efu', 'upload', '--help'])
         self.assertIn('upload', response.decode())
 
-    def test_upload_command_requires_a_valid_filename(self):
-        # Checks if a filename is provided
+    def test_upload_command_requires_a_filename(self):
         with self.assertRaises(subprocess.CalledProcessError):
             subprocess.check_call(['efu', 'upload'])
-        # Checks that a file must exists
+
+    def test_upload_command_requires_a_existent_filename(self):
         with self.assertRaises(subprocess.CalledProcessError):
             subprocess.check_call(['efu', 'upload', 'no_exists.json'])
 

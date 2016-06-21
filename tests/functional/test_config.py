@@ -25,15 +25,15 @@ class ConfigCommandTestCase(unittest.TestCase):
                 fp.write(self._backup)
 
     def test_config_command_exists(self):
-        response = subprocess.check_output(['efu', 'config', '-h'])
+        response = subprocess.check_output(['efu', 'config', '--help'])
         self.assertIn('config', response.decode())
 
     def test_config_set_command_exists(self):
-        response = subprocess.check_output(['efu', 'config', 'set', '-h'])
+        response = subprocess.check_output(['efu', 'config', 'set', '--help'])
         self.assertIn('config', response.decode())
 
     def test_config_get_command_exists(self):
-        response = subprocess.check_output(['efu', 'config', 'get', '-h'])
+        response = subprocess.check_output(['efu', 'config', 'get', '--help'])
         self.assertIn('config', response.decode())
 
     def test_can_set_a_configuration(self):
@@ -71,10 +71,11 @@ class ConfigCommandTestCase(unittest.TestCase):
     def test_configuration_file_persists(self):
         subprocess.call(['efu', 'config', 'set', 'foo', 'bar'])
         subprocess.call(['efu', 'config', 'set', 'bar', 'foo'])
+        with open(self.filename) as fp:
+            print(fp.read())
 
         config = configparser.ConfigParser()
         config.read(self.filename)
-
         self.assertEqual(config['settings']['foo'], 'bar')
         self.assertEqual(config['settings']['bar'], 'foo')
 

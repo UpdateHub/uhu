@@ -13,13 +13,13 @@ class CLITestCase(unittest.TestCase):
         self.assertTrue(response)
 
     def test_efu_can_be_called_as_a_module(self):
-        response = subprocess.call(['python', '-m', 'efu', '-h'])
+        response = subprocess.call(['python', '-m', 'efu', '--help'])
         self.assertEqual(response, 0)
 
     def test_efu_is_parsing_arguments(self):
-        response = subprocess.check_output(['efu', '-h'])
+        response = subprocess.check_output(['efu', '--help'])
         self.assertIn('help', response.decode())
 
-    def test_efu_raises_error_when_called_without_arguments(self):
-        with self.assertRaises(subprocess.CalledProcessError):
-            subprocess.check_call('efu')
+    def test_efu_prints_help_message_when_called_without_arguments(self):
+        response = subprocess.check_output('efu')
+        self.assertIn('--help', response.decode())

@@ -23,7 +23,10 @@ setup(
     entry_points={
         'console_scripts': ['efu=efu.__main__:main']
     },
-    install_requires=['requests==2.10.0'],
+    install_requires=[
+        'click==6.6',
+        'requests==2.10.0',
+    ],
     author='O.S. Systems Software LTDA',
     author_email='contato@ossystems.com.br',
     url='http://www.ossystems.com.br',

@@ -4,21 +4,11 @@
 
 import sys
 
-from .cliparser import CLIParser
-
-from .upload import parser as upload_parser
-from .config import parser as config_parser
-
-
-subparsers = [
-    config_parser,
-    upload_parser,
-]
+from .cliparser import cli
 
 
 def main():
-    CLIParser(subparsers)
-    return 0
+    cli()
 
 
 if __name__ == '__main__':
