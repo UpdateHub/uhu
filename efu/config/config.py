@@ -29,6 +29,7 @@ class Config(object):
         return os.path.expanduser(self.CONFIG_FILENAME)
 
     def write(self):
+        self.read()
         with open(self.file, 'w') as fp:
             self.config.write(fp)
 

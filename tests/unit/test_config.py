@@ -76,3 +76,10 @@ class ConfigTestCase(unittest.TestCase):
 
         self.assertEqual(observed_id, expected_id)
         self.assertEqual(observed_secret, expected_secret)
+
+    def test_set_command_does_not_override_previous_settings(self):
+        config = Config()
+        config.set('foo', 'bar')
+        config.set('bar', 'foo')
+        self.assertEqual(config.get('foo'), 'bar')
+        self.assertEqual(config.get('bar'), 'foo')
