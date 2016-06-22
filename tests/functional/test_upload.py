@@ -23,7 +23,7 @@ class UploadCommandTestCase(BaseTransactionTestCase):
             subprocess.check_call(['efu', 'upload', 'no_exists.json'])
 
     def test_upload_command_runs_successfully(self):
-        pkg = self.set_complete_transaction_response()
+        pkg = self.fixture.set_transaction(1)
         command = ['efu', 'upload', pkg]
         response = subprocess.check_call(command)
         self.assertEqual(response, 0)

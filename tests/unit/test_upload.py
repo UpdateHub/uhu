@@ -18,7 +18,7 @@ class FileTestCase(BaseTransactionTestCase):
 
     def setUp(self):
         super().setUp()
-        self.file_name = self.create_empty_file()
+        self.file_name = self.fixture.create_file(b'\0')
 
     def test_can_reset_file_id_generation(self):
         f1 = File(self.file_name)
@@ -63,17 +63,12 @@ class FileTestCase(BaseTransactionTestCase):
         self.assertEqual(result, UploadStatus.EXISTS)
 
     def test_upload_requests_payload_are_made_correctly(self):
-        part_urls = self.register_file_part_upload_path(4)
-        finish_url = self.register_file_finish_upload_path()
+        fn, conf = self.fixture.set_file(1, 1, content=b'1234', chunk_size=1)
 
-        content = b'1234'
-        with open(self.file_name, 'wb') as fp:
-            fp.write(content)
-
-        file = File(self.file_name)
+        file = File(fn)
         file.exists_in_server = False
-        file.part_upload_urls = part_urls
-        file.finish_upload_url = finish_url
+        file.part_upload_urls = conf['urls']
+        file.finish_upload_url = conf['finish_upload_url']
         file.chunk_size = 1
         file.upload()
 
@@ -85,39 +80,36 @@ class FileTestCase(BaseTransactionTestCase):
         self.assertEqual(self.httpd.requests[4].body, b'')
 
     def test_upload_returns_failure_result_when_part_upload_fails(self):
-        part_urls = self.register_file_part_upload_path(success=False)
-        finish_url = self.register_file_finish_upload_path()
+        fn, conf = self.fixture.set_file(1, 1, part_success=False)
 
-        file = File(self.file_name)
+        file = File(fn)
         file.exists_in_server = False
-        file.part_upload_urls = part_urls
-        file.finish_upload_url = finish_url
+        file.part_upload_urls = conf['urls']
+        file.finish_upload_url = conf['finish_upload_url']
         file.chunk_size = 1
 
         result = file.upload()
         self.assertEqual(result, UploadStatus.PART_FAIL)
 
     def test_upload_returns_failure_when_finishing_upload_fails(self):
-        part_urls = self.register_file_part_upload_path(success=True)
-        finish_url = self.register_file_finish_upload_path(success=False)
+        fn, conf = self.fixture.set_file(1, 1, finish_success=False)
 
         file = File(self.file_name)
         file.exists_in_server = False
-        file.part_upload_urls = part_urls
-        file.finish_upload_url = finish_url
+        file.part_upload_urls = conf['urls']
+        file.finish_upload_url = conf['finish_upload_url']
         file.chunk_size = 1
 
         result = file.upload()
         self.assertEqual(result, UploadStatus.FAIL)
 
     def test_returns_success_when_upload_is_successful(self):
-        part_urls = self.register_file_part_upload_path()
-        finish_url = self.register_file_finish_upload_path()
+        fn, conf = self.fixture.set_file(1, 1)
 
         file = File(self.file_name)
         file.exists_in_server = False
-        file.part_upload_urls = part_urls
-        file.finish_upload_url = finish_url
+        file.part_upload_urls = conf['urls']
+        file.finish_upload_url = conf['finish_upload_url']
         file.chunk_size = 1
 
         result = file.upload()
@@ -125,6 +117,10 @@ class FileTestCase(BaseTransactionTestCase):
 
 
 class PackageTestCase(BaseTransactionTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.project_id = 1
 
     def test_raises_invalid_package_file_with_inexistent_file(self):
         with self.assertRaises(InvalidPackageFileError):
@@ -135,20 +131,19 @@ class PackageTestCase(BaseTransactionTestCase):
             Package(__file__)
 
     def test_can_load_package_file(self):
-        project_id = 1
-        n_files = 2
-        package_fn, files = self.create_stub_package(project_id, n_files)
+        files = [self.fixture.create_file(b'0') for _ in range(2)]
+        package_fn = self.fixture.set_package(self.project_id, files)
+
         package = Package(package_fn)
 
-        self.assertEqual(package.project_id, project_id)
-        self.assertEqual(len(package.files), 2)
+        self.assertEqual(package.project_id, self.project_id)
+        self.assertEqual(len(package.files), len(files))
         for file in package.files:
             self.assertIsInstance(file, File)
 
     def test_file_id_matches_files_index(self):
-        project_id = 1
-        n_files = 15
-        package_fn, files = self.create_stub_package(project_id, n_files)
+        files = [self.fixture.create_file(b'0') for _ in range(15)]
+        package_fn = self.fixture.set_package(self.project_id, files)
         package = Package(package_fn)
 
         for file in package.files:
@@ -160,65 +155,64 @@ class TransactionTestCase(BaseTransactionTestCase):
     def setUp(self):
         super().setUp()
         self.project_id = 'P1234'
-        self.n_files = 2
-        package = self.create_stub_package(self.project_id, self.n_files)
-        self.package_file, self.files = package
+        base_files = [
+            self.fixture.set_file(self.project_id, 0, exists=True),
+            self.fixture.set_file(self.project_id, 1, exists=False),
+        ]
+        self.files, self.responses = [], []
+        for file, response in base_files:
+            self.files.append(file)
+            self.responses.append(response)
+        self.package_fn = self.fixture.set_package(self.project_id, self.files)
 
     def test_can_make_initial_payload_correctly(self):
-        f1_content = b'spam'
-        f1_sha256 = hashlib.sha256(f1_content).hexdigest()
-        with open(self.files[0], 'wb') as fp:
-            fp.write(f1_content)
+        project_id = 123
+        files, hashes = [], []
+        for content in (b'spam', b'eggs'):
+            files.append(self.fixture.create_file(content))
+            hashes.append(hashlib.sha256(content).hexdigest())
 
-        f2_content = b'eggs'
-        f2_sha256 = hashlib.sha256(f2_content).hexdigest()
-        with open(self.files[1], 'wb') as fp:
-            fp.write(f2_content)
+        pkg = self.fixture.set_package(project_id, files)
+        transaction = Transaction(pkg)
+        payload = json.loads(transaction._initial_payload)
 
-        transaction = Transaction(self.package_file)
-        observed = json.loads(transaction._initial_payload)
-
-        self.assertEqual(observed['project_id'], self.project_id)
-        self.assertEqual(len(observed['files']), self.n_files)
-        self.assertEqual(observed['files'][0]['sha256'], f1_sha256)
-        self.assertEqual(observed['files'][1]['sha256'], f2_sha256)
+        self.assertEqual(payload['project_id'], project_id)
+        self.assertEqual(len(payload['files']), len(files))
+        for observed, expected in zip(payload['files'], hashes):
+            self.assertEqual(observed['sha256'], expected)
 
     def test_can_retrieve_host_url_by_hardcode(self):
         del os.environ['EFU_SERVER_URL']
-        transaction = Transaction(self.package_file)
+        transaction = Transaction(self.package_fn)
         expected = 'http://0.0.0.0/project/P1234/upload/'
         observed = transaction._start_transaction_url
         self.assertEqual(observed, expected)
 
     def test_can_retrieve_host_url_by_environment_variable(self):
         os.environ['EFU_SERVER_URL'] = 'http://spam.eggs.com'
-        transaction = Transaction(self.package_file)
+        transaction = Transaction(self.package_fn)
         expected = 'http://spam.eggs.com/project/P1234/upload/'
         observed = transaction._start_transaction_url
         self.assertEqual(observed, expected)
 
     def test_start_transaction_returns_TRUE_when_successful(self):
-        self.register_start_transaction_path(self.project_id, self.n_files)
-        transaction = Transaction(self.package_file)
+        self.fixture.register_start_transaction_url(
+            self.project_id, self.responses)
+        transaction = Transaction(self.package_fn)
         observed = transaction._start_transaction()
         self.assertTrue(observed)
 
     def test_start_transaction_returns_FALSE_when_fail(self):
-        self.register_start_transaction_path(
-            self.project_id,
-            self.n_files,
-            start_success=False
-        )
-        transaction = Transaction(self.package_file)
+        self.fixture.register_start_transaction_url(
+            self.project_id, self.files, start_success=False)
+        transaction = Transaction(self.package_fn)
         observed = transaction._start_transaction()
         self.assertFalse(observed)
 
     def test_start_transaction_request_is_made_correctly(self):
-        start_url, finish_url = self.register_start_transaction_path(
-            self.project_id,
-            self.n_files
-        )
-        transaction = Transaction(self.package_file)
+        start_url, finish_url = self.fixture.register_start_transaction_url(
+            self.project_id, self.responses)
+        transaction = Transaction(self.package_fn)
         transaction._start_transaction()
         request = self.httpd.requests[0]
         request_body = json.loads(request.body.decode())
@@ -230,65 +224,50 @@ class TransactionTestCase(BaseTransactionTestCase):
         self.assertEqual(len(request_body['files']), 2)
 
     def test_start_transaction_updates_finish_transaction_url(self):
-        start_url, finish_url = self.register_start_transaction_path(
-            self.project_id,
-            self.n_files
-        )
-        transaction = Transaction(self.package_file)
+        start_url, finish_url = self.fixture.register_start_transaction_url(
+            self.project_id, self.responses)
+        transaction = Transaction(self.package_fn)
         transaction._start_transaction()
         self.assertEqual(transaction._finish_transaction_url, finish_url)
 
     def test_start_transaction_updates_files_data(self):
-        chunk_size = 1
-        part_urls = self.register_file_part_upload_path()
-        finish_url = self.register_file_finish_upload_path()
-        files = [
-            self.create_existing_file_response(0),
-            self.create_non_existing_file_response(
-                1, chunk_size, part_urls, finish_url)
-        ]
-        self.register_start_transaction_path(
-            self.project_id, self.n_files, files=files)
-
-        transaction = Transaction(self.package_file)
+        self.fixture.register_start_transaction_url(
+            self.project_id, self.responses)
+        transaction = Transaction(self.package_fn)
         transaction._start_transaction()
-
-        file = transaction.files[0]
-        self.assertTrue(file.exists_in_server)
-        self.assertEqual(file.chunk_size, None)
-        self.assertEqual(file.part_upload_urls, None)
-        self.assertEqual(file.finish_upload_url, None)
-
-        file = transaction.files[1]
-        self.assertFalse(file.exists_in_server)
-        self.assertEqual(file.chunk_size, chunk_size)
-        self.assertEqual(file.part_upload_urls, part_urls)
-        self.assertEqual(file.finish_upload_url, finish_url)
+        for file, expected in zip(transaction.files, self.responses):
+            self.assertEqual(file.exists_in_server, expected['exists'])
+            self.assertEqual(file.chunk_size, expected['chunk_size'])
+            self.assertEqual(file.part_upload_urls, expected['urls'])
+            self.assertEqual(file.finish_upload_url,
+                             expected['finish_upload_url'])
 
     def test_finish_transaction_returns_TRUE_when_successful(self):
-        url = self.register_finish_transaction_path(success=True)
-        transaction = Transaction(self.package_file)
+        url = self.fixture.register_finish_transaction_url(
+            self.project_id, success=True)
+        transaction = Transaction(self.package_fn)
         transaction._finish_transaction_url = url
 
         observed = transaction._finish_transaction()
         self.assertTrue(observed)
 
     def test_finish_transaction_returns_FALSE_when_fail(self):
-        url = self.register_finish_transaction_path(success=False)
-        transaction = Transaction(self.package_file)
+        url = self.fixture.register_finish_transaction_url(
+            self.project_id, success=False)
+        transaction = Transaction(self.package_fn)
         transaction._finish_transaction_url = url
 
         observed = transaction._finish_transaction()
         self.assertFalse(observed)
 
     def test_finish_transaction_request_is_made_correctly(self):
-        url = self.register_finish_transaction_path(success=True)
-        transaction = Transaction(self.package_file)
+        url = self.fixture.register_finish_transaction_url(
+            self.project_id, success=True)
+        transaction = Transaction(self.package_fn)
         transaction._finish_transaction_url = url
         transaction._finish_transaction()
 
         request = self.httpd.requests[0]
-
         self.assertEqual(len(self.httpd.requests), 1)
         self.assertEqual(request.method, 'POST')
         self.assertEqual(request.url, url)
@@ -296,7 +275,7 @@ class TransactionTestCase(BaseTransactionTestCase):
 
     def test_can_upload_files(self):
         n_files = 3
-        pkg = self.set_complete_transaction_response(n_success_files=n_files)
+        pkg = self.fixture.set_transaction(1, success_files=n_files)
         transaction = Transaction(pkg)
         transaction._start_transaction()
         uploads = transaction._upload_files()
@@ -305,7 +284,7 @@ class TransactionTestCase(BaseTransactionTestCase):
             self.assertEqual(result, UploadStatus.SUCCESS)
 
     def test_transaction_run_returns_TRUE_when_successful(self):
-        pkg = self.set_complete_transaction_response()
+        pkg = self.fixture.set_transaction(1)
         transaction = Transaction(pkg)
         success, uploads = transaction.run()
         self.assertTrue(success)
@@ -313,13 +292,13 @@ class TransactionTestCase(BaseTransactionTestCase):
             self.assertEqual(result, UploadStatus.SUCCESS)
 
     def test_transaction_run_returns_FALSE_when_fail_on_start(self):
-        pkg = self.set_complete_transaction_response(start_success=False)
+        pkg = self.fixture.set_transaction(1, start_success=False)
         transaction = Transaction(pkg)
         success, uploads = transaction.run()
         self.assertFalse(success)
 
     def test_transaction_run_returns_FALSE_when_fail_on_finish(self):
-        pkg = self.set_complete_transaction_response(finish_success=False)
+        pkg = self.fixture.set_transaction(1, finish_success=False)
         transaction = Transaction(pkg)
         success, uploads = transaction.run()
         self.assertFalse(success)

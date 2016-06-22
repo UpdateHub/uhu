@@ -2,6 +2,8 @@
 # This software is released under the MIT License
 
 import json
+import itertools
+import math
 import os
 import tempfile
 from random import choice
@@ -12,175 +14,179 @@ from efu.upload.upload import File
 from .httpmock.utils import BaseHTTPServerTestCase
 
 
-class BaseTransactionTestCase(BaseHTTPServerTestCase):
+class ServerMocker(object):
 
-    def setUp(self):
-        os.environ['EFU_SERVER_URL'] = self.httpd.url('')
-
-    def tearDown(self):
-        super().tearDown()
-        File._File__reset_id_generator()
-        try:
-            del os.environ['EFU_SERVER_URL']
-        except KeyError:
-            # env variable already deleted by other test
-            pass
+    def __init__(self, httpd):
+        self.httpd = httpd
+        self.files = []
 
     def _generate_status_code(self, success=True, success_code=201):
         return success_code if success else choice((400, 403, 404, 422, 500))
 
-    def create_empty_file(self, text=False):
+    def set_server_url(self):
+        os.environ['EFU_SERVER_URL'] = self.httpd.url('')
+
+    def clean_generated_files(self):
+        for file in self.files:
+            os.remove(file)
+        self.files = []
+
+    def clean_server_url(self):
+        try:
+            del os.environ['EFU_SERVER_URL']
+        except KeyError:
+            # variable already deleted
+            pass
+
+    def clean_file_id_generator(self):
+        File._File__reset_id_generator()
+
+    def create_file(self, content):
         '''
         Helper function which creates an empty temporary file and returns
         its pointer.
         '''
-        _, fn = tempfile.mkstemp(text=text)
-        self.addCleanup(os.remove, fn)
+        _, fn = tempfile.mkstemp()
+        self.files.append(fn)
+        with open(fn, 'bw') as fp:
+            fp.write(content)
         return fn
 
-    def register_file_part_upload_path(self, n_parts=1, success=True):
+    def register_finish_transaction_url(self, project_id, success=True):
         '''
-        Helper function that register n_parts upload part paths.
+        Helper function that register a finish transaction path.
         '''
-        paths = ['/upload/file/1/part/{}/'.format(i) for i in range(n_parts)]
-        code = self._generate_status_code(success)
-        for path in paths:
-            self.httpd.register_response(path, 'POST', status_code=code)
-        urls = [self.httpd.url(path) for path in paths]
-        return urls
-
-    def register_file_finish_upload_path(self, success=True):
-        '''
-        Helper function that register a final upload path.
-        '''
-        path = '/upload/file/1/finish/'
+        path = '/project/{}/upload/finish/'.format(project_id)
         code = self._generate_status_code(success)
         self.httpd.register_response(path, 'POST', status_code=code)
-        url = self.httpd.url(path)
-        return url
+        return self.httpd.url(path)
 
-    def register_start_transaction_path(
-            self,
-            project_id,
-            n_files,
-            start_success=True,
-            finish_success=True,
-            files=[]):
+    def register_start_transaction_url(
+            self, project_id, files,
+            start_success=True, finish_success=True):
         '''
         Helper function that register a start transaction path.
         '''
         start_path = '/project/{}/upload/'.format(project_id)
-        finish_url = self.register_finish_transaction_path(finish_success)
         code = self._generate_status_code(start_success)
+        finish_url = self.register_finish_transaction_url(
+            project_id, finish_success)
         body = json.dumps({
             'finish_transaction_url': finish_url,
             'files': files
         })
         self.httpd.register_response(
             start_path, 'POST', body=body, status_code=code)
-        start_url = self.httpd.url(start_path)
-        return start_url, finish_url
+        return (self.httpd.url(start_path), finish_url)
 
-    def register_finish_transaction_path(self, success=True):
+    def register_file_part_upload_urls(
+            self, project_id, file_id, n_parts, success=True):
         '''
-        Helper function that register a finish transaction path.
+        Helper function that register n_parts upload part paths.
         '''
-        path = '/project/1/upload/finish/'
-        status = 'ok' if success else 'ko'
+        path = '/project/{}/upload/file/{}/part/{}/'
+        paths = [path.format(project_id, file_id, i) for i in range(n_parts)]
+        code = self._generate_status_code(success)
+        for path in paths:
+            self.httpd.register_response(path, 'POST', status_code=code)
+        return [self.httpd.url(path) for path in paths]
+
+    def register_file_finish_upload_url(
+            self, project_id, file_id, success=True):
+        '''
+        Helper function that register a final upload path.
+        '''
+        path = '/project/{}/upload/file/{}/finish/'.format(project_id, file_id)
         code = self._generate_status_code(success)
         self.httpd.register_response(path, 'POST', status_code=code)
-        url = self.httpd.url(path)
-        return url
+        return self.httpd.url(path)
 
-    def create_stub_package(self, project_id, n_files):
+    def set_file(self, project_id, file_id, content=b'0', chunk_size=1,
+                 part_success=True, finish_success=True, exists=False):
         '''
-        Helper function that generates a stub package file and returns its
-        name as also the files created.
+        Helper function that creates a file in file system and sets the
+        server responses to deal with its upload.
         '''
-        package_fn = self.create_empty_file()
-        files = [self.create_empty_file() for i in range(n_files)]
-
-        with open(package_fn, 'w') as fp:
-            obj = {
-                'project_id': project_id,
-                'files': files
-            }
-            json.dump(obj, fp)
-        return package_fn, files
-
-    def create_existing_file_response(self, file_id):
-        '''
-        Helper function that generates an empty file response as part of
-        start transaction response.
-
-        This must be used as a fixture for a file that already exists
-        in server and must not be uploaded.
-        '''
-        return {
+        file = self.create_file(content=content)
+        n_parts = math.ceil(len(content) / chunk_size)
+        part_urls = self.register_file_part_upload_urls(
+            project_id, file_id, n_parts, part_success)
+        finish_url = self.register_file_finish_upload_url(
+            project_id, file_id, finish_success)
+        response = {
             'id': file_id,
-            'exists': True,
-            'chunk_size': None,
-            'urls': None,
-            'finish_upload_url': None,
-        }
-
-    def create_non_existing_file_response(
-            self, file_id, chunk_size, part_urls, finish_url):
-        '''
-        Helper function that generates a file response as part of start
-        transaction response.
-
-        This must be used as a fixture for a file that does not exist
-        in server and must be uploaded.
-        '''
-        return {
-            'id': file_id,
-            'exists': False,
+            'exists': exists,
             'chunk_size': chunk_size,
             'urls': part_urls,
             'finish_upload_url': finish_url,
         }
+        return (file, response)
 
-    def set_complete_transaction_response(
-            self, project_id=1, start_success=True, finish_success=True,
-            n_success_files=3, n_existent_files=0, n_fail_files=0,
-            chunk_size=1):
+    def set_package(self, project_id, files):
         '''
-        Helper function that creates all needed responses to complete a
-        transaction.
+        Helper function that generates a stub package.
+        '''
+        content = json.dumps({
+            'project_id': project_id,
+            'files': files,
+        }).encode()
+        pkg = self.create_file(content=content)
+        return pkg
+
+    def set_transaction(self, project_id, file_size=1, chunk_size=1,
+                        start_success=True, finish_success=True,
+                        success_files=3, existent_files=0,
+                        finish_fail_files=0, part_fail_files=0):
+        '''
+        Helper function that creates all needed responses to complete an
+        upload transaction.
         '''
         files = []
-        file_id = 0
-        for _ in range(n_success_files):
-            files.append(
-                self.create_non_existing_file_response(
-                    file_id,
-                    chunk_size,
-                    self.register_file_part_upload_path(),
-                    self.register_file_finish_upload_path(),
-                )
-            )
-            file_id += 1
+        responses = []
+        file_id = itertools.count()
+        content = file_size * b'0'
+        for _ in range(success_files):
+            fn, response = self.set_file(
+                project_id, next(file_id), content, chunk_size=chunk_size)
+            files.append(fn)
+            responses.append(response)
+        for _ in range(existent_files):
+            fn, response = self.set_file(
+                project_id, next(file_id), exists=True)
+            files.append(fn)
+            responses.append(response)
+        for _ in range(part_fail_files):
+            fn, response = self.set_file(
+                project_id, next(file_id), content, chunk_size=chunk_size,
+                part_success=False)
+            files.append(fn)
+            responses.append(response)
+        for _ in range(finish_fail_files):
+            fn, response = self.set_file(
+                project_id, next(file_id), content, chunk_size=chunk_size,
+                finish_success=False)
+            files.append(fn)
+            responses.append(response)
 
-        for _ in range(n_existent_files):
-            files.append(self.create_existing_file_response(file_id))
-            file_id += 1
-
-        for _ in range(n_fail_files):
-            files.append(
-                self.create_non_existing_file_response(
-                    file_id,
-                    chunk_size,
-                    self.register_file_part_upload_path(),
-                    self.register_file_finish_upload_path(success=False),
-                )
-            )
-            file_id += 1
-
-        n_files = len(files)
-
-        self.register_start_transaction_path(
-            project_id, n_files, files=files,
-            start_success=start_success, finish_success=finish_success)
-        pkg, _ = self.create_stub_package(project_id, n_files)
+        self.register_start_transaction_url(
+            project_id, responses, start_success=start_success,
+            finish_success=finish_success)
+        pkg = self.set_package(project_id, files)
         return pkg
+
+
+class BaseTransactionTestCase(BaseHTTPServerTestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.fixture = ServerMocker(cls.httpd)
+
+    def setUp(self):
+        self.addCleanup(self.fixture.clean_generated_files)
+        self.fixture.set_server_url()
+
+    def tearDown(self):
+        super().tearDown()
+        self.fixture.clean_server_url()
+        self.fixture.clean_file_id_generator()
