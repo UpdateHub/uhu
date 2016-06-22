@@ -32,46 +32,16 @@ class RequestHandler(BaseHTTPRequestHandler):
     It is able to return a 404 if there is no response registered for
     a given request. Also, it responds a 405 if a method is not
     allowed in a given path.
-
-    It supports request history and even if a request is not
-    successful (eg. when you get 404 or 405) it will be storaged. In
-    this way it is easy to debug if your code is making the right
-    request.
-
-    Finally, there is a reset method that deletes all registered
-    responses and saved requests in history. It is useful for setting
-    up and down tests.
     '''
-
-    responses = {}  # where responses are registered
-    requests = []  # where request history is storaged
-
-    @classmethod
-    def register_response(cls, path, method='GET', headers={},
-                          body=None, status_code=200):
-        '''
-        This method is responsible for registering a response for a given
-        request.
-        '''
-        cls.responses[path] = cls.responses.get(path, {})
-        cls.responses[path][method] = Response(status_code, headers, body)
-
-    @classmethod
-    def reset(cls):
-        '''
-        Removes all registered responses and cleans request history
-        '''
-        cls.requests = []
-        cls.responses = {}
 
     def generic_handler(f):
         @wraps(f)
         def wrapped(self):
             # Adds request into the request history
-            self.requests.append(Request(self))
+            self.server.requests.append(Request(self))
 
             # Check if path exists. If not, throw a 404.
-            path = self.responses.get(self.path, None)
+            path = self.server.responses.get(self.path, None)
             if path is None:
                 self.send_error(
                     404,
@@ -134,9 +104,52 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 
 class HTTPMockServer(HTTPServer):
+    '''
+    Basic HTTP mock server that is able to map responses for a given
+    request.
+
+    This server storages all requests (good and bad ones) received so
+    it is easy to debug how your code is making requests.
+    '''
+
+    responses = {}  # where responses are registered
+    requests = []  # where request history is storaged
 
     def __init__(self):
         super().__init__(('0.0.0.0', 0), RequestHandler)
 
     def start(self):
         threading.Thread(target=self.serve_forever).start()
+
+    def url(self, path='/'):
+        '''
+        Returns URL that matches this server address.
+
+        By default, it returns the server web root (eg. http://127.0.0.1:80/).
+
+        If path is provided, it is appended into the end of the url so
+        you can create any URI (eg. http://127.0.0.1:80/this/is/a/path).
+        '''
+        return 'http://{addr}:{port}{path}'.format(
+            addr=self.server_address[0],
+            port=self.server_address[1],
+            path=path
+        )
+
+    @classmethod
+    def register_response(cls, path, method='GET', headers={},
+                          body=None, status_code=200):
+        '''
+        This method is responsible for registering a response for a given
+        request.
+        '''
+        cls.responses[path] = cls.responses.get(path, {})
+        cls.responses[path][method] = Response(status_code, headers, body)
+
+    @classmethod
+    def clear_history(cls):
+        '''
+        Removes all registered responses and cleans request history.
+        '''
+        cls.requests = []
+        cls.responses = {}

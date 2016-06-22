@@ -77,12 +77,12 @@ class FileTestCase(BaseTransactionTestCase):
         file.chunk_size = 1
         file.upload()
 
-        self.assertEqual(len(self.handler.requests), 5)
-        self.assertEqual(self.handler.requests[0].body, b'1')
-        self.assertEqual(self.handler.requests[1].body, b'2')
-        self.assertEqual(self.handler.requests[2].body, b'3')
-        self.assertEqual(self.handler.requests[3].body, b'4')
-        self.assertEqual(self.handler.requests[4].body, b'')
+        self.assertEqual(len(self.httpd.requests), 5)
+        self.assertEqual(self.httpd.requests[0].body, b'1')
+        self.assertEqual(self.httpd.requests[1].body, b'2')
+        self.assertEqual(self.httpd.requests[2].body, b'3')
+        self.assertEqual(self.httpd.requests[3].body, b'4')
+        self.assertEqual(self.httpd.requests[4].body, b'')
 
     def test_upload_returns_failure_result_when_part_upload_fails(self):
         part_urls = self.register_file_part_upload_path(success=False)
@@ -220,10 +220,10 @@ class TransactionTestCase(BaseTransactionTestCase):
         )
         transaction = Transaction(self.package_file)
         transaction._start_transaction()
-        request = self.handler.requests[0]
+        request = self.httpd.requests[0]
         request_body = json.loads(request.body.decode())
 
-        self.assertEqual(len(self.handler.requests), 1)
+        self.assertEqual(len(self.httpd.requests), 1)
         self.assertEqual(request.method, 'POST')
         self.assertEqual(request.url, start_url)
         self.assertEqual(request_body['project_id'], self.project_id)
@@ -287,9 +287,9 @@ class TransactionTestCase(BaseTransactionTestCase):
         transaction._finish_transaction_url = url
         transaction._finish_transaction()
 
-        request = self.handler.requests[0]
+        request = self.httpd.requests[0]
 
-        self.assertEqual(len(self.handler.requests), 1)
+        self.assertEqual(len(self.httpd.requests), 1)
         self.assertEqual(request.method, 'POST')
         self.assertEqual(request.url, url)
         self.assertEqual(request.body, b'')

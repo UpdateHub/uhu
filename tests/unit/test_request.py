@@ -63,15 +63,15 @@ class RequestTestCase(BaseHTTPServerTestCase):
             self.assertEqual(str(headers[header]), prepared_headers[header])
 
     def test_send_request(self):
-        self.handler.register_response('/', body='{"status": "ok"}')
-        request = Request(self.url(), 'GET', '')
+        self.httpd.register_response('/', body='{"status": "ok"}')
+        request = Request(self.httpd.url(), 'GET', '')
         response = request.send()
         self.assertEqual(response.json()['status'], 'ok')
 
     def test_request_is_signed(self):
-        self.handler.register_response('/signed', body='{"status": "ok"}')
-        Request(self.url('/signed'), 'GET', '').send()
-        response = self.handler.requests[-1]
+        self.httpd.register_response('/signed', body='{"status": "ok"}')
+        Request(self.httpd.url('/signed'), 'GET', '').send()
+        response = self.httpd.requests[-1]
         auth_header = response.headers.get('Authorization')
         self.assertIsNotNone(auth_header)
 

@@ -15,7 +15,7 @@ from .httpmock.utils import BaseHTTPServerTestCase
 class BaseTransactionTestCase(BaseHTTPServerTestCase):
 
     def setUp(self):
-        os.environ['EFU_SERVER_URL'] = self.url('')
+        os.environ['EFU_SERVER_URL'] = self.httpd.url('')
 
     def tearDown(self):
         super().tearDown()
@@ -45,8 +45,8 @@ class BaseTransactionTestCase(BaseHTTPServerTestCase):
         paths = ['/upload/file/1/part/{}/'.format(i) for i in range(n_parts)]
         code = self._generate_status_code(success)
         for path in paths:
-            self.handler.register_response(path, 'POST', status_code=code)
-        urls = [self.url(path) for path in paths]
+            self.httpd.register_response(path, 'POST', status_code=code)
+        urls = [self.httpd.url(path) for path in paths]
         return urls
 
     def register_file_finish_upload_path(self, success=True):
@@ -55,8 +55,8 @@ class BaseTransactionTestCase(BaseHTTPServerTestCase):
         '''
         path = '/upload/file/1/finish/'
         code = self._generate_status_code(success)
-        self.handler.register_response(path, 'POST', status_code=code)
-        url = self.url(path)
+        self.httpd.register_response(path, 'POST', status_code=code)
+        url = self.httpd.url(path)
         return url
 
     def register_start_transaction_path(
@@ -76,9 +76,9 @@ class BaseTransactionTestCase(BaseHTTPServerTestCase):
             'finish_transaction_url': finish_url,
             'files': files
         })
-        self.handler.register_response(
+        self.httpd.register_response(
             start_path, 'POST', body=body, status_code=code)
-        start_url = self.url(start_path)
+        start_url = self.httpd.url(start_path)
         return start_url, finish_url
 
     def register_finish_transaction_path(self, success=True):
@@ -88,8 +88,8 @@ class BaseTransactionTestCase(BaseHTTPServerTestCase):
         path = '/project/1/upload/finish/'
         status = 'ok' if success else 'ko'
         code = self._generate_status_code(success)
-        self.handler.register_response(path, 'POST', status_code=code)
-        url = self.url(path)
+        self.httpd.register_response(path, 'POST', status_code=code)
+        url = self.httpd.url(path)
         return url
 
     def create_stub_package(self, project_id, n_files):
