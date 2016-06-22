@@ -6,9 +6,12 @@ import json
 import os
 from itertools import count
 
+import click
+
 from ..request import Request
 
 from . import exceptions
+from .ui import UploadProgressBar, SUCCESS_MSG, FAIL_MSG
 
 
 class TransactionExitCode(object):
@@ -23,6 +26,13 @@ class UploadStatus(object):
     EXISTS = 1
     PART_FAIL = 2
     FAIL = 3
+
+    MESSAGES = {
+        SUCCESS: SUCCESS_MSG,
+        EXISTS: '{} (already uploaded)'.format(SUCCESS_MSG),
+        PART_FAIL: '{} (upload part error)'.format(FAIL_MSG),
+        FAIL: '{} (upload error)'.format(FAIL_MSG),
+    }
 
 
 class File(object):
@@ -58,25 +68,39 @@ class File(object):
     def __reset_id_generator(cls):
         cls._id = count()
 
-    def upload(self):
+    def _finish_upload(self, status, bar):
+        if bar is not None:
+            bar.finish_with_msg(UploadStatus.MESSAGES[status])
+        return status
+
+    def _increase_bar_progress(self, bar):
+        if bar is not None:
+            bar.next()
+
+    def upload(self, bar=None):
         '''
         Uploads a file and returns FileUploadStatus
         '''
         # Check if file exists in server
         if self.exists_in_server:
-            return UploadStatus.EXISTS
-        # Upload file in chunks
+            return self._finish_upload(UploadStatus.EXISTS, bar)
+
+        # Upload file chunks
         with open(self.file_name, 'rb') as fp:
             for url in self.part_upload_urls:
                 payload = fp.read(self.chunk_size)
                 response = Request(url, 'POST', payload).send()
                 if response.status_code != 201:
-                    return UploadStatus.PART_FAIL
+                    return self._finish_upload(UploadStatus.PART_FAIL, bar)
+                self._increase_bar_progress(bar)
+
         # Finish upload
         response = Request(self.finish_upload_url, 'POST', '').send()
         if response.status_code == 201:
-            return UploadStatus.SUCCESS
-        return UploadStatus.FAIL
+            status = UploadStatus.SUCCESS
+        else:
+            status = UploadStatus.FAIL
+        return self._finish_upload(status, bar)
 
 
 class Package(object):
@@ -151,7 +175,11 @@ class Transaction(object):
             file.finish_upload_url = f.get('finish_upload_url')
 
     def _upload_files(self):
-        results = [file.upload() for file in self.files]
+        results = []
+        for file in self.files:
+            n_uploads = len(file.part_upload_urls)
+            bar = UploadProgressBar(file.file_name, max=n_uploads)
+            results.append(file.upload(bar))
         successful_status = (UploadStatus.SUCCESS, UploadStatus.EXISTS)
         success = [result in successful_status for result in results]
         if not all(success):
@@ -166,8 +194,11 @@ class Transaction(object):
     def run(self):
         # START
         try:
+            click.echo('Starting transaction: ', nl=False)
             self._start_transaction()
+            click.echo(SUCCESS_MSG)
         except exceptions.StartTransactionError:
+            click.echo(FAIL_MSG)
             return TransactionExitCode.START_FAIL
 
         # UPLOAD
@@ -178,8 +209,11 @@ class Transaction(object):
 
         # FINISH
         try:
+            click.echo('Finishing transaction: ', nl=False)
             self._finish_transaction()
+            click.echo(SUCCESS_MSG)
         except exceptions.FinishTransactionError:
+            click.echo(FAIL_MSG)
             return TransactionExitCode.FINISH_FAIL
 
         return TransactionExitCode.SUCCESS
