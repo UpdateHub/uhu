@@ -1,12 +1,40 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+import unittest
+from unittest.mock import patch
+
 import requests
 
-from .utils import BaseHTTPServerTestCase
+from tests.httpmock import httpd
+from tests.httpmock.utils import BaseHTTPServerTestCase
 
 
 class HTTPServerTestCase(BaseHTTPServerTestCase):
+
+    @patch('tests.httpmock.httpd.sleep')
+    def test_does_not_simulate_application_by_default(self, sleep):
+        server = httpd.HTTPMockServer()
+        server.register_response('/app', 'GET')
+        server.start()
+
+        requests.get(server.url('/app'))
+        self.assertFalse(sleep.called)
+
+        server.clear_history()
+        server.shutdown()
+
+    @patch('tests.httpmock.httpd.sleep')
+    def test_can_simulate_application(self, sleep):
+        server = httpd.HTTPMockServer(simulate_application=True)
+        server.register_response('/app', 'GET')
+        server.start()
+
+        requests.get(server.url('/app'))
+        self.assertTrue(sleep.called)
+
+        server.clear_history()
+        server.shutdown()
 
     def test_can_register_a_response(self):
         url = self.httpd.url()

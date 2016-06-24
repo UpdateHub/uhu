@@ -4,6 +4,7 @@
 import threading
 from functools import wraps
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from time import sleep
 
 
 class Request(object):
@@ -34,11 +35,20 @@ class RequestHandler(BaseHTTPRequestHandler):
     allowed in a given path.
     '''
 
+    def _simulate_application(self):
+        '''
+        Method that simiulates a server process
+        '''
+        if self.server.simulate_application:
+            sleep(0.1)
+
     def generic_handler(f):
         @wraps(f)
         def wrapped(self):
             # Adds request into the request history
             self.server.requests.append(Request(self))
+
+            self._simulate_application()
 
             # Check if path exists. If not, throw a 404.
             path = self.server.responses.get(self.path, None)
@@ -115,8 +125,9 @@ class HTTPMockServer(HTTPServer):
     responses = {}  # where responses are registered
     requests = []  # where request history is storaged
 
-    def __init__(self):
+    def __init__(self, simulate_application=False):
         super().__init__(('0.0.0.0', 0), RequestHandler)
+        self.simulate_application = simulate_application
 
     def start(self):
         threading.Thread(target=self.serve_forever).start()
