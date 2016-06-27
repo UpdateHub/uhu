@@ -1,6 +1,8 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+import sys
+
 import click
 
 from .upload import Transaction
@@ -15,8 +17,7 @@ def transaction_command(package_file):
     Package file must be in json format.
     """
     try:
-        transaction = Transaction(package_file)
-        transaction.run()
+        sys.exit(Transaction(package_file).run())
     except InvalidFileError:
         click.echo('Invalid file within package')
         raise click.BadParameter

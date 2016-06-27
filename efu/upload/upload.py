@@ -6,15 +6,23 @@ import json
 import os
 from itertools import count
 
-from .exceptions import InvalidFileError, InvalidPackageFileError
 from ..request import Request
+
+from . import exceptions
+
+
+class TransactionExitCode(object):
+    SUCCESS = 0
+    START_FAIL = 1
+    UPLOAD_FAIL = 2
+    FINISH_FAIL = 3
 
 
 class UploadStatus(object):
     SUCCESS = 0
     EXISTS = 1
-    FAIL = 2
-    PART_FAIL = 3
+    PART_FAIL = 2
+    FAIL = 3
 
 
 class File(object):
@@ -34,7 +42,7 @@ class File(object):
     def _validate_file(self, fn):
         if os.path.exists(fn):
             return fn
-        raise InvalidFileError(
+        raise exceptions.InvalidFileError(
             'file {} to be uploaded does not exist'.format(fn)
         )
 
@@ -83,11 +91,11 @@ class Package(object):
             with open(filename) as fp:
                 package = json.load(fp)
         except FileNotFoundError:
-            raise InvalidPackageFileError(
+            raise exceptions.InvalidPackageFileError(
                 '{} file does not exist'.format(filename)
             )
         except ValueError:
-            raise InvalidPackageFileError(
+            raise exceptions.InvalidPackageFileError(
                 '{} is not a valid JSON file'.format(filename)
             )
         return package
@@ -131,7 +139,7 @@ class Transaction(object):
         )
         response = request.send()
         if response.status_code != 201:
-            return False
+            raise exceptions.StartTransactionError
         response_body = response.json()
         self._finish_transaction_url = response_body['finish_transaction_url']
         # Injects upload data into self.files
@@ -141,21 +149,37 @@ class Transaction(object):
             file.chunk_size = f.get('chunk_size')
             file.part_upload_urls = f.get('urls')
             file.finish_upload_url = f.get('finish_upload_url')
-        return True
 
     def _upload_files(self):
-        return tuple((file, file.upload()) for file in self.files)
+        results = [file.upload() for file in self.files]
+        successful_status = (UploadStatus.SUCCESS, UploadStatus.EXISTS)
+        success = [result in successful_status for result in results]
+        if not all(success):
+            raise exceptions.FileUploadError
 
     def _finish_transaction(self):
         request = Request(self._finish_transaction_url, 'POST', '')
         response = request.send()
-        if response.status_code == 201:
-            return True
-        return False
+        if response.status_code != 201:
+            raise exceptions.FinishTransactionError
 
     def run(self):
-        if not self._start_transaction():
-            return (False, None)
-        uploads = self._upload_files()
-        result = self._finish_transaction()
-        return (result, uploads)
+        # START
+        try:
+            self._start_transaction()
+        except exceptions.StartTransactionError:
+            return TransactionExitCode.START_FAIL
+
+        # UPLOAD
+        try:
+            self._upload_files()
+        except exceptions.FileUploadError:
+            return TransactionExitCode.UPLOAD_FAIL
+
+        # FINISH
+        try:
+            self._finish_transaction()
+        except exceptions.FinishTransactionError:
+            return TransactionExitCode.FINISH_FAIL
+
+        return TransactionExitCode.SUCCESS

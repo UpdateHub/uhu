@@ -8,8 +8,11 @@ import unittest
 from itertools import count
 from unittest.mock import patch
 
-from efu.upload.upload import File, Package, Transaction, UploadStatus
-from efu.upload.exceptions import InvalidPackageFileError, InvalidFileError
+from efu.upload.upload import (
+    File, Package, Transaction,
+    UploadStatus, TransactionExitCode
+)
+from efu.upload import exceptions
 
 from ..base import BaseTransactionTestCase
 
@@ -34,7 +37,7 @@ class FileTestCase(BaseTransactionTestCase):
         self.assertEqual((f4.id, f5.id, f6.id), (0, 1, 2))
 
     def test_file_validation(self):
-        with self.assertRaises(InvalidFileError):
+        with self.assertRaises(exceptions.InvalidFileError):
             File('inexistent_file.bin')
 
     def test_file_sha256(self):
@@ -123,11 +126,11 @@ class PackageTestCase(BaseTransactionTestCase):
         self.project_id = 1
 
     def test_raises_invalid_package_file_with_inexistent_file(self):
-        with self.assertRaises(InvalidPackageFileError):
+        with self.assertRaises(exceptions.InvalidPackageFileError):
             Package('inexistent_package_file.json')
 
     def test_raises_invalid_package_file_when_file_is_not_json(self):
-        with self.assertRaises(InvalidPackageFileError):
+        with self.assertRaises(exceptions.InvalidPackageFileError):
             Package(__file__)
 
     def test_can_load_package_file(self):
@@ -195,19 +198,19 @@ class TransactionTestCase(BaseTransactionTestCase):
         observed = transaction._start_transaction_url
         self.assertEqual(observed, expected)
 
-    def test_start_transaction_returns_TRUE_when_successful(self):
+    def test_start_transaction_returns_NONE_when_successful(self):
         self.fixture.register_start_transaction_url(
             self.project_id, self.responses)
         transaction = Transaction(self.package_fn)
         observed = transaction._start_transaction()
-        self.assertTrue(observed)
+        self.assertIsNone(observed)
 
-    def test_start_transaction_returns_FALSE_when_fail(self):
+    def test_start_transaction_raises_exception_when_fail(self):
         self.fixture.register_start_transaction_url(
             self.project_id, self.files, start_success=False)
         transaction = Transaction(self.package_fn)
-        observed = transaction._start_transaction()
-        self.assertFalse(observed)
+        with self.assertRaises(exceptions.StartTransactionError):
+            transaction._start_transaction()
 
     def test_start_transaction_request_is_made_correctly(self):
         start_url, finish_url = self.fixture.register_start_transaction_url(
@@ -242,23 +245,21 @@ class TransactionTestCase(BaseTransactionTestCase):
             self.assertEqual(file.finish_upload_url,
                              expected['finish_upload_url'])
 
-    def test_finish_transaction_returns_TRUE_when_successful(self):
+    def test_finish_transaction_returns_NONE_when_successful(self):
         url = self.fixture.register_finish_transaction_url(
             self.project_id, success=True)
         transaction = Transaction(self.package_fn)
         transaction._finish_transaction_url = url
-
         observed = transaction._finish_transaction()
-        self.assertTrue(observed)
+        self.assertIsNone(observed)
 
-    def test_finish_transaction_returns_FALSE_when_fail(self):
+    def test_finish_transaction_raises_exception_when_fail(self):
         url = self.fixture.register_finish_transaction_url(
             self.project_id, success=False)
         transaction = Transaction(self.package_fn)
         transaction._finish_transaction_url = url
-
-        observed = transaction._finish_transaction()
-        self.assertFalse(observed)
+        with self.assertRaises(exceptions.FinishTransactionError):
+            transaction._finish_transaction()
 
     def test_finish_transaction_request_is_made_correctly(self):
         url = self.fixture.register_finish_transaction_url(
@@ -273,32 +274,83 @@ class TransactionTestCase(BaseTransactionTestCase):
         self.assertEqual(request.url, url)
         self.assertEqual(request.body, b'')
 
-    def test_can_upload_files(self):
-        n_files = 3
-        pkg = self.fixture.set_transaction(1, success_files=n_files)
-        transaction = Transaction(pkg)
-        transaction._start_transaction()
-        uploads = transaction._upload_files()
-        self.assertEqual(len(uploads), n_files)
-        for file, result in uploads:
-            self.assertEqual(result, UploadStatus.SUCCESS)
-
-    def test_transaction_run_returns_TRUE_when_successful(self):
+    def test_upload_files_return_NONE_when_successful(self):
         pkg = self.fixture.set_transaction(1)
         transaction = Transaction(pkg)
-        success, uploads = transaction.run()
-        self.assertTrue(success)
-        for file, result in uploads:
-            self.assertEqual(result, UploadStatus.SUCCESS)
+        transaction._start_transaction()
+        observed = transaction._upload_files()
+        self.assertIsNone(observed)
 
-    def test_transaction_run_returns_FALSE_when_fail_on_start(self):
+    def test_upload_files_return_NONE_when_file_exists(self):
+        pkg = self.fixture.set_transaction(
+            1, success_files=0, existent_files=3)
+        transaction = Transaction(pkg)
+        transaction._start_transaction()
+        observed = transaction._upload_files()
+        self.assertIsNone(observed)
+
+    def test_upload_files_raises_exception_when_upload_part_fails(self):
+        pkg = self.fixture.set_transaction(
+            1, success_files=0, part_fail_files=3)
+        transaction = Transaction(pkg)
+        transaction._start_transaction()
+        with self.assertRaises(exceptions.FileUploadError):
+            transaction._upload_files()
+
+    def test_upload_files_raises_exception_when_finish_upload_fails(self):
+        pkg = self.fixture.set_transaction(
+            1, success_files=0, finish_fail_files=3)
+        transaction = Transaction(pkg)
+        transaction._start_transaction()
+        with self.assertRaises(exceptions.FileUploadError):
+            transaction._upload_files()
+
+    def test_upload_files_requests_are_made_correctly(self):
+        pkg = self.fixture.set_transaction(
+            1, success_files=2, existent_files=1, chunk_size=1, file_size=3)
+        transaction = Transaction(pkg)
+        transaction._start_transaction()
+        transaction._upload_files()
+        # 1 request for starting transaction
+        # 6 requests since 2 files must be uploaded in 3 chunks each
+        # 2 requests to finish each file upload
+        # Total: 9 requests
+        total_requests = 9
+        self.assertEqual(len(self.httpd.requests), total_requests)
+
+    def test_transaction_run_returns_SUCCESS_when_successful(self):
+        pkg = self.fixture.set_transaction(1)
+        transaction = Transaction(pkg)
+        observed = transaction.run()
+        self.assertEqual(observed, TransactionExitCode.SUCCESS)
+
+    def test_transaction_run_returns_START_FAIL_when_fail_on_start(self):
         pkg = self.fixture.set_transaction(1, start_success=False)
         transaction = Transaction(pkg)
-        success, uploads = transaction.run()
-        self.assertFalse(success)
+        observed = transaction.run()
+        self.assertEqual(observed, TransactionExitCode.START_FAIL)
 
-    def test_transaction_run_returns_FALSE_when_fail_on_finish(self):
+    def test_transaction_run_returns_UPLOAD_FAIL_when_fail_on_upload(self):
+        pkg = self.fixture.set_transaction(
+            1, success_files=0, finish_fail_files=3)
+        transaction = Transaction(pkg)
+        observed = transaction.run()
+        self.assertEqual(observed, TransactionExitCode.UPLOAD_FAIL)
+
+        pkg = self.fixture.set_transaction(
+            2, success_files=0, part_fail_files=3)
+        transaction = Transaction(pkg)
+        observed = transaction.run()
+        self.assertEqual(observed, TransactionExitCode.UPLOAD_FAIL)
+
+        pkg = self.fixture.set_transaction(
+            3, success_files=0, part_fail_files=1, finish_fail_files=1)
+        transaction = Transaction(pkg)
+        observed = transaction.run()
+        self.assertEqual(observed, TransactionExitCode.UPLOAD_FAIL)
+
+    def test_transaction_run_returns_FINISH_FAIL_when_fail_on_finish(self):
         pkg = self.fixture.set_transaction(1, finish_success=False)
         transaction = Transaction(pkg)
-        success, uploads = transaction.run()
-        self.assertFalse(success)
+        observed = transaction.run()
+        self.assertEqual(observed, TransactionExitCode.FINISH_FAIL)

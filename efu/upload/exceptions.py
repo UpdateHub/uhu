@@ -8,3 +8,15 @@ class InvalidPackageFileError(Exception):
 
 class InvalidFileError(Exception):
     pass
+
+
+class StartTransactionError(Exception):
+    pass
+
+
+class FileUploadError(Exception):
+    pass
+
+
+class FinishTransactionError(Exception):
+    pass
