@@ -16,10 +16,16 @@ from ..httpmock.utils import BaseHTTPServerTestCase
 
 class RequestTestCase(BaseHTTPServerTestCase):
 
+    def test_request_timezone_is_in_utc(self):
+        expected = datetime.now(timezone.utc).timestamp()
+        observed = Request('', 'post', '').timestamp
+        # 1 second of tolerance between expected and observed
+        self.assertAlmostEqual(observed, expected, delta=60)
+
     @patch('efu.request.datetime')
     def test_request_has_minimal_headers(self, mock):
         mock_date = datetime(1970, 1, 1, tzinfo=timezone.utc)
-        mock.utcnow.return_value = mock_date
+        mock.now.return_value = mock_date
 
         request = Request('https://localhost/', 'post', b'\0')
 
@@ -81,7 +87,7 @@ class CanonicalRequestTestCase(unittest.TestCase):
     @patch('efu.request.datetime')
     def test_canonical_request(self, mock):
         date = datetime(1970, 1, 1, tzinfo=timezone.utc)
-        mock.utcnow.return_value = date
+        mock.now.return_value = date
         request = Request(
             'http://localhost/upload?c=3&b=2&a=1',
             'post',

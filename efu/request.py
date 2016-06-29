@@ -1,8 +1,8 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-from datetime import datetime
 import hashlib
+from datetime import datetime, timezone
 from urllib.parse import quote, urlparse, parse_qs
 
 import requests
@@ -19,7 +19,7 @@ class Request(object):
         self.method = method.upper()
         self.payload = payload
 
-        self.timestamp = datetime.utcnow().timestamp()
+        self.timestamp = datetime.now(timezone.utc).timestamp()
         self.payload_sha256 = self._generate_payload_sha256()
 
         self.headers = {
