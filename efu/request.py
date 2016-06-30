@@ -26,6 +26,7 @@ class Request(object):
             'Host': self._url.hostname,
             'Timestamp': self.date.timestamp(),
             'Content-sha256': self.payload_sha256,
+            'Api-Content-Type': 'application/vnd.fota-server-v1+json',
         }
 
     def _generate_payload_sha256(self):

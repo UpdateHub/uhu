@@ -33,10 +33,12 @@ class RequestTestCase(BaseHTTPServerTestCase):
         host = request.headers.get('Host')
         timestamp = request.headers.get('Timestamp')
         sha256 = request.headers.get('Content-sha256')
+        api = request.headers.get('Api-Content-Type')
 
-        self.assertEqual(len(request.headers), 3)
+        self.assertEqual(len(request.headers), 4)
         self.assertEqual(host, 'localhost')
         self.assertEqual(timestamp, 0)
+        self.assertEqual(api, 'application/vnd.fota-server-v1+json')
         self.assertEqual(
             sha256,
             '6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d'
@@ -97,6 +99,7 @@ class CanonicalRequestTestCase(unittest.TestCase):
         expected = '''POST
 /upload
 a=1&b=2&c=3
+api-content-type:application/vnd.fota-server-v1+json
 content-sha256:6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d
 host:localhost
 timestamp:0.0
