@@ -17,9 +17,9 @@ from ..httpmock.utils import BaseHTTPServerTestCase
 
 class RequestTestCase(BaseHTTPServerTestCase):
 
-    def test_request_timezone_is_in_utc(self):
+    def test_request_date_is_in_utc(self):
         expected = datetime.now(timezone.utc).timestamp()
-        observed = Request('', 'post', '').timestamp
+        observed = Request('', 'post', '').date.timestamp()
         # 1 second of tolerance between expected and observed
         self.assertAlmostEqual(observed, expected, delta=60)
 

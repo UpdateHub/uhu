@@ -19,12 +19,12 @@ class Request(object):
         self.method = method.upper()
         self.payload = payload
 
-        self.timestamp = datetime.now(timezone.utc).timestamp()
+        self.date = datetime.now(timezone.utc)
         self.payload_sha256 = self._generate_payload_sha256()
 
         self.headers = {
             'Host': self._url.hostname,
-            'Timestamp': self.timestamp,
+            'Timestamp': self.date.timestamp(),
             'Content-sha256': self.payload_sha256,
         }
 

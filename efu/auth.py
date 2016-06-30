@@ -18,7 +18,6 @@ class SignatureV1(object):
         self._request = request
         self._access_id = access_id
         self._secret = secret
-        self._timestamp = str(self._request.timestamp)
 
     def _hashed_canonical_request(self):
         cr = self._request.canonical()
@@ -37,23 +36,56 @@ class SignatureV1(object):
 
     def _message(self):
         '''
-        Generates the message to be signed.
+        Generates the message to be signed. Its a string based on the
+        server authentication algorithm name and version, the request
+        timestamp in ISO-8601 format and the canonical request. Each
+        of these values are separated by a line break:
+
+        {auth_name}-{auth-version}
+        {request_timestamp}
+        {canonical_request}
         '''
+        timestamp = self._request.date.strftime('%Y%m%dT%H%M%SZ')
         return 'EFU-V1\n{timestamp}\n{canonical_request}'.format(
-            timestamp=self._request.timestamp,
+            timestamp=timestamp,
             canonical_request=self._hashed_canonical_request(),
         )
 
     def _key(self):
         '''
-        Generates the key to sign the final message.
+        Generates the key to sign the final message. The key is a
+        hexadecimal hash generated with hmac-sha256 using base_key as
+        key and the request_date as message:
+
+        key = hex(hmac-256(base_key, message))
+
+        --------
+        Base key
+        --------
+
+        Base key is the concatenation of the name and version of server
+        authentication algorithm plus the user secret:
+
+        {auth_name}-{auth_version}-{user_secret}
+
+        If the authentication algorithm name is EFU, the version is
+        V1 and the user secret is 123, the base key is:
+
+        base_key = 'EFU-V1-123'
+
+        ------------
+        Request date
+        ------------
+
+        The request date used as message in the hmac algorithm must be
+        in the YYYYMMDD format:
+
+        message = '19991231'
+
         '''
-        base_key = 'EFU-V1-{}'.format(self._secret)
-        final_key = hmac.new(
-            base_key.encode(),
-            self._timestamp.encode(),
-            'sha256',
-        )
+        base_key = 'EFU-V1-{}'.format(self._secret).encode()
+        request_date = self._request.date.strftime('%Y%m%d').encode()
+        final_key = hmac.new(base_key, request_date, 'sha256')
         return final_key.hexdigest()
 
     def _signature_hash(self):
@@ -73,10 +105,9 @@ class SignatureV1(object):
         '''
         Creates the value for the Authorization header.
         '''
-        header = 'EFU-V1 Credential={}/{}, SignedHeaders={}, Signature={}'
+        header = 'EFU-V1 Credential={}, SignedHeaders={}, Signature={}'
         return header.format(
             self._access_id,
-            self._timestamp,
             self._signed_headers(),
             self._signature_hash(),
         )
