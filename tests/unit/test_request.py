@@ -6,6 +6,7 @@ import unittest
 from datetime import datetime, timezone
 from unittest.mock import patch
 
+from efu.auth import SignatureV1
 from efu.request import Request
 
 from ..base import ConfigTestCaseMixin
@@ -158,3 +159,30 @@ class SignedRequestTestCase(ConfigTestCaseMixin, BaseHTTPServerTestCase):
         request._sign()
         header = request.headers.get('Authorization', None)
         self.assertIsNotNone(header)
+
+    def test_signatured_is_calculated_with_right_headers(self):
+        self.httpd.register_response('/')
+
+        request = Request(self.httpd.url(), 'post', '')
+        self.assertIsNone(request.headers.get('Authorization', None))
+
+        sig = SignatureV1(request, None, None).signature
+        self.assertIsNone(request.headers.get('Authorization', None))
+
+        # It is right when we sign the request
+        request._sign()
+        self.assertIsNotNone(request.headers.get('Authorization', None))
+        self.assertEqual(sig, request.headers['Authorization'])
+
+        del request.headers['Authorization']
+        response = request.send()
+        self.assertEqual(response.request.headers['Authorization'], sig)
+
+        # It is right when we send the request
+        request = Request(self.httpd.url(), 'post', '')
+        self.assertIsNone(request.headers.get('Authorization', None))
+
+        sig = SignatureV1(request, None, None).signature
+        self.assertIsNone(request.headers.get('Authorization', None))
+        response = request.send()
+        self.assertEqual(response.request.headers['Authorization'], sig)
