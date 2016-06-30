@@ -6,9 +6,6 @@ import unittest
 from datetime import datetime, timezone
 from unittest.mock import patch
 
-import requests
-
-from efu.auth import SignatureV1
 from efu.request import Request
 
 from ..base import ConfigTestCaseMixin

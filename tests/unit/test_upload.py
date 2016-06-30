@@ -4,9 +4,6 @@
 import hashlib
 import json
 import os
-import unittest
-from itertools import count
-from unittest.mock import patch
 
 from efu.upload.upload import (
     File, Package, Transaction,
@@ -95,7 +92,7 @@ class FileTestCase(BaseTransactionTestCase):
         self.assertEqual(result, UploadStatus.PART_FAIL)
 
     def test_upload_returns_failure_when_finishing_upload_fails(self):
-        fn, conf = self.fixture.set_file(1, 1, finish_success=False)
+        _, conf = self.fixture.set_file(1, 1, finish_success=False)
 
         file = File(self.file_name)
         file.exists_in_server = False
@@ -107,7 +104,7 @@ class FileTestCase(BaseTransactionTestCase):
         self.assertEqual(result, UploadStatus.FAIL)
 
     def test_returns_success_when_upload_is_successful(self):
-        fn, conf = self.fixture.set_file(1, 1)
+        _, conf = self.fixture.set_file(1, 1)
 
         file = File(self.file_name)
         file.exists_in_server = False
@@ -213,7 +210,7 @@ class TransactionTestCase(BaseTransactionTestCase):
             transaction._start_transaction()
 
     def test_start_transaction_request_is_made_correctly(self):
-        start_url, finish_url = self.fixture.register_start_transaction_url(
+        start_url, _ = self.fixture.register_start_transaction_url(
             self.project_id, self.responses)
         transaction = Transaction(self.package_fn)
         transaction._start_transaction()
@@ -227,7 +224,7 @@ class TransactionTestCase(BaseTransactionTestCase):
         self.assertEqual(len(request_body['files']), 2)
 
     def test_start_transaction_updates_finish_transaction_url(self):
-        start_url, finish_url = self.fixture.register_start_transaction_url(
+        _, finish_url = self.fixture.register_start_transaction_url(
             self.project_id, self.responses)
         transaction = Transaction(self.package_fn)
         transaction._start_transaction()

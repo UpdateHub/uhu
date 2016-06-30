@@ -7,7 +7,6 @@ import math
 import os
 import tempfile
 from random import choice
-from datetime import datetime
 
 from efu.config.config import Config
 from efu.upload.upload import File

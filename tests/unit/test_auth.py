@@ -1,7 +1,6 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-import hashlib
 import unittest
 from datetime import datetime, timezone
 from unittest.mock import Mock
