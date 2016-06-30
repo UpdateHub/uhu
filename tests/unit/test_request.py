@@ -6,7 +6,7 @@ import unittest
 from datetime import datetime, timezone
 from unittest.mock import patch
 
-from efu.auth import SignatureV1
+from efu.auth import EFOTAV1Signature
 from efu.request import Request
 
 from ..base import ConfigTestCaseMixin
@@ -166,7 +166,7 @@ class SignedRequestTestCase(ConfigTestCaseMixin, BaseHTTPServerTestCase):
         request = Request(self.httpd.url(), 'post', '')
         self.assertIsNone(request.headers.get('Authorization', None))
 
-        sig = SignatureV1(request, None, None).signature
+        sig = EFOTAV1Signature(request, None, None).signature
         self.assertIsNone(request.headers.get('Authorization', None))
 
         # It is right when we sign the request
@@ -182,7 +182,7 @@ class SignedRequestTestCase(ConfigTestCaseMixin, BaseHTTPServerTestCase):
         request = Request(self.httpd.url(), 'post', '')
         self.assertIsNone(request.headers.get('Authorization', None))
 
-        sig = SignatureV1(request, None, None).signature
+        sig = EFOTAV1Signature(request, None, None).signature
         self.assertIsNone(request.headers.get('Authorization', None))
         response = request.send()
         self.assertEqual(response.request.headers['Authorization'], sig)

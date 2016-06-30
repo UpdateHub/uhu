@@ -5,7 +5,7 @@ import hashlib
 import hmac
 
 
-class SignatureV1(object):
+class EFOTAV1Signature(object):
     '''
     This signature uses the hmac-sha256 hash algorithm to generate the
     final signature.
@@ -46,7 +46,7 @@ class SignatureV1(object):
         {canonical_request}
         '''
         timestamp = self._request.date.strftime('%Y%m%dT%H%M%SZ')
-        return 'EFU-V1\n{timestamp}\n{canonical_request}'.format(
+        return 'EFOTA-V1\n{timestamp}\n{canonical_request}'.format(
             timestamp=timestamp,
             canonical_request=self._hashed_canonical_request(),
         )
@@ -68,10 +68,10 @@ class SignatureV1(object):
 
         {auth_name}-{auth_version}-{user_secret}
 
-        If the authentication algorithm name is EFU, the version is
+        If the authentication algorithm name is EFOTA, the version is
         V1 and the user secret is 123, the base key is:
 
-        base_key = 'EFU-V1-123'
+        base_key = 'EFOTA-V1-123'
 
         ------------
         Request date
@@ -83,7 +83,7 @@ class SignatureV1(object):
         message = '19991231'
 
         '''
-        base_key = 'EFU-V1-{}'.format(self._secret).encode()
+        base_key = 'EFOTA-V1-{}'.format(self._secret).encode()
         request_date = self._request.date.strftime('%Y%m%d').encode()
         final_key = hmac.new(base_key, request_date, 'sha256')
         return final_key.hexdigest()
@@ -105,7 +105,7 @@ class SignatureV1(object):
         '''
         Creates the value for the Authorization header.
         '''
-        header = 'EFU-V1 Credential={}, SignedHeaders={}, Signature={}'
+        header = 'EFOTA-V1 Credential={}, SignedHeaders={}, Signature={}'
         return header.format(
             self._access_id,
             self._signed_headers(),

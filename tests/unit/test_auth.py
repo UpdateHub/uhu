@@ -5,10 +5,10 @@ import unittest
 from datetime import datetime, timezone
 from unittest.mock import Mock
 
-from efu.auth import SignatureV1
+from efu.auth import EFOTAV1Signature
 
 
-class SignatureV1TestCase(unittest.TestCase):
+class EFOTAV1SignatureTestCase(unittest.TestCase):
 
     def setUp(self):
         self.request = Mock()
@@ -24,13 +24,13 @@ class SignatureV1TestCase(unittest.TestCase):
     def test_hashed_canonical_request(self):
         # sha256 of 000 in hex:
         expected = '2ac9a6746aca543af8dff39894cfe8173afba21eb01c6fae33d52947222855ef'  # nopep8
-        signature = SignatureV1(self.request, '', '')
+        signature = EFOTAV1Signature(self.request, '', '')
         observed = signature._hashed_canonical_request()
         self.assertEqual(observed, expected)
 
     def test_signed_headers(self):
         expected = 'bar;foo;host;timestamp'
-        signature = SignatureV1(self.request, '', '')
+        signature = EFOTAV1Signature(self.request, '', '')
         observed = signature._signed_headers()
         self.assertEqual(observed, expected)
 
@@ -42,20 +42,20 @@ class SignatureV1TestCase(unittest.TestCase):
         of the canonical request in hexadecimal format. In this test,
         the value hashed was 000.
         '''
-        expected = '''EFU-V1
+        expected = '''EFOTA-V1
 19700101T000000Z
 2ac9a6746aca543af8dff39894cfe8173afba21eb01c6fae33d52947222855ef'''
-        signature = SignatureV1(self.request, '', '')
+        signature = EFOTAV1Signature(self.request, '', '')
         observed = signature._message()
         self.assertEqual(observed, expected)
 
     def test_key(self):
         '''
         The expected value here is a hmac-sha256 hash in hexadecimal using
-        EFU-V1-SECRET as key and 19700101 as message.
+        EFOTA-V1-SECRET as key and 19700101 as message.
         '''
-        expected = '6c811415679f8c7ff1c64689ce1cc2611e902b8d28ffd3092fda54f28ae887d5'  # nopep8
-        signature = SignatureV1(self.request, '', 'SECRET')
+        expected = '19fbc0211973906c184462dc765703b4d44a18bbe78624bf2abfc46c49c20c29'  # nopep8
+        signature = EFOTAV1Signature(self.request, '', 'SECRET')
         observed = signature._key()
         self.assertEqual(observed, expected)
 
@@ -66,8 +66,8 @@ class SignatureV1TestCase(unittest.TestCase):
         test_key method and as message the expected value from the
         test_message method.
         '''
-        expected = 'ba34c2b678f777ac03b90a1a871eada27b92d8f7d9a3e386c554ce0ffe91574f'  # nopep8
-        signature = SignatureV1(self.request, '', 'SECRET')
+        expected = 'd826360e77d1d35c16342aa3188529fefa37a63717acc391a8ccb2ec7dc053ca'  # nopep8
+        signature = EFOTAV1Signature(self.request, '', 'SECRET')
         observed = signature._signature_hash()
         self.assertEqual(observed, expected)
 
@@ -75,7 +75,7 @@ class SignatureV1TestCase(unittest.TestCase):
         '''
         The signature hash used here is the same from test_signature method
         '''
-        expected = 'EFU-V1 Credential=123ACCESSID, SignedHeaders=bar;foo;host;timestamp, Signature=ba34c2b678f777ac03b90a1a871eada27b92d8f7d9a3e386c554ce0ffe91574f'  # nopep8
-        signature = SignatureV1(self.request, '123ACCESSID', 'SECRET')
+        expected = 'EFOTA-V1 Credential=123ACCESSID, SignedHeaders=bar;foo;host;timestamp, Signature=d826360e77d1d35c16342aa3188529fefa37a63717acc391a8ccb2ec7dc053ca'  # nopep8
+        signature = EFOTAV1Signature(self.request, '123ACCESSID', 'SECRET')
         observed = signature.signature
         self.assertEqual(observed, expected)

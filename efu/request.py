@@ -7,7 +7,7 @@ from urllib.parse import quote, urlparse, parse_qs
 
 import requests
 
-from .auth import SignatureV1
+from .auth import EFOTAV1Signature
 from .config import config
 
 
@@ -63,7 +63,7 @@ class Request(object):
     def _sign(self):
         access_id = config.get('access_id', section='auth')
         access_secret = config.get('access_secret', section='auth')
-        signature = SignatureV1(self, access_id, access_secret)
+        signature = EFOTAV1Signature(self, access_id, access_secret)
         self.headers['Authorization'] = signature.signature
 
     def _prepare_headers(self):
