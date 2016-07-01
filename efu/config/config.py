@@ -15,6 +15,11 @@ class Config(object):
 
     _ENV_VAR = 'EFU_CONFIG_FILE'
 
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super().__new__(cls)
+        return cls.instance
+
     def __init__(self):
         self._filename = self._get_config_filename()
         self._config = configparser.ConfigParser(
@@ -61,6 +66,3 @@ class Config(object):
             section = Sections.MAIN
         value = self._config.get(section, key, fallback=None)
         return value
-
-
-config = Config()

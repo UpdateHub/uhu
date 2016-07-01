@@ -11,6 +11,12 @@ from ..base import ConfigTestCaseMixin
 
 class ConfigTestCase(ConfigTestCaseMixin, unittest.TestCase):
 
+    def test_config_class_is_singleton(self):
+        config1 = Config()
+        config2 = Config()
+        self.assertIs(config2, config1)
+        self.assertEqual(config2, config1)
+
     def test_can_retrieve_config_file_by_hardcode(self):
         del os.environ[Config._ENV_VAR]
         expected = '.efu'
