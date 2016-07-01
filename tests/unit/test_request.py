@@ -11,6 +11,7 @@ import requests
 from efu.auth import SignatureV1
 from efu.request import Request
 
+from ..base import ConfigTestCaseMixin
 from ..httpmock.utils import BaseHTTPServerTestCase
 
 
@@ -147,7 +148,7 @@ timestamp:123456.1234'''
         self.assertEqual(observed, expected)
 
 
-class SignedRequestTestCase(unittest.TestCase):
+class SignedRequestTestCase(ConfigTestCaseMixin, BaseHTTPServerTestCase):
 
     def test_signed_request_has_the_authorization_header(self):
         request = Request('https://127.0.0.1/upload', 'post', '')

@@ -9,9 +9,18 @@ import tempfile
 from random import choice
 from datetime import datetime
 
+from efu.config.config import Config
 from efu.upload.upload import File
 
 from .httpmock.utils import BaseHTTPServerTestCase
+
+
+def delete_environment_variable(var):
+    try:
+        del os.environ[var]
+    except KeyError:
+        # variable already deleted
+        pass
 
 
 class ServerMocker(object):
@@ -32,11 +41,7 @@ class ServerMocker(object):
         self.files = []
 
     def clean_server_url(self):
-        try:
-            del os.environ['EFU_SERVER_URL']
-        except KeyError:
-            # variable already deleted
-            pass
+        delete_environment_variable('EFU_SERVER_URL')
 
     def clean_file_id_generator(self):
         File._File__reset_id_generator()
@@ -175,7 +180,18 @@ class ServerMocker(object):
         return pkg
 
 
-class BaseTransactionTestCase(BaseHTTPServerTestCase):
+class ConfigTestCaseMixin(object):
+
+    def setUp(self):
+        super().setUp()
+        _, self.config_filename = tempfile.mkstemp()
+        os.environ[Config._ENV_VAR] = self.config_filename
+        self.addCleanup(os.remove, self.config_filename)
+        self.addCleanup(delete_environment_variable, Config._ENV_VAR)
+        self.config = Config()
+
+
+class BaseTransactionTestCase(ConfigTestCaseMixin, BaseHTTPServerTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -183,6 +199,7 @@ class BaseTransactionTestCase(BaseHTTPServerTestCase):
         cls.fixture = ServerMocker(cls.httpd)
 
     def setUp(self):
+        super().setUp()
         self.addCleanup(self.fixture.clean_generated_files)
         self.fixture.set_server_url()
 

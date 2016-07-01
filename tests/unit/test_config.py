@@ -4,17 +4,24 @@
 import os
 import unittest
 
-from efu.config.config import Config
+from efu.config.config import Config, Sections
+
+from ..base import ConfigTestCaseMixin
 
 
-class ConfigTestCase(unittest.TestCase):
+class ConfigTestCase(ConfigTestCaseMixin, unittest.TestCase):
 
-    def setUp(self):
-        self.config_filename = '/tmp/efu_dot_file'
-        Config.CONFIG_FILENAME = self.config_filename
+    def test_can_retrieve_config_file_by_hardcode(self):
+        del os.environ[Config._ENV_VAR]
+        expected = '.efu'
+        observed = self.config._get_config_filename().split('/')[-1]
+        self.assertEqual(observed, expected)
 
-    def tearDown(self):
-        os.remove(self.config_filename)
+    def test_can_retrieve_config_file_by_environment_variable(self):
+        expected = '/tmp/super_file'
+        os.environ[Config._ENV_VAR] = expected
+        observed = self.config._get_config_filename()
+        self.assertEqual(observed, expected)
 
     def test_get_value_from_default_section(self):
         key = 'test_key'
@@ -24,8 +31,7 @@ class ConfigTestCase(unittest.TestCase):
             fp.write('[settings]\n')
             fp.write('{} = {}\n'.format(key, value))
 
-        config = Config()
-        observed = config.get(key)
+        observed = self.config.get(key)
         self.assertEqual(observed, value)
 
     def test_get_value_from_different_section(self):
@@ -37,49 +43,58 @@ class ConfigTestCase(unittest.TestCase):
             fp.write('[{}]\n'.format(section))
             fp.write('{} = {}\n'.format(key, value))
 
-        config = Config()
-        observed = config.get(key, section=section)
+        observed = self.config.get(key, section=section)
         self.assertEqual(observed, value)
 
     def test_get_no_existent_key_returns_none(self):
-        config = Config()
-        observed = config.get('invalid key')
+
+        observed = self.config.get('invalid key')
         self.assertIsNone(observed)
 
-        observed = config.get('invalid key', section='auth')
+        observed = self.config.get('invalid key', section='auth')
         self.assertIsNone(observed)
 
     def test_set_value(self):
         key = 'key'
         value = 'value'
-        config = Config()
-        config.set(key, value)
-        self.assertEqual(config.get(key), value)
+
+        self.config.set(key, value)
+        self.assertEqual(self.config.get(key), value)
 
     def test_set_value_in_a_different_section(self):
         section = 'auth'
         key = 'key'
         value = 'value'
-        config = Config()
-        config.set(key, value, section=section)
-        self.assertEqual(config.get(key, section=section), value)
+
+        self.config.set(key, value, section=section)
+        self.assertEqual(self.config.get(key, section=section), value)
 
     def test_set_initial_configuration(self):
         expected_id = 'id'
         expected_secret = 'secret'
 
-        config = Config()
-        config.set_initial(expected_id, expected_secret)
+        self.config.set_initial(expected_id, expected_secret)
 
-        observed_id = config.get('access_id', section='auth')
-        observed_secret = config.get('access_secret', section='auth')
+        observed_id = self.config.get('access_id', section=Sections.AUTH)
+        observed_secret = self.config.get('access_secret', Sections.AUTH)
 
         self.assertEqual(observed_id, expected_id)
         self.assertEqual(observed_secret, expected_secret)
 
     def test_set_command_does_not_override_previous_settings(self):
-        config = Config()
-        config.set('foo', 'bar')
-        config.set('bar', 'foo')
-        self.assertEqual(config.get('foo'), 'bar')
-        self.assertEqual(config.get('bar'), 'foo')
+        self.config.set('foo', 'bar')
+        self.config.set('bar', 'foo')
+
+        self.assertEqual(self.config.get('foo'), 'bar')
+        self.assertEqual(self.config.get('bar'), 'foo')
+
+    def test_can_update_a_configuration(self):
+        self.config.set('control', 'control')
+        self.config.set('foo', 'bar')
+
+        self.assertEqual(self.config.get('foo'), 'bar')
+        self.assertEqual(self.config.get('control'), 'control')
+
+        self.config.set('foo', 'foo bar')
+        self.assertEqual(self.config.get('foo'), 'foo bar')
+        self.assertEqual(self.config.get('control'), 'control')

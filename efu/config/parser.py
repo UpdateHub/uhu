@@ -23,8 +23,7 @@ def init():
 @click.command(name='set')
 @click.argument('entry')
 @click.argument('value')
-@click.option('--section', default='settings',
-              help='Section to write the configuration')
+@click.option('--section', help='Section to write the configuration')
 def set_(entry, value, section):
     '''
     Sets the given VALUE in a configuration ENTRY.
@@ -34,8 +33,7 @@ def set_(entry, value, section):
 
 @click.command()
 @click.argument('entry')
-@click.option('--section', default='settings',
-              help='Section to write the configuration')
+@click.option('--section', help='Section to write the configuration')
 def get(entry, section):
     '''
     Gets the value from a given ENTRY.

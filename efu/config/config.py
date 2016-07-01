@@ -6,56 +6,60 @@ import os
 
 
 class Sections:
-    main = 'settings'
-    auth = 'auth'
+    MAIN = 'settings'
+    AUTH = 'auth'
 
 
 class Config(object):
-    """ This is the wrapper over ~/.efu configuration file. """
+    ''' This is the wrapper to manage ~/.efu configuration file. '''
 
-    CONFIG_FILENAME = '~/.efu'
+    _ENV_VAR = 'EFU_CONFIG_FILE'
 
     def __init__(self):
-        self.file = self._get_config_filename()
-        self.config = configparser.ConfigParser(
-            default_section=Sections.main
+        self._filename = self._get_config_filename()
+        self._config = configparser.ConfigParser(
+            default_section=Sections.MAIN
         )
-        # sets ~/.efu file if it doesn't exist
-        if not os.path.exists(self.file):
-            self.write()
-        self.read()
 
     def _get_config_filename(self):
-        return os.path.expanduser(self.CONFIG_FILENAME)
+        config_fn = os.environ.get(self._ENV_VAR, None)
+        if config_fn is None:
+            config_fn = os.path.expanduser('~/.efu')
+        return config_fn
 
-    def write(self):
-        self.read()
-        with open(self.file, 'w') as fp:
-            self.config.write(fp)
-
-    def read(self):
-        self.config.read(self.file)
+    def _read(self):
+        if os.path.exists(self._filename):
+            self._config.read(self._filename)
+        open(self._filename, 'a').close()
 
     def set_initial(self, access_id, access_secret):
-        """
+        '''
         This set the initial required values (credentials) to run
         other efu commands.
-        """
-        self.set('access_id', access_id, section=Sections.auth)
-        self.set('access_secret', access_secret, section=Sections.auth)
+        '''
+        self.set('access_id', access_id, section=Sections.AUTH)
+        self.set('access_secret', access_secret, section=Sections.AUTH)
 
-    def set(self, key, value, section=Sections.main):
-        """ Adds a new entry on settings based on key and value """
-        if not self.config.has_section(section):
-            self.config[section] = {}
-        self.config.set(section, key, value)
-        self.write()
+    def set(self, key, value, section=None):
+        ''' Adds a new entry on settings based on key and value '''
+        self._read()
+
+        if section is None:
+            section = Sections.MAIN
+        elif not self._config.has_section(section):
+            self._config.add_section(section)
+
+        self._config.set(section, key, value)
+
+        with open(self._filename, 'w') as fp:
+            self._config.write(fp)
 
     def get(self, key, section=None):
-        """ Gets the value for the given a key """
+        ''' Gets the value for the given a key '''
+        self._read()
         if not section:
-            section = Sections.main
-        value = self.config.get(section, key, fallback=None)
+            section = Sections.MAIN
+        value = self._config.get(section, key, fallback=None)
         return value
 
 
