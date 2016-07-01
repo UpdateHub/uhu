@@ -3,7 +3,7 @@
 
 import click
 
-from . import config as efu_config
+from . import config
 
 
 @click.group(name='config')
@@ -17,7 +17,7 @@ def init():
     ''' Sets efu required initial configuration. '''
     access_id = input('EasyFOTA Access Key ID: ')
     access_secret = input('EasyFota Systems Secret Access Key: ')
-    efu_config.set_initial(access_id, access_secret)
+    config.set_initial(access_id, access_secret)
 
 
 @click.command(name='set')
@@ -28,7 +28,7 @@ def set_(entry, value, section):
     '''
     Sets the given VALUE in a configuration ENTRY.
     '''
-    efu_config.set(entry, value, section=section)
+    config.set(entry, value, section=section)
 
 
 @click.command()
@@ -38,7 +38,7 @@ def get(entry, section):
     '''
     Gets the value from a given ENTRY.
     '''
-    value = efu_config.get(entry, section=section)
+    value = config.get(entry, section=section)
     if value:
         click.echo(value)
 
