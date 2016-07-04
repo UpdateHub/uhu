@@ -9,7 +9,7 @@ import tempfile
 from random import choice
 
 from efu.config.config import Config
-from efu.push.push import File
+from efu.push.file import File
 
 from .httpmock.utils import BaseHTTPServerTestCase
 
