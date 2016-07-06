@@ -19,8 +19,6 @@ def transaction_command(package_file):
     try:
         sys.exit(Transaction(package_file).run())
     except InvalidFileError:
-        click.echo('Invalid file within package')
-        raise click.BadParameter
+        raise click.BadParameter('Invalid file within package')
     except InvalidPackageFileError:
-        click.echo('Invalid package file')
-        raise click.BadParameter
+        raise click.BadParameter('Invalid package file')
