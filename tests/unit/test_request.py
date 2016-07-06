@@ -18,7 +18,7 @@ class RequestTestCase(BaseHTTPServerTestCase):
     def test_request_date_is_in_utc(self):
         expected = datetime.now(timezone.utc).timestamp()
         observed = Request('', 'post', '').date.timestamp()
-        # 1 second of tolerance between expected and observed
+        # 60 seconds of tolerance between expected and observed
         self.assertAlmostEqual(observed, expected, delta=60)
 
     @patch('efu.request.datetime')
