@@ -13,7 +13,7 @@ from .config import config
 
 class Request(object):
 
-    def __init__(self, url, method, payload):
+    def __init__(self, url, method, payload, json=False):
         self.url = url
         self._url = urlparse(self.url)
         self.method = method.upper()
@@ -27,7 +27,10 @@ class Request(object):
             'Timestamp': self.date.timestamp(),
             'Content-sha256': self.payload_sha256,
             'Api-Content-Type': 'application/vnd.fota-server-v1+json',
+            'Accept': 'application/json',
         }
+        if json:
+            self.headers['Content-Type'] = 'application/json'
 
     def _generate_payload_sha256(self):
         payload = self.payload

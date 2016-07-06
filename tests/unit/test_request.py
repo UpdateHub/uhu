@@ -32,7 +32,7 @@ class RequestTestCase(EFUTestCase):
         sha256 = request.headers.get('Content-sha256')
         api = request.headers.get('Api-Content-Type')
 
-        self.assertEqual(len(request.headers), 4)
+        self.assertEqual(len(request.headers), 5)
         self.assertEqual(host, 'localhost')
         self.assertEqual(timestamp, 0)
         self.assertEqual(api, 'application/vnd.fota-server-v1+json')
@@ -40,6 +40,16 @@ class RequestTestCase(EFUTestCase):
             sha256,
             '6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d'
         )
+
+    def test_request_does_not_send_json_content_type_by_default(self):
+        request = Request('https://localhost/', 'post', '')
+        self.assertIsNone(request.headers.get('Content-Type'))
+
+    def test_can_set_json_content_type(self):
+        request = Request('https://localhost/', 'post', b'{}', json=True)
+        header = request.headers.get('Content-Type')
+        self.assertIsNotNone(header)
+        self.assertEqual(header, 'application/json')
 
     def test_header_content_sha256_when_bytes(self):
         payload = b'bytes'
@@ -96,6 +106,7 @@ class CanonicalRequestTestCase(unittest.TestCase):
         expected = '''POST
 /upload
 a=1&b=2&c=3
+accept:application/json
 api-content-type:application/vnd.fota-server-v1+json
 content-sha256:6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d
 host:localhost

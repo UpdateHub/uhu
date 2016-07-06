@@ -40,6 +40,7 @@ class PushTestCase(EFUTestCase):
         self.assertEqual(request.method, 'POST')
         self.assertEqual(request.url, start_url)
         self.assertEqual(len(request_body.get('objects')), 3)
+        self.assertEqual(request.headers['Content-Type'], 'application/json')
         for file in request_body.get('objects'):
             self.assertIsNotNone(file.get('id'))
             self.assertIsNotNone(file.get('sha256sum'))

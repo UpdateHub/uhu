@@ -38,6 +38,7 @@ class Push(object):
             self._start_push_url,
             method='POST',
             payload=json.dumps(self._package.as_dict()),
+            json=True,
         )
         response = request.send()
         if response.status_code != 201:
