@@ -98,7 +98,6 @@ class PushTestCase(BasePushTestCase):
         push._start_push()
         for file, expected in zip(push.files, self.responses):
             self.assertEqual(file.exists_in_server, expected['exists'])
-            self.assertEqual(file.chunk_size, expected['chunk_size'])
             self.assertEqual(file.part_upload_urls, expected['urls'])
             self.assertEqual(file.finish_upload_url,
                              expected['finish_upload_url'])
@@ -165,7 +164,7 @@ class PushTestCase(BasePushTestCase):
 
     def test_upload_files_requests_are_made_correctly(self):
         pkg = self.fixture.set_push(
-            1, success_files=2, existent_files=1, chunk_size=1, file_size=3)
+            1, success_files=2, existent_files=1, file_size=3)
         push = Push(pkg)
         push._start_push()
         push._upload_files()

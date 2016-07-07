@@ -8,6 +8,7 @@ import os
 import tempfile
 from random import choice
 
+from efu.utils import get_chunk_size
 from efu.config.config import Config
 from efu.push.file import File
 
@@ -105,14 +106,14 @@ class ServerMocker(object):
         self.httpd.register_response(path, 'POST', status_code=code)
         return self.httpd.url(path)
 
-    def set_file(self, product_id, file_id, content=b'0', chunk_size=1,
-                 part_success=True, finish_success=True, exists=False):
+    def set_file(self, product_id, file_id, content=b'0', part_success=True,
+                 finish_success=True, exists=False):
         '''
         Helper function that creates a file in file system and sets the
         server responses to deal with its upload.
         '''
         file = self.create_file(content=content)
-        n_parts = math.ceil(len(content) / chunk_size)
+        n_parts = math.ceil(len(content) / get_chunk_size())
         part_urls = self.register_file_part_upload_urls(
             product_id, file_id, n_parts, part_success)
         finish_url = self.register_file_finish_upload_url(
@@ -120,7 +121,6 @@ class ServerMocker(object):
         response = {
             'id': file_id,
             'exists': exists,
-            'chunk_size': chunk_size,
             'urls': part_urls,
             'finish_upload_url': finish_url,
         }
@@ -137,9 +137,8 @@ class ServerMocker(object):
         pkg = self.create_file(content=content)
         return pkg
 
-    def set_push(self, product_id, file_size=1, chunk_size=1,
-                 start_success=True, finish_success=True,
-                 success_files=3, existent_files=0,
+    def set_push(self, product_id, file_size=1, start_success=True,
+                 finish_success=True, success_files=3, existent_files=0,
                  finish_fail_files=0, part_fail_files=0):
         '''
         Helper function that creates all needed responses to complete an
@@ -150,8 +149,7 @@ class ServerMocker(object):
         file_id = itertools.count()
         content = file_size * b'0'
         for _ in range(success_files):
-            fn, response = self.set_file(
-                product_id, next(file_id), content, chunk_size=chunk_size)
+            fn, response = self.set_file(product_id, next(file_id), content)
             files.append(fn)
             responses.append(response)
         for _ in range(existent_files):
@@ -161,14 +159,12 @@ class ServerMocker(object):
             responses.append(response)
         for _ in range(part_fail_files):
             fn, response = self.set_file(
-                product_id, next(file_id), content, chunk_size=chunk_size,
-                part_success=False)
+                product_id, next(file_id), content, part_success=False)
             files.append(fn)
             responses.append(response)
         for _ in range(finish_fail_files):
             fn, response = self.set_file(
-                product_id, next(file_id), content, chunk_size=chunk_size,
-                finish_success=False)
+                product_id, next(file_id), content, finish_success=False)
             files.append(fn)
             responses.append(response)
 
@@ -192,6 +188,8 @@ class ConfigTestCaseMixin(object):
 
 class BasePushTestCase(ConfigTestCaseMixin, BaseHTTPServerTestCase):
 
+    CHUNK_SIZE = 1
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -199,6 +197,8 @@ class BasePushTestCase(ConfigTestCaseMixin, BaseHTTPServerTestCase):
 
     def setUp(self):
         super().setUp()
+        os.environ['EFU_CHUNK_SIZE'] = str(self.CHUNK_SIZE)
+        self.addCleanup(delete_environment_variable, 'EFU_CHUNK_SIZE')
         self.addCleanup(self.fixture.clean_generated_files)
         self.fixture.set_server_url()
 

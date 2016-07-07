@@ -6,6 +6,7 @@ import os
 from itertools import count
 
 from ..request import Request
+from ..utils import get_chunk_size
 
 from . import exceptions
 from .ui import SUCCESS_MSG, FAIL_MSG
@@ -37,7 +38,6 @@ class File(object):
         self.exists_in_server = True
         self.part_upload_urls = []
         self.finish_upload_url = None
-        self.chunk_size = None
 
     def _validate_file(self, fn):
         if os.path.exists(fn):
@@ -48,7 +48,7 @@ class File(object):
 
     def _generate_file_sha256(self):
         sha256 = hashlib.sha256()
-        chunk_size = 1024 ** 2 * 5  # 5 Mib
+        chunk_size = get_chunk_size()
         with open(self.name, 'br') as fp:
             for chunk in iter(lambda: fp.read(chunk_size), b''):
                 sha256.update(chunk)
@@ -76,9 +76,10 @@ class File(object):
             return self._finish_upload(UploadStatus.EXISTS, bar)
 
         # Upload file chunks
+        chunk_size = get_chunk_size()
         with open(self.name, 'rb') as fp:
             for url in self.part_upload_urls:
-                payload = fp.read(self.chunk_size)
+                payload = fp.read(chunk_size)
                 response = Request(url, 'POST', payload).send()
                 if response.status_code != 201:
                     return self._finish_upload(UploadStatus.PART_FAIL, bar)

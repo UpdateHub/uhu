@@ -58,13 +58,12 @@ class FileTestCase(BasePushTestCase):
         self.assertEqual(result, UploadStatus.EXISTS)
 
     def test_upload_requests_payload_are_made_correctly(self):
-        fn, conf = self.fixture.set_file(1, 1, content=b'1234', chunk_size=1)
+        fn, conf = self.fixture.set_file(1, 1, content=b'1234')
 
         file = File(fn)
         file.exists_in_server = False
         file.part_upload_urls = conf['urls']
         file.finish_upload_url = conf['finish_upload_url']
-        file.chunk_size = 1
         file.upload()
 
         self.assertEqual(len(self.httpd.requests), 5)
@@ -81,7 +80,6 @@ class FileTestCase(BasePushTestCase):
         file.exists_in_server = False
         file.part_upload_urls = conf['urls']
         file.finish_upload_url = conf['finish_upload_url']
-        file.chunk_size = 1
 
         result = file.upload()
         self.assertEqual(result, UploadStatus.PART_FAIL)
@@ -93,7 +91,6 @@ class FileTestCase(BasePushTestCase):
         file.exists_in_server = False
         file.part_upload_urls = conf['urls']
         file.finish_upload_url = conf['finish_upload_url']
-        file.chunk_size = 1
 
         result = file.upload()
         self.assertEqual(result, UploadStatus.FAIL)
@@ -105,7 +102,6 @@ class FileTestCase(BasePushTestCase):
         file.exists_in_server = False
         file.part_upload_urls = conf['urls']
         file.finish_upload_url = conf['finish_upload_url']
-        file.chunk_size = 1
 
         result = file.upload()
         self.assertEqual(result, UploadStatus.SUCCESS)

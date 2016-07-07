@@ -2,11 +2,11 @@
 # This software is released under the MIT License
 
 import json
-import os
 
 import click
 
 from ..request import Request
+from ..utils import get_server_url
 
 from . import exceptions
 from .ui import UploadProgressBar, SUCCESS_MSG, FAIL_MSG
@@ -31,14 +31,7 @@ class Push(object):
 
     @property
     def _start_push_url(self):
-        host = os.environ.get('EFU_SERVER_URL', None)
-        if host is None:
-            # This must be replaced by the real server URL
-            host = 'http://0.0.0.0'
-        return '{host}/product/{product_id}/upload/'.format(
-            host=host,
-            product_id=self.product_id,
-        )
+        return get_server_url('/product/{}/upload/'.format(self.product_id))
 
     @property
     def _initial_payload(self):
@@ -65,7 +58,6 @@ class Push(object):
         for f in response_body['files']:
             file = self.files[f['id']]
             file.exists_in_server = f.get('exists', True)
-            file.chunk_size = f.get('chunk_size')
             file.part_upload_urls = f.get('urls')
             file.finish_upload_url = f.get('finish_upload_url')
 
