@@ -132,7 +132,6 @@ class Transaction(object):
         self.project_id = self.package.project_id
         self.files = self.package.files
         self._finish_transaction_url = None
-        self.success = False
 
     @property
     def _start_transaction_url(self):
