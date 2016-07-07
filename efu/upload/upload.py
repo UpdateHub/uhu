@@ -41,7 +41,7 @@ class File(object):
 
     def __init__(self, fn):
         self.id = next(self._id)
-        self.file_name = self._validate_file(fn)
+        self.name = self._validate_file(fn)
         self.sha256 = self._generate_file_sha256()
 
         self.exists_in_server = True
@@ -59,7 +59,7 @@ class File(object):
     def _generate_file_sha256(self):
         sha256 = hashlib.sha256()
         chunk_size = 1024 ** 2 * 5  # 5 Mib
-        with open(self.file_name, 'br') as fp:
+        with open(self.name, 'br') as fp:
             for chunk in iter(lambda: fp.read(chunk_size), b''):
                 sha256.update(chunk)
         return sha256.hexdigest()
@@ -86,7 +86,7 @@ class File(object):
             return self._finish_upload(UploadStatus.EXISTS, bar)
 
         # Upload file chunks
-        with open(self.file_name, 'rb') as fp:
+        with open(self.name, 'rb') as fp:
             for url in self.part_upload_urls:
                 payload = fp.read(self.chunk_size)
                 response = Request(url, 'POST', payload).send()
@@ -177,7 +177,7 @@ class Transaction(object):
         results = []
         for file in self.files:
             n_uploads = len(file.part_upload_urls)
-            bar = UploadProgressBar(file.file_name, max=n_uploads)
+            bar = UploadProgressBar(file.name, max=n_uploads)
             results.append(file.upload(bar))
         successful_status = (UploadStatus.SUCCESS, UploadStatus.EXISTS)
         success = [result in successful_status for result in results]
