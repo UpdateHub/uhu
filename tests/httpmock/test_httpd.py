@@ -12,6 +12,10 @@ from . import httpd
 
 class HTTPServerTestCase(EFUTestCase):
 
+    def setUp(self):
+        super().setUp()
+        self.httpd.clear_responses()
+
     @patch('tests.httpmock.httpd.sleep')
     def test_does_not_simulate_application_by_default(self, sleep):
         server = httpd.HTTPMockServer()
@@ -21,7 +25,7 @@ class HTTPServerTestCase(EFUTestCase):
         requests.get(server.url('/app'))
         self.assertFalse(sleep.called)
 
-        server.clear_history()
+        server.clear_requests()
         server.shutdown()
 
     @patch('tests.httpmock.httpd.sleep')
@@ -33,7 +37,7 @@ class HTTPServerTestCase(EFUTestCase):
         requests.get(server.url('/app'))
         self.assertTrue(sleep.called)
 
-        server.clear_history()
+        server.clear_requests()
         server.shutdown()
 
     def test_can_register_a_response(self):
@@ -54,19 +58,35 @@ class HTTPServerTestCase(EFUTestCase):
         self.assertEqual(response.headers.get('CustomHeader'), '42')
         self.assertEqual(response.text, body)
 
+    def test_can_clear_httpd_responses(self):
+        self.httpd.register_response('/', method='GET')
+        self.httpd.register_response('/', method='POST')
+        self.httpd.register_response('/', method='PUT')
+
+        self.assertEqual(len(self.httpd.responses), 1)
+        self.assertEqual(len(self.httpd.responses['/']), 3)
+        self.httpd.clear_responses()
+        self.assertEqual(len(self.httpd.responses), 0)
+
+    def test_can_clear_httpd_requests(self):
+        self.httpd.register_response('/', method='GET')
+        for _ in range(3):
+            requests.get(self.httpd.url())
+
+        self.assertEqual(len(self.httpd.requests), 3)
+        self.httpd.clear_requests()
+        self.assertEqual(len(self.httpd.requests), 0)
+
     def test_can_clear_httpd_history(self):
         self.httpd.register_response('/', method='GET')
         self.httpd.register_response('/', method='POST')
         self.httpd.register_response('/', method='PUT')
-        self.httpd.register_response('/', method='DELETE')
-        self.httpd.register_response('/', method='HEAD')
-
-        for _ in range(5):
+        for _ in range(3):
             requests.get(self.httpd.url())
 
         self.assertEqual(len(self.httpd.responses), 1)
-        self.assertEqual(len(self.httpd.responses['/']), 5)
-        self.assertEqual(len(self.httpd.requests), 5)
+        self.assertEqual(len(self.httpd.responses['/']), 3)
+        self.assertEqual(len(self.httpd.requests), 3)
 
         self.httpd.clear_history()
 

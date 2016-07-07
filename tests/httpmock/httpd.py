@@ -158,9 +158,20 @@ class HTTPMockServer(HTTPServer):
         cls.responses[path][method] = Response(status_code, headers, body)
 
     @classmethod
-    def clear_history(cls):
+    def clear_requests(cls):
         '''
-        Removes all registered responses and cleans request history.
+        Cleans request history.
         '''
         cls.requests = []
+
+    @classmethod
+    def clear_responses(cls):
+        '''
+        Removes all registered responses.
+        '''
         cls.responses = {}
+
+    @classmethod
+    def clear_history(cls):
+        cls.clear_requests()
+        cls.clear_responses()
