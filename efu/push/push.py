@@ -9,9 +9,9 @@ from ..request import Request
 from ..utils import get_server_url
 
 from . import exceptions
-from .ui import UploadProgressBar, SUCCESS_MSG, FAIL_MSG
+from .ui import SUCCESS_MSG, FAIL_MSG
 from .package import Package
-from .file import UploadStatus
+from .upload import Upload, UploadStatus
 
 
 class PushExitCode(object):
@@ -62,11 +62,7 @@ class Push(object):
             file.finish_upload_url = f.get('finish_upload_url')
 
     def _upload_files(self):
-        results = []
-        for file in self.files:
-            n_uploads = len(file.part_upload_urls)
-            bar = UploadProgressBar(file.name, max=n_uploads)
-            results.append(file.upload(bar))
+        results = [Upload(file, progress=True).upload() for file in self.files]
         successful_status = (UploadStatus.SUCCESS, UploadStatus.EXISTS)
         success = [result in successful_status for result in results]
         if not all(success):

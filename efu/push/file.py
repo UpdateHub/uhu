@@ -5,25 +5,9 @@ import hashlib
 import os
 from itertools import count
 
-from ..request import Request
 from ..utils import get_chunk_size
 
 from . import exceptions
-from .ui import SUCCESS_MSG, FAIL_MSG
-
-
-class UploadStatus(object):
-    SUCCESS = 0
-    EXISTS = 1
-    PART_FAIL = 2
-    FAIL = 3
-
-    MESSAGES = {
-        SUCCESS: SUCCESS_MSG,
-        EXISTS: '{} (already uploaded)'.format(SUCCESS_MSG),
-        PART_FAIL: '{} (upload part error)'.format(FAIL_MSG),
-        FAIL: '{} (upload error)'.format(FAIL_MSG),
-    }
 
 
 class File(object):
@@ -58,37 +42,6 @@ class File(object):
     def __reset_id_generator(cls):
         cls._id = count()
 
-    def _finish_upload(self, status, bar):
-        if bar is not None:
-            bar.finish_with_msg(UploadStatus.MESSAGES[status])
-        return status
-
-    def _increase_bar_progress(self, bar):
-        if bar is not None:
-            bar.next()
-
-    def upload(self, bar=None):
-        '''
-        Uploads a file and returns UploadStatus
-        '''
-        # Check if file exists in server
-        if self.exists_in_server:
-            return self._finish_upload(UploadStatus.EXISTS, bar)
-
-        # Upload file chunks
-        chunk_size = get_chunk_size()
-        with open(self.name, 'rb') as fp:
-            for url in self.part_upload_urls:
-                payload = fp.read(chunk_size)
-                response = Request(url, 'POST', payload).send()
-                if response.status_code != 201:
-                    return self._finish_upload(UploadStatus.PART_FAIL, bar)
-                self._increase_bar_progress(bar)
-
-        # Finish upload
-        response = Request(self.finish_upload_url, 'POST', '').send()
-        if response.status_code == 201:
-            status = UploadStatus.SUCCESS
-        else:
-            status = UploadStatus.FAIL
-        return self._finish_upload(status, bar)
+    @property
+    def n_parts(self):
+        return len(self.part_upload_urls)
