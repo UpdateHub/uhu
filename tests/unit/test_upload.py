@@ -120,7 +120,7 @@ class PackageTestCase(BaseTransactionTestCase):
 
     def setUp(self):
         super().setUp()
-        self.project_id = 1
+        self.product_id = 1
 
     def test_raises_invalid_package_file_with_inexistent_file(self):
         with self.assertRaises(exceptions.InvalidPackageFileError):
@@ -132,18 +132,18 @@ class PackageTestCase(BaseTransactionTestCase):
 
     def test_can_load_package_file(self):
         files = [self.fixture.create_file(b'0') for _ in range(2)]
-        package_fn = self.fixture.set_package(self.project_id, files)
+        package_fn = self.fixture.set_package(self.product_id, files)
 
         package = Package(package_fn)
 
-        self.assertEqual(package.project_id, self.project_id)
+        self.assertEqual(package.product_id, self.product_id)
         self.assertEqual(len(package.files), len(files))
         for file in package.files:
             self.assertIsInstance(file, File)
 
     def test_file_id_matches_files_index(self):
         files = [self.fixture.create_file(b'0') for _ in range(15)]
-        package_fn = self.fixture.set_package(self.project_id, files)
+        package_fn = self.fixture.set_package(self.product_id, files)
         package = Package(package_fn)
 
         for file in package.files:
@@ -154,29 +154,29 @@ class TransactionTestCase(BaseTransactionTestCase):
 
     def setUp(self):
         super().setUp()
-        self.project_id = 'P1234'
+        self.product_id = 'P1234'
         base_files = [
-            self.fixture.set_file(self.project_id, 0, exists=True),
-            self.fixture.set_file(self.project_id, 1, exists=False),
+            self.fixture.set_file(self.product_id, 0, exists=True),
+            self.fixture.set_file(self.product_id, 1, exists=False),
         ]
         self.files, self.responses = [], []
         for file, response in base_files:
             self.files.append(file)
             self.responses.append(response)
-        self.package_fn = self.fixture.set_package(self.project_id, self.files)
+        self.package_fn = self.fixture.set_package(self.product_id, self.files)
 
     def test_can_make_initial_payload_correctly(self):
-        project_id = 123
+        product_id = 123
         files, hashes = [], []
         for content in (b'spam', b'eggs'):
             files.append(self.fixture.create_file(content))
             hashes.append(hashlib.sha256(content).hexdigest())
 
-        pkg = self.fixture.set_package(project_id, files)
+        pkg = self.fixture.set_package(product_id, files)
         transaction = Transaction(pkg)
         payload = json.loads(transaction._initial_payload)
 
-        self.assertEqual(payload['project_id'], project_id)
+        self.assertEqual(payload['product_id'], product_id)
         self.assertEqual(len(payload['files']), len(files))
         for observed, expected in zip(payload['files'], hashes):
             self.assertEqual(observed['sha256'], expected)
@@ -184,34 +184,34 @@ class TransactionTestCase(BaseTransactionTestCase):
     def test_can_retrieve_host_url_by_hardcode(self):
         del os.environ['EFU_SERVER_URL']
         transaction = Transaction(self.package_fn)
-        expected = 'http://0.0.0.0/project/P1234/upload/'
+        expected = 'http://0.0.0.0/product/P1234/upload/'
         observed = transaction._start_transaction_url
         self.assertEqual(observed, expected)
 
     def test_can_retrieve_host_url_by_environment_variable(self):
         os.environ['EFU_SERVER_URL'] = 'http://spam.eggs.com'
         transaction = Transaction(self.package_fn)
-        expected = 'http://spam.eggs.com/project/P1234/upload/'
+        expected = 'http://spam.eggs.com/product/P1234/upload/'
         observed = transaction._start_transaction_url
         self.assertEqual(observed, expected)
 
     def test_start_transaction_returns_NONE_when_successful(self):
         self.fixture.register_start_transaction_url(
-            self.project_id, self.responses)
+            self.product_id, self.responses)
         transaction = Transaction(self.package_fn)
         observed = transaction._start_transaction()
         self.assertIsNone(observed)
 
     def test_start_transaction_raises_exception_when_fail(self):
         self.fixture.register_start_transaction_url(
-            self.project_id, self.files, start_success=False)
+            self.product_id, self.files, start_success=False)
         transaction = Transaction(self.package_fn)
         with self.assertRaises(exceptions.StartTransactionError):
             transaction._start_transaction()
 
     def test_start_transaction_request_is_made_correctly(self):
         start_url, _ = self.fixture.register_start_transaction_url(
-            self.project_id, self.responses)
+            self.product_id, self.responses)
         transaction = Transaction(self.package_fn)
         transaction._start_transaction()
         request = self.httpd.requests[0]
@@ -220,19 +220,19 @@ class TransactionTestCase(BaseTransactionTestCase):
         self.assertEqual(len(self.httpd.requests), 1)
         self.assertEqual(request.method, 'POST')
         self.assertEqual(request.url, start_url)
-        self.assertEqual(request_body['project_id'], self.project_id)
+        self.assertEqual(request_body['product_id'], self.product_id)
         self.assertEqual(len(request_body['files']), 2)
 
     def test_start_transaction_updates_finish_transaction_url(self):
         _, finish_url = self.fixture.register_start_transaction_url(
-            self.project_id, self.responses)
+            self.product_id, self.responses)
         transaction = Transaction(self.package_fn)
         transaction._start_transaction()
         self.assertEqual(transaction._finish_transaction_url, finish_url)
 
     def test_start_transaction_updates_files_data(self):
         self.fixture.register_start_transaction_url(
-            self.project_id, self.responses)
+            self.product_id, self.responses)
         transaction = Transaction(self.package_fn)
         transaction._start_transaction()
         for file, expected in zip(transaction.files, self.responses):
@@ -244,7 +244,7 @@ class TransactionTestCase(BaseTransactionTestCase):
 
     def test_finish_transaction_returns_NONE_when_successful(self):
         url = self.fixture.register_finish_transaction_url(
-            self.project_id, success=True)
+            self.product_id, success=True)
         transaction = Transaction(self.package_fn)
         transaction._finish_transaction_url = url
         observed = transaction._finish_transaction()
@@ -252,7 +252,7 @@ class TransactionTestCase(BaseTransactionTestCase):
 
     def test_finish_transaction_raises_exception_when_fail(self):
         url = self.fixture.register_finish_transaction_url(
-            self.project_id, success=False)
+            self.product_id, success=False)
         transaction = Transaction(self.package_fn)
         transaction._finish_transaction_url = url
         with self.assertRaises(exceptions.FinishTransactionError):
@@ -260,7 +260,7 @@ class TransactionTestCase(BaseTransactionTestCase):
 
     def test_finish_transaction_request_is_made_correctly(self):
         url = self.fixture.register_finish_transaction_url(
-            self.project_id, success=True)
+            self.product_id, success=True)
         transaction = Transaction(self.package_fn)
         transaction._finish_transaction_url = url
         transaction._finish_transaction()

@@ -107,7 +107,7 @@ class Package(object):
 
     def __init__(self, package):
         self._package = self._validate_package(package)
-        self.project_id = self._package.get('project_id')
+        self.product_id = self._package.get('product_id')
         self.files = [File(fn) for fn in self._package.get('files')]
 
     def _validate_package(self, filename):
@@ -129,7 +129,7 @@ class Transaction(object):
 
     def __init__(self, package_file):
         self.package = Package(package_file)
-        self.project_id = self.package.project_id
+        self.product_id = self.package.product_id
         self.files = self.package.files
         self._finish_transaction_url = None
 
@@ -139,9 +139,9 @@ class Transaction(object):
         if host is None:
             # This must be replaced by the real server URL
             host = 'http://0.0.0.0'
-        return '{host}/project/{project_id}/upload/'.format(
+        return '{host}/product/{product_id}/upload/'.format(
             host=host,
-            project_id=self.project_id,
+            product_id=self.product_id,
         )
 
     @property
@@ -149,7 +149,7 @@ class Transaction(object):
         files = [{'file_id': file.id, 'sha256': file.sha256}
                  for file in self.files]
         payload = json.dumps({
-            'project_id': self.project_id,
+            'product_id': self.product_id,
             'files': files,
         })
         return payload

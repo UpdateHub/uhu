@@ -56,25 +56,25 @@ class ServerMocker(object):
             fp.write(content)
         return fn
 
-    def register_finish_transaction_url(self, project_id, success=True):
+    def register_finish_transaction_url(self, product_id, success=True):
         '''
         Helper function that register a finish transaction path.
         '''
-        path = '/project/{}/upload/finish/'.format(project_id)
+        path = '/product/{}/upload/finish/'.format(product_id)
         code = self._generate_status_code(success)
         self.httpd.register_response(path, 'POST', status_code=code)
         return self.httpd.url(path)
 
     def register_start_transaction_url(
-            self, project_id, files,
+            self, product_id, files,
             start_success=True, finish_success=True):
         '''
         Helper function that register a start transaction path.
         '''
-        start_path = '/project/{}/upload/'.format(project_id)
+        start_path = '/product/{}/upload/'.format(product_id)
         code = self._generate_status_code(start_success)
         finish_url = self.register_finish_transaction_url(
-            project_id, finish_success)
+            product_id, finish_success)
         body = json.dumps({
             'finish_transaction_url': finish_url,
             'files': files
@@ -84,28 +84,28 @@ class ServerMocker(object):
         return (self.httpd.url(start_path), finish_url)
 
     def register_file_part_upload_urls(
-            self, project_id, file_id, n_parts, success=True):
+            self, product_id, file_id, n_parts, success=True):
         '''
         Helper function that register n_parts upload part paths.
         '''
-        path = '/project/{}/upload/file/{}/part/{}/'
-        paths = [path.format(project_id, file_id, i) for i in range(n_parts)]
+        path = '/product/{}/upload/file/{}/part/{}/'
+        paths = [path.format(product_id, file_id, i) for i in range(n_parts)]
         code = self._generate_status_code(success)
         for path in paths:
             self.httpd.register_response(path, 'POST', status_code=code)
         return [self.httpd.url(path) for path in paths]
 
     def register_file_finish_upload_url(
-            self, project_id, file_id, success=True):
+            self, product_id, file_id, success=True):
         '''
         Helper function that register a final upload path.
         '''
-        path = '/project/{}/upload/file/{}/finish/'.format(project_id, file_id)
+        path = '/product/{}/upload/file/{}/finish/'.format(product_id, file_id)
         code = self._generate_status_code(success)
         self.httpd.register_response(path, 'POST', status_code=code)
         return self.httpd.url(path)
 
-    def set_file(self, project_id, file_id, content=b'0', chunk_size=1,
+    def set_file(self, product_id, file_id, content=b'0', chunk_size=1,
                  part_success=True, finish_success=True, exists=False):
         '''
         Helper function that creates a file in file system and sets the
@@ -114,9 +114,9 @@ class ServerMocker(object):
         file = self.create_file(content=content)
         n_parts = math.ceil(len(content) / chunk_size)
         part_urls = self.register_file_part_upload_urls(
-            project_id, file_id, n_parts, part_success)
+            product_id, file_id, n_parts, part_success)
         finish_url = self.register_file_finish_upload_url(
-            project_id, file_id, finish_success)
+            product_id, file_id, finish_success)
         response = {
             'id': file_id,
             'exists': exists,
@@ -126,18 +126,18 @@ class ServerMocker(object):
         }
         return (file, response)
 
-    def set_package(self, project_id, files):
+    def set_package(self, product_id, files):
         '''
         Helper function that generates a stub package.
         '''
         content = json.dumps({
-            'project_id': project_id,
+            'product_id': product_id,
             'files': files,
         }).encode()
         pkg = self.create_file(content=content)
         return pkg
 
-    def set_transaction(self, project_id, file_size=1, chunk_size=1,
+    def set_transaction(self, product_id, file_size=1, chunk_size=1,
                         start_success=True, finish_success=True,
                         success_files=3, existent_files=0,
                         finish_fail_files=0, part_fail_files=0):
@@ -151,31 +151,31 @@ class ServerMocker(object):
         content = file_size * b'0'
         for _ in range(success_files):
             fn, response = self.set_file(
-                project_id, next(file_id), content, chunk_size=chunk_size)
+                product_id, next(file_id), content, chunk_size=chunk_size)
             files.append(fn)
             responses.append(response)
         for _ in range(existent_files):
             fn, response = self.set_file(
-                project_id, next(file_id), exists=True)
+                product_id, next(file_id), exists=True)
             files.append(fn)
             responses.append(response)
         for _ in range(part_fail_files):
             fn, response = self.set_file(
-                project_id, next(file_id), content, chunk_size=chunk_size,
+                product_id, next(file_id), content, chunk_size=chunk_size,
                 part_success=False)
             files.append(fn)
             responses.append(response)
         for _ in range(finish_fail_files):
             fn, response = self.set_file(
-                project_id, next(file_id), content, chunk_size=chunk_size,
+                product_id, next(file_id), content, chunk_size=chunk_size,
                 finish_success=False)
             files.append(fn)
             responses.append(response)
 
         self.register_start_transaction_url(
-            project_id, responses, start_success=start_success,
+            product_id, responses, start_success=start_success,
             finish_success=finish_success)
-        pkg = self.set_package(project_id, files)
+        pkg = self.set_package(product_id, files)
         return pkg
 
 

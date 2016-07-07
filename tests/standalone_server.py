@@ -20,34 +20,34 @@ class EFUTestServer(object):
 
     def print_commands(self):
         cmd = '{}: efu upload {}'
-        project_id = count()
+        product_id = count()
 
         success = self.fixture.set_transaction(
-            next(project_id), file_size=5, success_files=2)
+            next(product_id), file_size=5, success_files=2)
 
         existent_files = self.fixture.set_transaction(
-            next(project_id), file_size=5,
+            next(product_id), file_size=5,
             existent_files=2, success_files=0
         )
 
         start_transaction_fail = self.fixture.set_transaction(
-            next(project_id), file_size=5, start_success=False)
+            next(product_id), file_size=5, start_success=False)
 
         finish_transaction_fail = self.fixture.set_transaction(
-            next(project_id), file_size=5, finish_success=False)
+            next(product_id), file_size=5, finish_success=False)
 
         finish_file_fail = self.fixture.set_transaction(
-            next(project_id), file_size=5,
+            next(product_id), file_size=5,
             finish_fail_files=2, success_files=0
         )
 
         part_file_fail = self.fixture.set_transaction(
-            next(project_id), file_size=5,
+            next(product_id), file_size=5,
             part_fail_files=2, success_files=0
         )
         # Random output
         mix = self.fixture.set_transaction(
-            next(project_id), file_size=5,
+            next(product_id), file_size=5,
             success_files=1, finish_fail_files=1,
             part_fail_files=1, existent_files=1
         )
