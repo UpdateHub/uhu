@@ -25,15 +25,13 @@ class UploadTestCase(BasePushTestCase):
         file = File(fn)
         file.exists_in_server = False
         file.part_upload_urls = conf['urls']
-        file.finish_upload_url = conf['finish_upload_url']
         Upload(file).upload()
 
-        self.assertEqual(len(self.httpd.requests), 5)
+        self.assertEqual(len(self.httpd.requests), 4)
         self.assertEqual(self.httpd.requests[0].body, b'1')
         self.assertEqual(self.httpd.requests[1].body, b'2')
         self.assertEqual(self.httpd.requests[2].body, b'3')
         self.assertEqual(self.httpd.requests[3].body, b'4')
-        self.assertEqual(self.httpd.requests[4].body, b'')
 
     def test_upload_returns_failure_result_when_part_upload_fails(self):
         fn, conf = self.fixture.set_file(1, 1, part_success=False)
@@ -41,18 +39,6 @@ class UploadTestCase(BasePushTestCase):
         file = File(fn)
         file.exists_in_server = False
         file.part_upload_urls = conf['urls']
-        file.finish_upload_url = conf['finish_upload_url']
-
-        result = Upload(file).upload()
-        self.assertEqual(result, UploadStatus.PART_FAIL)
-
-    def test_upload_returns_failure_when_finishing_upload_fails(self):
-        _, conf = self.fixture.set_file(1, 1, finish_success=False)
-
-        file = File(self.file_name)
-        file.exists_in_server = False
-        file.part_upload_urls = conf['urls']
-        file.finish_upload_url = conf['finish_upload_url']
 
         result = Upload(file).upload()
         self.assertEqual(result, UploadStatus.FAIL)
@@ -63,7 +49,5 @@ class UploadTestCase(BasePushTestCase):
         file = File(self.file_name)
         file.exists_in_server = False
         file.part_upload_urls = conf['urls']
-        file.finish_upload_url = conf['finish_upload_url']
 
         result = Upload(file).upload()
-        self.assertEqual(result, UploadStatus.SUCCESS)

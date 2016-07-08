@@ -78,13 +78,6 @@ class PushOutputTestCase(BasePushTestCase):
         observed = self.get_cmd_output(pkg)
         self.assertEqual(expected, observed)
 
-    def test_finish_file_fail_output(self):
-        pkg = self.fixture.set_push(
-            1, file_size=5, finish_fail_files=2, success_files=0)
-        expected = self.get_fixture_output('finish_file_fail')
-        observed = self.get_cmd_output(pkg)
-        self.assertEqual(expected, observed)
-
     def test_part_file_fail_output(self):
         pkg = self.fixture.set_push(
             1, file_size=5, part_fail_files=2, success_files=0)
@@ -94,7 +87,7 @@ class PushOutputTestCase(BasePushTestCase):
 
     def test_mixed_output(self):
         pkg = self.fixture.set_push(
-            1, file_size=5, success_files=1, finish_fail_files=1,
+            1, file_size=5, success_files=1,
             part_fail_files=1, existent_files=1)
         expected = self.get_fixture_output('mixed')
         observed = self.get_cmd_output(pkg)

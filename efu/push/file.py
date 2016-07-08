@@ -21,7 +21,6 @@ class File(object):
 
         self.exists_in_server = True
         self.part_upload_urls = []
-        self.finish_upload_url = None
 
     def _validate_file(self, fn):
         if os.path.exists(fn):

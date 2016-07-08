@@ -99,8 +99,6 @@ class PushTestCase(BasePushTestCase):
         for file, expected in zip(push.files, self.responses):
             self.assertEqual(file.exists_in_server, expected['exists'])
             self.assertEqual(file.part_upload_urls, expected['urls'])
-            self.assertEqual(file.finish_upload_url,
-                             expected['finish_upload_url'])
 
     def test_finish_push_returns_NONE_when_successful(self):
         url = self.fixture.register_finish_push_url(
@@ -154,14 +152,6 @@ class PushTestCase(BasePushTestCase):
         with self.assertRaises(exceptions.FileUploadError):
             push._upload_files()
 
-    def test_upload_files_raises_exception_when_finish_upload_fails(self):
-        pkg = self.fixture.set_push(
-            1, success_files=0, finish_fail_files=3)
-        push = Push(pkg)
-        push._start_push()
-        with self.assertRaises(exceptions.FileUploadError):
-            push._upload_files()
-
     def test_upload_files_requests_are_made_correctly(self):
         pkg = self.fixture.set_push(
             1, success_files=2, existent_files=1, file_size=3)
@@ -170,9 +160,8 @@ class PushTestCase(BasePushTestCase):
         push._upload_files()
         # 1 request for starting push
         # 6 requests since 2 files must be uploaded in 3 chunks each
-        # 2 requests to finish each file upload
-        # Total: 9 requests
-        total_requests = 9
+        # Total: 7 requests
+        total_requests = 7
         self.assertEqual(len(self.httpd.requests), total_requests)
 
     def test_push_run_returns_SUCCESS_when_successful(self):
@@ -186,25 +175,6 @@ class PushTestCase(BasePushTestCase):
         push = Push(pkg)
         observed = push.run()
         self.assertEqual(observed, PushExitCode.START_FAIL)
-
-    def test_push_run_returns_UPLOAD_FAIL_when_fail_on_upload(self):
-        pkg = self.fixture.set_push(
-            1, success_files=0, finish_fail_files=3)
-        push = Push(pkg)
-        observed = push.run()
-        self.assertEqual(observed, PushExitCode.UPLOAD_FAIL)
-
-        pkg = self.fixture.set_push(
-            2, success_files=0, part_fail_files=3)
-        push = Push(pkg)
-        observed = push.run()
-        self.assertEqual(observed, PushExitCode.UPLOAD_FAIL)
-
-        pkg = self.fixture.set_push(
-            3, success_files=0, part_fail_files=1, finish_fail_files=1)
-        push = Push(pkg)
-        observed = push.run()
-        self.assertEqual(observed, PushExitCode.UPLOAD_FAIL)
 
     def test_push_run_returns_FINISH_FAIL_when_fail_on_finish(self):
         pkg = self.fixture.set_push(1, finish_success=False)

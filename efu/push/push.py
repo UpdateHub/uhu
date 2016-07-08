@@ -59,7 +59,6 @@ class Push(object):
             file = self.files[f['id']]
             file.exists_in_server = f.get('exists', True)
             file.part_upload_urls = f.get('urls')
-            file.finish_upload_url = f.get('finish_upload_url')
 
     def _upload_files(self):
         results = [Upload(file, progress=True).upload() for file in self.files]

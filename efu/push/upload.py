@@ -10,13 +10,11 @@ from .ui import UploadProgressBar, SUCCESS_MSG, FAIL_MSG
 class UploadStatus(object):
     SUCCESS = 0
     EXISTS = 1
-    PART_FAIL = 2
     FAIL = 3
 
     MESSAGES = {
         SUCCESS: SUCCESS_MSG,
         EXISTS: '{} (already uploaded)'.format(SUCCESS_MSG),
-        PART_FAIL: '{} (upload part error)'.format(FAIL_MSG),
         FAIL: '{} (upload error)'.format(FAIL_MSG),
     }
 
@@ -40,20 +38,14 @@ class Upload(object):
             return self._finish_upload(UploadStatus.EXISTS)
 
         # Upload file chunks
+        status = UploadStatus.SUCCESS
         with open(self._file.name, 'rb') as fp:
             for url in self._file.part_upload_urls:
                 payload = fp.read(get_chunk_size())
                 response = Request(url, 'POST', payload).send()
                 if response.status_code != 201:
-                    return self._finish_upload(UploadStatus.PART_FAIL)
+                    status = UploadStatus.FAIL
                 self._increase_bar_progress()
-
-        # Finish upload
-        response = Request(self._file.finish_upload_url, 'POST', '').send()
-        if response.status_code == 201:
-            status = UploadStatus.SUCCESS
-        else:
-            status = UploadStatus.FAIL
         return self._finish_upload(status)
 
     def _finish_upload(self, status):

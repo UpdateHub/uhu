@@ -27,8 +27,7 @@ class EFUTestServer(object):
 
         existent_files = self.fixture.set_transaction(
             next(product_id), file_size=5,
-            existent_files=2, success_files=0
-        )
+            existent_files=2, success_files=0)
 
         start_transaction_fail = self.fixture.set_transaction(
             next(product_id), file_size=5, start_success=False)
@@ -36,28 +35,20 @@ class EFUTestServer(object):
         finish_transaction_fail = self.fixture.set_transaction(
             next(product_id), file_size=5, finish_success=False)
 
-        finish_file_fail = self.fixture.set_transaction(
-            next(product_id), file_size=5,
-            finish_fail_files=2, success_files=0
-        )
-
         part_file_fail = self.fixture.set_transaction(
             next(product_id), file_size=5,
-            part_fail_files=2, success_files=0
-        )
+            part_fail_files=2, success_files=0)
+
         # Random output
         mix = self.fixture.set_transaction(
             next(product_id), file_size=5,
-            success_files=1, finish_fail_files=1,
-            part_fail_files=1, existent_files=1
-        )
+            success_files=1, part_fail_files=1, existent_files=1)
 
         print(cmd.format('SUCCESS', success))
         print(cmd.format('EXISTENT FILES', existent_files))
         print(cmd.format('START TRANSACTION FAIL', start_transaction_fail))
         print(cmd.format('FINISH TRANSACTION FAIL', finish_transaction_fail))
         print(cmd.format('PART FILE FAIL', part_file_fail))
-        print(cmd.format('FINISH FILE FAIL', finish_file_fail))
         print(cmd.format('MIX', mix))
 
     def main(self):

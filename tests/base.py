@@ -96,18 +96,8 @@ class ServerMocker(object):
             self.httpd.register_response(path, 'POST', status_code=code)
         return [self.httpd.url(path) for path in paths]
 
-    def register_file_finish_upload_url(
-            self, product_id, file_id, success=True):
-        '''
-        Helper function that register a final upload path.
-        '''
-        path = '/product/{}/upload/file/{}/finish/'.format(product_id, file_id)
-        code = self._generate_status_code(success)
-        self.httpd.register_response(path, 'POST', status_code=code)
-        return self.httpd.url(path)
-
     def set_file(self, product_id, file_id, content=b'0', part_success=True,
-                 finish_success=True, exists=False):
+                 exists=False):
         '''
         Helper function that creates a file in file system and sets the
         server responses to deal with its upload.
@@ -116,13 +106,10 @@ class ServerMocker(object):
         n_parts = math.ceil(len(content) / get_chunk_size())
         part_urls = self.register_file_part_upload_urls(
             product_id, file_id, n_parts, part_success)
-        finish_url = self.register_file_finish_upload_url(
-            product_id, file_id, finish_success)
         response = {
             'id': file_id,
             'exists': exists,
             'urls': part_urls,
-            'finish_upload_url': finish_url,
         }
         return (file, response)
 
@@ -138,8 +125,8 @@ class ServerMocker(object):
         return pkg
 
     def set_push(self, product_id, file_size=1, start_success=True,
-                 finish_success=True, success_files=3, existent_files=0,
-                 finish_fail_files=0, part_fail_files=0):
+                 finish_success=True, existent_files=0, success_files=3,
+                 part_fail_files=0):
         '''
         Helper function that creates all needed responses to complete an
         upload push.
@@ -162,12 +149,6 @@ class ServerMocker(object):
                 product_id, next(file_id), content, part_success=False)
             files.append(fn)
             responses.append(response)
-        for _ in range(finish_fail_files):
-            fn, response = self.set_file(
-                product_id, next(file_id), content, finish_success=False)
-            files.append(fn)
-            responses.append(response)
-
         self.register_start_push_url(
             product_id, responses, start_success=start_success,
             finish_success=finish_success)
