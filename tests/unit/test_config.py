@@ -6,10 +6,10 @@ import unittest
 
 from efu.config.config import Config, Sections
 
-from ..base import ConfigTestCaseMixin
+from ..base import ConfigMockMixin
 
 
-class ConfigTestCase(ConfigTestCaseMixin, unittest.TestCase):
+class ConfigTestCase(ConfigMockMixin, unittest.TestCase):
 
     def test_config_class_is_singleton(self):
         config1 = Config()

@@ -5,11 +5,12 @@ from unittest.mock import patch
 
 import requests
 
-from tests.httpmock import httpd
-from tests.httpmock.utils import BaseHTTPServerTestCase
+from ..base import EFUTestCase
+
+from . import httpd
 
 
-class HTTPServerTestCase(BaseHTTPServerTestCase):
+class HTTPServerTestCase(EFUTestCase):
 
     @patch('tests.httpmock.httpd.sleep')
     def test_does_not_simulate_application_by_default(self, sleep):

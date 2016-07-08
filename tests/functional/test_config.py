@@ -7,10 +7,10 @@ from configparser import ConfigParser
 
 from efu.config.config import Sections
 
-from ..base import ConfigTestCaseMixin
+from ..base import ConfigMockMixin
 
 
-class ConfigCommandTestCase(ConfigTestCaseMixin, unittest.TestCase):
+class ConfigCommandTestCase(ConfigMockMixin, unittest.TestCase):
 
     def test_config_command_exists(self):
         response = subprocess.check_output(['efu', 'config', '--help'])

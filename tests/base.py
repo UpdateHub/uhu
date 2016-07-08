@@ -2,17 +2,16 @@
 # This software is released under the MIT License
 
 import json
-import itertools
-import math
 import os
 import tempfile
-from random import choice
+import unittest
+from uuid import uuid4
 
-from efu.utils import get_chunk_size
 from efu.config.config import Config
 from efu.push.file import File
+from efu.push.package import Package
 
-from .httpmock.utils import BaseHTTPServerTestCase
+from .httpmock.httpd import HTTPMockServer
 
 
 def delete_environment_variable(var):
@@ -23,167 +22,172 @@ def delete_environment_variable(var):
         pass
 
 
-class ServerMocker(object):
+class BaseMockMixin(object):
 
-    def __init__(self, httpd):
-        self.httpd = httpd
-        self.files = []
+    def clean(self):
+        pass
 
-    def _generate_status_code(self, success=True, success_code=201):
-        return success_code if success else choice((400, 403, 404, 422, 500))
 
-    def set_server_url(self):
-        os.environ['EFU_SERVER_URL'] = self.httpd.url('')
+class ConfigMockMixin(BaseMockMixin):
 
-    def clean_generated_files(self):
-        for file in self.files:
-            os.remove(file)
-        self.files = []
+    def __init__(self, *args, **kw):
+        super().__init__(*args, **kw)
+        _, self.config_filename = tempfile.mkstemp()
+        os.environ[Config._ENV_VAR] = self.config_filename
+        self.config = Config()
 
-    def clean_server_url(self):
-        delete_environment_variable('EFU_SERVER_URL')
+    def clean(self):
+        super().clean()
+        os.remove(self.config_filename)
+        delete_environment_variable(Config._ENV_VAR)
 
-    def clean_file_id_generator(self):
+
+class FileMockMixin(object):
+
+    CHUNK_SIZE = 1
+
+    def __init__(self, *args, **kw):
+        super().__init__(*args, **kw)
+        self.set_chunk_size()
+        self._files = []
+
+    def clean(self):
+        super().clean()
+        self.clean_chunk_size()
+        self.clean_generated_files()
+        self.clean_file_ids()
+
+    def set_chunk_size(self):
+        os.environ['EFU_CHUNK_SIZE'] = str(self.CHUNK_SIZE)
+
+    def clean_chunk_size(self):
+        delete_environment_variable('EFU_CHUNK_SIZE')
+
+    def clean_file_ids(self):
         File._File__reset_id_generator()
 
+    def clean_generated_files(self):
+        for file in self._files:
+            os.remove(file)
+        self._files = []
+
     def create_file(self, content):
-        '''
-        Helper function which creates an empty temporary file and returns
-        its pointer.
-        '''
         _, fn = tempfile.mkstemp()
-        self.files.append(fn)
+        self._files.append(fn)
         with open(fn, 'bw') as fp:
             fp.write(content)
         return fn
 
-    def register_finish_push_url(self, product_id, success=True):
-        '''
-        Helper function that register a finish push path.
-        '''
-        path = '/product/{}/upload/finish/'.format(product_id)
-        code = self._generate_status_code(success)
-        self.httpd.register_response(path, 'POST', status_code=code)
-        return self.httpd.url(path)
 
-    def register_start_push_url(
-            self, product_id, files,
-            start_success=True, finish_success=True):
-        '''
-        Helper function that register a start push path.
-        '''
-        start_path = '/product/{}/upload/'.format(product_id)
-        code = self._generate_status_code(start_success)
-        finish_url = self.register_finish_push_url(
-            product_id, finish_success)
-        body = json.dumps({
-            'finish_push_url': finish_url,
-            'files': files
-        })
-        self.httpd.register_response(
-            start_path, 'POST', body=body, status_code=code)
-        return (self.httpd.url(start_path), finish_url)
+class PackageMockMixin(FileMockMixin):
 
-    def register_file_part_upload_urls(
-            self, product_id, file_id, n_parts, success=True):
-        '''
-        Helper function that register n_parts upload part paths.
-        '''
-        path = '/product/{}/upload/file/{}/part/{}/'
-        paths = [path.format(product_id, file_id, i) for i in range(n_parts)]
-        code = self._generate_status_code(success)
-        for path in paths:
-            self.httpd.register_response(path, 'POST', status_code=code)
-        return [self.httpd.url(path) for path in paths]
-
-    def set_file(self, product_id, file_id, content=b'0', part_success=True,
-                 exists=False):
-        '''
-        Helper function that creates a file in file system and sets the
-        server responses to deal with its upload.
-        '''
-        file = self.create_file(content=content)
-        n_parts = math.ceil(len(content) / get_chunk_size())
-        part_urls = self.register_file_part_upload_urls(
-            product_id, file_id, n_parts, part_success)
-        response = {
-            'id': file_id,
-            'exists': exists,
-            'urls': part_urls,
-        }
-        return (file, response)
-
-    def set_package(self, product_id, files):
-        '''
-        Helper function that generates a stub package.
-        '''
+    def create_package_file(self, product_id, files):
         content = json.dumps({
             'product_id': product_id,
             'files': files,
         }).encode()
-        pkg = self.create_file(content=content)
-        return pkg
-
-    def set_push(self, product_id, file_size=1, start_success=True,
-                 finish_success=True, existent_files=0, success_files=3,
-                 part_fail_files=0):
-        '''
-        Helper function that creates all needed responses to complete an
-        upload push.
-        '''
-        files = []
-        responses = []
-        file_id = itertools.count()
-        content = file_size * b'0'
-        for _ in range(success_files):
-            fn, response = self.set_file(product_id, next(file_id), content)
-            files.append(fn)
-            responses.append(response)
-        for _ in range(existent_files):
-            fn, response = self.set_file(
-                product_id, next(file_id), exists=True)
-            files.append(fn)
-            responses.append(response)
-        for _ in range(part_fail_files):
-            fn, response = self.set_file(
-                product_id, next(file_id), content, part_success=False)
-            files.append(fn)
-            responses.append(response)
-        self.register_start_push_url(
-            product_id, responses, start_success=start_success,
-            finish_success=finish_success)
-        pkg = self.set_package(product_id, files)
-        return pkg
+        return self.create_file(content=content)
 
 
-class ConfigTestCaseMixin(object):
+class HTTPServerMockMixin(object):
 
-    def setUp(self):
-        super().setUp()
-        _, self.config_filename = tempfile.mkstemp()
-        os.environ[Config._ENV_VAR] = self.config_filename
-        self.addCleanup(os.remove, self.config_filename)
-        self.addCleanup(delete_environment_variable, Config._ENV_VAR)
-        self.config = Config()
+    def __init__(self, *args, **kw):
+        super().__init__(*args, **kw)
+        self.set_server_url()
+
+    @classmethod
+    def start_server(cls, simulate_application=False):
+        cls.httpd = HTTPMockServer(simulate_application)
+        cls.httpd.start()
+
+    @classmethod
+    def stop_server(cls):
+        cls.httpd.shutdown()
+
+    def clean(self):
+        super().clean()
+        self.clean_server_url()
+        self.httpd.clear_history()
+
+    def generate_status_code(self, success=True, success_code=201):
+        return success_code if success else 400
+
+    def set_server_url(self):
+        os.environ['EFU_SERVER_URL'] = self.httpd.url('')
+
+    def clean_server_url(self):
+        delete_environment_variable('EFU_SERVER_URL')
+
+    def generic_path(self, success):
+        code = self.generate_status_code(success)
+        path = '/{}'.format(uuid4().hex)
+        self.httpd.register_response(path, 'POST', status_code=code)
+        return path
 
 
-class BasePushTestCase(ConfigTestCaseMixin, BaseHTTPServerTestCase):
+class UploadMockMixin(PackageMockMixin, HTTPServerMockMixin, ConfigMockMixin):
 
-    CHUNK_SIZE = 1
+    def create_upload_meta(self, file, file_exists=False,
+                           part_exists=False, success=True):
+        if success:
+            path = self.generic_path(success=True)
+        else:
+            path = self.generic_path(success=False)
+
+        part_obj = {
+            'exists': part_exists,
+            'url_path': path
+        }
+        parts = {str(part): part_obj for part in range(file.n_chunks)}
+        file_obj = {
+            'object_id': file.id,
+            'exists': file_exists,
+            'parts': parts,
+        }
+        return file_obj
+
+    def create_uploads_meta(self, files, **kw):
+        return [self.create_upload_meta(file, **kw) for file in files]
+
+
+class PushMockMixin(UploadMockMixin):
+
+    def __init__(self, *args, **kw):
+        super().__init__(*args, **kw)
+        self.product_id = 'P1234'
+        self.fns = [self.create_file(b'123') for i in range(3)]
+        self.package_fn = self.create_package_file(self.product_id, self.fns)
+        self.package = Package(self.package_fn)
+        self.files = list(self.package.files.values())
+        File._File__reset_id_generator()
+
+    def set_push(self, product_id, start_success=True,
+                 finish_success=True, uploads=None):
+        if finish_success:
+            finish_path = self.generic_path(success=True)
+        else:
+            finish_path = self.generic_path(success=False)
+
+        self.httpd.register_response(
+            '/products/{}/commits'.format(product_id),
+            method='POST',
+            body=json.dumps({
+                'uploads': [] if not uploads else uploads,
+                'finish_url_path': finish_path,
+            }),
+            status_code=self.generate_status_code(start_success)
+        )
+
+
+class EFUTestCase(PushMockMixin, unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        super().setUpClass()
-        cls.fixture = ServerMocker(cls.httpd)
+        cls.start_server()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.stop_server()
 
     def setUp(self):
-        super().setUp()
-        os.environ['EFU_CHUNK_SIZE'] = str(self.CHUNK_SIZE)
-        self.addCleanup(delete_environment_variable, 'EFU_CHUNK_SIZE')
-        self.addCleanup(self.fixture.clean_generated_files)
-        self.fixture.set_server_url()
-
-    def tearDown(self):
-        super().tearDown()
-        self.fixture.clean_server_url()
-        self.fixture.clean_file_id_generator()
+        self.addCleanup(self.clean)

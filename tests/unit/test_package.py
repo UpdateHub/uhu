@@ -5,14 +5,10 @@ from efu.push import exceptions
 from efu.push.file import File
 from efu.push.package import Package
 
-from ..base import BasePushTestCase
+from ..base import EFUTestCase
 
 
-class PackageTestCase(BasePushTestCase):
-
-    def setUp(self):
-        super().setUp()
-        self.product_id = 1
+class PackageTestCase(EFUTestCase):
 
     def test_raises_invalid_package_file_with_inexistent_file(self):
         with self.assertRaises(exceptions.InvalidPackageFileError):
@@ -23,20 +19,22 @@ class PackageTestCase(BasePushTestCase):
             Package(__file__)
 
     def test_can_load_package_file(self):
-        files = [self.fixture.create_file(b'0') for _ in range(2)]
-        package_fn = self.fixture.set_package(self.product_id, files)
+        files = [self.create_file(b'0') for _ in range(15)]
 
+        product_id = 1234
+        package_fn = self.create_package_file(product_id, files)
         package = Package(package_fn)
 
-        self.assertEqual(package.product_id, self.product_id)
+        self.assertEqual(package.product_id, product_id)
         self.assertEqual(len(package.files), len(files))
-        for file in package.files:
+        for file in package.files.values():
             self.assertIsInstance(file, File)
 
-    def test_file_id_matches_files_index(self):
-        files = [self.fixture.create_file(b'0') for _ in range(15)]
-        package_fn = self.fixture.set_package(self.product_id, files)
-        package = Package(package_fn)
-
-        for file in package.files:
-            self.assertEqual(package.files.index(file), file.id)
+    def test_package_as_dict(self):
+        files = [self.create_file(bytes(i)) for i in range(3)]
+        package = Package(self.create_package_file(123, files))
+        observed = package.as_dict()
+        self.assertEqual(len(observed['objects']), len(files))
+        for file in observed['objects']:
+            self.assertIsNotNone(file['id'])
+            self.assertIsNotNone(file['sha256sum'])

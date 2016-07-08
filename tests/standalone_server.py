@@ -3,70 +3,81 @@
 
 import signal
 import sys
-from itertools import count
 
-from tests.base import ServerMocker
-from tests.httpmock.httpd import HTTPMockServer
+from efu.push.package import Package
+from efu.push.file import File
+
+from tests.base import PushMockMixin
 
 
-class EFUTestServer(object):
+class EFUTestServer(PushMockMixin):
 
     def __init__(self):
+        EFUTestServer.start_server(simulate_application=True)
+        super().__init__()
         signal.signal(signal.SIGINT, self.shutdown)
+        self.cmd = '- {}:\nefu push {}'
 
-        self.server = HTTPMockServer(simulate_application=True)
-        self.fixture = ServerMocker(self.server)
-        self.fixture.set_server_url()
+    def cmd_success(self):
+        pkg_fn = self.create_package_file(1, self.fns)
+        pkg = Package(pkg_fn)
+        uploads = self.create_uploads_meta(pkg.files.values())
+        self.set_push(1, uploads=uploads)
+        print(self.cmd.format('SUCCESS', pkg_fn))
+        File._File__reset_id_generator()
 
-    def print_commands(self):
-        cmd = '{}: efu upload {}'
-        product_id = count()
+    def cmd_existent(self):
+        pkg_fn = self.create_package_file(2, self.fns)
+        pkg = Package(pkg_fn)
+        uploads = self.create_uploads_meta(
+            pkg.files.values(), file_exists=True)
+        self.set_push(2, uploads=uploads)
+        print(self.cmd.format('EXISTENT', pkg_fn))
+        File._File__reset_id_generator()
 
-        success = self.fixture.set_transaction(
-            next(product_id), file_size=5, success_files=2)
+    def cmd_finish_push_fail(self):
+        pkg_fn = self.create_package_file(3, self.fns)
+        pkg = Package(pkg_fn)
+        uploads = self.create_uploads_meta(pkg.files.values())
+        self.set_push(3, uploads=uploads, finish_success=False)
+        print(self.cmd.format('FINISH FAIL', pkg_fn))
+        File._File__reset_id_generator()
 
-        existent_files = self.fixture.set_transaction(
-            next(product_id), file_size=5,
-            existent_files=2, success_files=0)
+    def cmd_file_part_fail(self):
+        pkg_fn = self.create_package_file(4, self.fns)
+        pkg = Package(pkg_fn)
+        uploads = self.create_uploads_meta(pkg.files.values(), success=False)
+        self.set_push(4, uploads=uploads)
+        print(self.cmd.format('FILE PART FAIL', pkg_fn))
+        File._File__reset_id_generator()
 
-        start_transaction_fail = self.fixture.set_transaction(
-            next(product_id), file_size=5, start_success=False)
+    def cmd_mixed(self):
+        pkg_fn = self.create_package_file(5, self.fns)
+        pkg = Package(pkg_fn)
+        f1, f2, f3 = list(pkg.files.values())
+        u1 = self.create_upload_meta(f1)
+        u2 = self.create_upload_meta(f2, success=False)
+        u3 = self.create_upload_meta(f3, file_exists=True)
+        uploads = [u1, u2, u3]
+        self.set_push(5, uploads=uploads)
+        print(self.cmd.format('MIXED', pkg_fn))
+        File._File__reset_id_generator()
 
-        finish_transaction_fail = self.fixture.set_transaction(
-            next(product_id), file_size=5, finish_success=False)
-
-        part_file_fail = self.fixture.set_transaction(
-            next(product_id), file_size=5,
-            part_fail_files=2, success_files=0)
-
-        # Random output
-        mix = self.fixture.set_transaction(
-            next(product_id), file_size=5,
-            success_files=1, part_fail_files=1, existent_files=1)
-
-        print(cmd.format('SUCCESS', success))
-        print(cmd.format('EXISTENT FILES', existent_files))
-        print(cmd.format('START TRANSACTION FAIL', start_transaction_fail))
-        print(cmd.format('FINISH TRANSACTION FAIL', finish_transaction_fail))
-        print(cmd.format('PART FILE FAIL', part_file_fail))
-        print(cmd.format('MIX', mix))
+    def shutdown(self, *args):
+        print('Shutting down server...')
+        self.clean()
+        EFUTestServer.stop_server()
 
     def main(self):
         print('EFU test server\n')
-        print('EXPORT COMMAND: export EFU_SERVER_URL={}'.format(
-            self.server.url('')
-        ))
-        print()
-        self.print_commands()
-        self.server.start()
-
-    def shutdown(self, *args):
-        print()
-        print('Shutting down server...')
-        self.server.shutdown()
-        self.fixture.clean_generated_files()
+        print('export EFU_SERVER_URL={}'.format(self.httpd.url('')))
+        print('export EFU_CHUNK_SIZE=1')
+        self.cmd_success()
+        self.cmd_existent()
+        self.cmd_finish_push_fail()
+        self.cmd_file_part_fail()
+        self.cmd_mixed()
 
 
 if __name__ == '__main__':
-    server = EFUTestServer()
-    sys.exit(server.main())
+    sys.exit(EFUTestServer().main())

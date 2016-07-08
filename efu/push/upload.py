@@ -2,7 +2,7 @@
 # This software is released under the MIT License
 
 from ..request import Request
-from ..utils import get_chunk_size
+from ..utils import get_chunk_size, get_server_url
 
 from .ui import UploadProgressBar, SUCCESS_MSG, FAIL_MSG
 
@@ -21,30 +21,35 @@ class UploadStatus(object):
 
 class Upload(object):
 
-    def __init__(self, file, progress=False):
+    def __init__(self, file, upload_meta, progress=False):
         self._file = file
+        self._already_uploaded = upload_meta['exists']
+        self._parts_meta = upload_meta['parts']
 
         self._bar = None
         if progress:
             self._bar = UploadProgressBar(
-                self._file.name, max=self._file.n_parts)
+                self._file.name, max=self._file.n_chunks)
 
     def upload(self):
         '''
         Uploads a file and returns UploadStatus
         '''
         # Check if file exists in server
-        if self._file.exists_in_server:
+        if self._already_uploaded:
             return self._finish_upload(UploadStatus.EXISTS)
 
         # Upload file chunks
         status = UploadStatus.SUCCESS
         with open(self._file.name, 'rb') as fp:
-            for url in self._file.part_upload_urls:
-                payload = fp.read(get_chunk_size())
-                response = Request(url, 'POST', payload).send()
-                if response.status_code != 201:
-                    status = UploadStatus.FAIL
+            parts = iter(lambda: fp.read(get_chunk_size()), b'')
+            for part_number, part in enumerate(parts):
+                part_meta = self._parts_meta[str(part_number)]
+                if not part_meta['exists']:
+                    url = get_server_url(part_meta['url_path'])
+                    response = Request(url, 'POST', part).send()
+                    if response.status_code != 201:
+                        status = UploadStatus.FAIL
                 self._increase_bar_progress()
         return self._finish_upload(status)
 

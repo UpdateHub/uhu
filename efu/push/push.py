@@ -24,44 +24,37 @@ class PushExitCode(object):
 class Push(object):
 
     def __init__(self, package_file):
-        self.package = Package(package_file)
-        self.product_id = self.package.product_id
-        self.files = self.package.files
+        self._package = Package(package_file)
+        self._upload_list = None
         self._finish_push_url = None
 
     @property
     def _start_push_url(self):
-        return get_server_url('/product/{}/upload/'.format(self.product_id))
-
-    @property
-    def _initial_payload(self):
-        files = [{'file_id': file.id, 'sha256': file.sha256}
-                 for file in self.files]
-        payload = json.dumps({
-            'product_id': self.product_id,
-            'files': files,
-        })
-        return payload
+        return get_server_url(
+            '/products/{}/commits'.format(self._package.product_id))
 
     def _start_push(self):
         request = Request(
             self._start_push_url,
-            'POST',
-            self._initial_payload
+            method='POST',
+            payload=json.dumps(self._package.as_dict()),
         )
         response = request.send()
         if response.status_code != 201:
             raise exceptions.StartPushError
+
         response_body = response.json()
-        self._finish_push_url = response_body['finish_push_url']
-        # Injects upload data into self.files
-        for f in response_body['files']:
-            file = self.files[f['id']]
-            file.exists_in_server = f.get('exists', True)
-            file.part_upload_urls = f.get('urls')
+        self._upload_list = {upload['object_id']: upload
+                             for upload in response_body['uploads']}
+        self._finish_push_url = get_server_url(
+            response_body['finish_url_path'])
 
     def _upload_files(self):
-        results = [Upload(file, progress=True).upload() for file in self.files]
+        results = []
+        for file_id, meta in self._upload_list.items():
+            file = self._package.files[file_id]
+            result = Upload(file, meta, progress=True).upload()
+            results.append(result)
         successful_status = (UploadStatus.SUCCESS, UploadStatus.EXISTS)
         success = [result in successful_status for result in results]
         if not all(success):
