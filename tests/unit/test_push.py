@@ -15,13 +15,13 @@ class PushTestCase(EFUTestCase):
 
     def test_start_push_returns_NONE_when_successful(self):
         self.set_push(self.product_id)
-        push = Push(self.package_fn)
+        push = Push(self.package)
         observed = push._start_push()
         self.assertIsNone(observed)
 
     def test_raises_exception_when_start_push_fails(self):
         self.set_push(self.product_id, start_success=False)
-        push = Push(self.package_fn)
+        push = Push(self.package)
         with self.assertRaises(exceptions.StartPushError):
             push._start_push()
 
@@ -30,7 +30,7 @@ class PushTestCase(EFUTestCase):
         start_url = self.httpd.url(
             '/products/{}/commits'.format(self.product_id))
 
-        push = Push(self.package_fn)
+        push = Push(self.package)
         push._start_push()
 
         request = self.httpd.requests[0]
@@ -51,18 +51,18 @@ class PushTestCase(EFUTestCase):
 
     def test_start_push_updates_finish_push_url(self):
         self.set_push(self.product_id)
-        push = Push(self.package_fn)
+        push = Push(self.package)
         push._start_push()
         self.assertIsNotNone(push._finish_push_url)
 
     def test_finish_push_returns_NONE_when_successful(self):
-        push = Push(self.package_fn)
+        push = Push(self.package)
         push._finish_push_url = self.httpd.url(self.generic_path(success=True))
         observed = push._finish_push()
         self.assertIsNone(observed)
 
     def test_finish_push_raises_exception_when_fail(self):
-        push = Push(self.package_fn)
+        push = Push(self.package)
         push._finish_push_url = self.httpd.url(
             self.generic_path(success=False))
         with self.assertRaises(exceptions.FinishPushError):
@@ -70,7 +70,7 @@ class PushTestCase(EFUTestCase):
 
     def test_finish_push_request_is_made_correctly(self):
         url = self.httpd.url(self.generic_path(success=True))
-        push = Push(self.package_fn)
+        push = Push(self.package)
         push._finish_push_url = url
         push._finish_push()
 
@@ -83,7 +83,7 @@ class PushTestCase(EFUTestCase):
     def test_upload_files_return_NONE_when_successful(self):
         uploads = self.create_uploads_meta(self.files)
         self.set_push(self.product_id, uploads=uploads)
-        push = Push(self.package_fn)
+        push = Push(self.package)
         push._start_push()
         observed = push._upload_files()
         self.assertIsNone(observed)
@@ -91,7 +91,7 @@ class PushTestCase(EFUTestCase):
     def test_upload_files_return_NONE_when_file_exists(self):
         uploads = self.create_uploads_meta(self.files, file_exists=True)
         self.set_push(self.product_id, uploads=uploads)
-        push = Push(self.package_fn)
+        push = Push(self.package)
         push._start_push()
         observed = push._upload_files()
         self.assertIsNone(observed)
@@ -100,7 +100,7 @@ class PushTestCase(EFUTestCase):
         uploads = self.create_uploads_meta(self.files, success=False)
         self.set_push(self.product_id, uploads=uploads)
 
-        push = Push(self.package_fn)
+        push = Push(self.package)
         push._start_push()
         with self.assertRaises(exceptions.FileUploadError):
             push._upload_files()
@@ -115,7 +115,7 @@ class PushTestCase(EFUTestCase):
         uploads.append(self.create_upload_meta(files[-1], file_exists=True))
         self.set_push(123, uploads=uploads)
 
-        push = Push(pkg_fn)
+        push = Push(pkg)
         push._start_push()
         push._upload_files()
         # 1 request for starting push
@@ -127,7 +127,7 @@ class PushTestCase(EFUTestCase):
     def test_push_run_returns_SUCCESS_when_successful(self):
         uploads = self.create_uploads_meta(self.files)
         self.set_push(self.product_id, uploads=uploads)
-        push = Push(self.package_fn)
+        push = Push(self.package)
         observed = push.run()
         self.assertEqual(observed, PushExitCode.SUCCESS)
 
@@ -135,14 +135,14 @@ class PushTestCase(EFUTestCase):
         uploads = self.create_uploads_meta(self.files)
         self.set_push(
             self.product_id, uploads=uploads, start_success=False)
-        push = Push(self.package_fn)
+        push = Push(self.package)
         observed = push.run()
         self.assertEqual(observed, PushExitCode.START_FAIL)
 
     def test_push_run_returns_UPLOAD_FAIL_when_part_fail(self):
         uploads = self.create_uploads_meta(self.files, success=False)
         self.set_push(self.product_id, uploads=uploads)
-        push = Push(self.package_fn)
+        push = Push(self.package)
         observed = push.run()
         self.assertEqual(observed, PushExitCode.UPLOAD_FAIL)
 
@@ -150,6 +150,6 @@ class PushTestCase(EFUTestCase):
         uploads = self.create_uploads_meta(self.files)
         self.set_push(
             self.product_id, uploads=uploads, finish_success=False)
-        push = Push(self.package_fn)
+        push = Push(self.package)
         observed = push.run()
         self.assertEqual(observed, PushExitCode.FINISH_FAIL)

@@ -10,7 +10,6 @@ from ..utils import get_server_url
 
 from . import exceptions
 from .ui import SUCCESS_MSG, FAIL_MSG
-from .package import Package
 from .upload import Upload, UploadStatus
 
 
@@ -23,8 +22,8 @@ class PushExitCode(object):
 
 class Push(object):
 
-    def __init__(self, package_file):
-        self._package = Package(package_file)
+    def __init__(self, package):
+        self._package = package
         self._upload_list = None
         self._finish_push_url = None
 

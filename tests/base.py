@@ -156,8 +156,8 @@ class PushMockMixin(UploadMockMixin):
         super().__init__(*args, **kw)
         self.product_id = 'P1234'
         self.fns = [self.create_file(b'123') for i in range(3)]
-        self.package_fn = self.create_package_file(self.product_id, self.fns)
-        self.package = Package(self.package_fn)
+        pkg = self.create_package_file(self.product_id, self.fns)
+        self.package = Package(pkg)
         self.files = list(self.package.files.values())
         File._File__reset_id_generator()
 

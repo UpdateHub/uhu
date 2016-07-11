@@ -5,8 +5,9 @@ import sys
 
 import click
 
-from .push import Push
 from .exceptions import InvalidFileError, InvalidPackageFileError
+from .package import Package
+from .push import Push
 
 
 @click.command(name='push')
@@ -17,7 +18,8 @@ def push_command(package_file):
     Package file must be in json format.
     """
     try:
-        sys.exit(Push(package_file).run())
+        package = Package(package_file)
+        sys.exit(Push(package).run())
     except InvalidFileError:
         raise click.BadParameter('Invalid file within package')
     except InvalidPackageFileError:

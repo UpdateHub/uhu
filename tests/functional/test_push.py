@@ -25,7 +25,7 @@ class PushCommandTestCase(EFUTestCase):
     def test_push_command_runs_successfully(self):
         uploads = self.create_uploads_meta(self.files)
         self.set_push(self.product_id, uploads=uploads)
-        command = ['efu', 'push', self.package_fn]
+        command = ['efu', 'push', self.package.file]
         response = subprocess.check_call(command)
         self.assertEqual(response, 0)
 
@@ -44,7 +44,7 @@ class PushOutputTestCase(EFUTestCase):
         return re.sub(self.pattern, '', content)
 
     def get_cmd_output(self):
-        command = 'efu push {} > {}'.format(self.package_fn, self.stdout)
+        command = 'efu push {} > {}'.format(self.package.file, self.stdout)
 
         subprocess.call(command, shell=True)
         with open(self.stdout) as fp:
@@ -61,7 +61,6 @@ class PushOutputTestCase(EFUTestCase):
     def test_existent_files_output(self):
         uploads = self.create_uploads_meta(self.files, file_exists=True)
         self.set_push(self.product_id, uploads=uploads)
-
         expected = self.get_fixture_output('existent_files')
         observed = self.get_cmd_output()
         self.assertEqual(expected, observed)

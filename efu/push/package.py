@@ -9,25 +9,26 @@ from .file import File
 
 class Package(object):
 
-    def __init__(self, package):
-        self._package = self._validate_package(package)
+    def __init__(self, fn):
+        self.file = fn
+        self._package = self._validate_package(self.file)
         self.product_id = self._package.get('product_id')
         self.files = {}
         for fn in self._package.get('files'):
             file = File(fn)
             self.files[file.id] = file
 
-    def _validate_package(self, filename):
+    def _validate_package(self, fn):
         try:
-            with open(filename) as fp:
+            with open(fn) as fp:
                 package = json.load(fp)
         except FileNotFoundError:
             raise exceptions.InvalidPackageFileError(
-                '{} file does not exist'.format(filename)
+                '{} file does not exist'.format(fn)
             )
         except ValueError:
             raise exceptions.InvalidPackageFileError(
-                '{} is not a valid JSON file'.format(filename)
+                '{} is not a valid JSON file'.format(fn)
             )
         return package
 
