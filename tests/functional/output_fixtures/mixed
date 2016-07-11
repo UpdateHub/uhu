@@ -1,4 +1,4 @@
-Starting transaction: [92mSUCCESS[0m
+Starting push: [92mSUCCESS[0m
 [?25l[K/tmp/tmpb82f1rx4 |######                          | 1/5[K/tmp/tmpb82f1rx4 |############                    | 2/5[K/tmp/tmpb82f1rx4 |###################             | 3/5[K/tmp/tmpb82f1rx4 |#########################       | 4/5[K/tmp/tmpb82f1rx4 |################################| 5/5[K/tmp/tmpb82f1rx4 [92mSUCCESS[0m
 [?25h[?25l[K/tmp/tmpu34lb6_m [92mSUCCESS[0m (already uploaded)
 [?25h[?25l[K/tmp/tmppi8zsf1x [91mFAIL[0m (upload part error)

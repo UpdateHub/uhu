@@ -1,5 +1,5 @@
-Starting transaction: [92mSUCCESS[0m
+Starting push: [92mSUCCESS[0m
 [?25l[K/tmp/tmp4fcn800q |######                          | 1/5[K/tmp/tmp4fcn800q |############                    | 2/5[K/tmp/tmp4fcn800q |###################             | 3/5[K/tmp/tmp4fcn800q |#########################       | 4/5[K/tmp/tmp4fcn800q |################################| 5/5[K/tmp/tmp4fcn800q [92mSUCCESS[0m
 [?25h[?25l[K/tmp/tmpm9ovsxcg |######                          | 1/5[K/tmp/tmpm9ovsxcg |############                    | 2/5[K/tmp/tmpm9ovsxcg |###################             | 3/5[K/tmp/tmpm9ovsxcg |#########################       | 4/5[K/tmp/tmpm9ovsxcg |################################| 5/5[K/tmp/tmpm9ovsxcg [92mSUCCESS[0m
 [?25h[?25l[K/tmp/tmpu59rpf_1 |######                          | 1/5[K/tmp/tmpu59rpf_1 |############                    | 2/5[K/tmp/tmpu59rpf_1 |###################             | 3/5[K/tmp/tmpu59rpf_1 |#########################       | 4/5[K/tmp/tmpu59rpf_1 |################################| 5/5[K/tmp/tmpu59rpf_1 [92mSUCCESS[0m
-[?25hFinishing transaction: [91mFAIL[0m
+[?25hFinishing push: [91mFAIL[0m

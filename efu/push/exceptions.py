@@ -10,7 +10,7 @@ class InvalidFileError(Exception):
     pass
 
 
-class StartTransactionError(Exception):
+class StartPushError(Exception):
     pass
 
 
@@ -18,5 +18,5 @@ class FileUploadError(Exception):
     pass
 
 
-class FinishTransactionError(Exception):
+class FinishPushError(Exception):
     pass

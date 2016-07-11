@@ -3,7 +3,7 @@
 
 import click
 
-from .upload.parser import transaction_command
+from .push.parser import push_command
 from .config.parser import config_command
 
 
@@ -13,5 +13,5 @@ def cli():
     pass
 
 
-cli.add_command(transaction_command)
+cli.add_command(push_command)
 cli.add_command(config_command)

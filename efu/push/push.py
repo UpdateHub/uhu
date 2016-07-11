@@ -14,7 +14,7 @@ from . import exceptions
 from .ui import UploadProgressBar, SUCCESS_MSG, FAIL_MSG
 
 
-class TransactionExitCode(object):
+class PushExitCode(object):
     SUCCESS = 0
     START_FAIL = 1
     UPLOAD_FAIL = 2
@@ -125,16 +125,16 @@ class Package(object):
         return package
 
 
-class Transaction(object):
+class Push(object):
 
     def __init__(self, package_file):
         self.package = Package(package_file)
         self.product_id = self.package.product_id
         self.files = self.package.files
-        self._finish_transaction_url = None
+        self._finish_push_url = None
 
     @property
-    def _start_transaction_url(self):
+    def _start_push_url(self):
         host = os.environ.get('EFU_SERVER_URL', None)
         if host is None:
             # This must be replaced by the real server URL
@@ -154,17 +154,17 @@ class Transaction(object):
         })
         return payload
 
-    def _start_transaction(self):
+    def _start_push(self):
         request = Request(
-            self._start_transaction_url,
+            self._start_push_url,
             'POST',
             self._initial_payload
         )
         response = request.send()
         if response.status_code != 201:
-            raise exceptions.StartTransactionError
+            raise exceptions.StartPushError
         response_body = response.json()
-        self._finish_transaction_url = response_body['finish_transaction_url']
+        self._finish_push_url = response_body['finish_push_url']
         # Injects upload data into self.files
         for f in response_body['files']:
             file = self.files[f['id']]
@@ -184,35 +184,35 @@ class Transaction(object):
         if not all(success):
             raise exceptions.FileUploadError
 
-    def _finish_transaction(self):
-        request = Request(self._finish_transaction_url, 'POST', '')
+    def _finish_push(self):
+        request = Request(self._finish_push_url, 'POST', '')
         response = request.send()
         if response.status_code != 201:
-            raise exceptions.FinishTransactionError
+            raise exceptions.FinishPushError
 
     def run(self):
         # START
         try:
-            click.echo('Starting transaction: ', nl=False)
-            self._start_transaction()
+            click.echo('Starting push: ', nl=False)
+            self._start_push()
             click.echo(SUCCESS_MSG)
-        except exceptions.StartTransactionError:
+        except exceptions.StartPushError:
             click.echo(FAIL_MSG)
-            return TransactionExitCode.START_FAIL
+            return PushExitCode.START_FAIL
 
         # UPLOAD
         try:
             self._upload_files()
         except exceptions.FileUploadError:
-            return TransactionExitCode.UPLOAD_FAIL
+            return PushExitCode.UPLOAD_FAIL
 
         # FINISH
         try:
-            click.echo('Finishing transaction: ', nl=False)
-            self._finish_transaction()
+            click.echo('Finishing push: ', nl=False)
+            self._finish_push()
             click.echo(SUCCESS_MSG)
-        except exceptions.FinishTransactionError:
+        except exceptions.FinishPushError:
             click.echo(FAIL_MSG)
-            return TransactionExitCode.FINISH_FAIL
+            return PushExitCode.FINISH_FAIL
 
-        return TransactionExitCode.SUCCESS
+        return PushExitCode.SUCCESS

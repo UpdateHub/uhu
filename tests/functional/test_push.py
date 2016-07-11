@@ -6,31 +6,31 @@ import re
 import subprocess
 from tempfile import mkstemp
 
-from ..base import BaseTransactionTestCase
+from ..base import BasePushTestCase
 
 
-class UploadCommandTestCase(BaseTransactionTestCase):
+class PushCommandTestCase(BasePushTestCase):
 
-    def test_upload_command_exists(self):
-        response = subprocess.check_output(['efu', 'upload', '--help'])
-        self.assertIn('upload', response.decode())
+    def test_push_command_exists(self):
+        response = subprocess.check_output(['efu', 'push', '--help'])
+        self.assertIn('push', response.decode())
 
-    def test_upload_command_requires_a_filename(self):
+    def test_push_command_requires_a_filename(self):
         with self.assertRaises(subprocess.CalledProcessError):
-            subprocess.check_call(['efu', 'upload'])
+            subprocess.check_call(['efu', 'push'])
 
-    def test_upload_command_requires_a_existent_filename(self):
+    def test_push_command_requires_a_existent_filename(self):
         with self.assertRaises(subprocess.CalledProcessError):
-            subprocess.check_call(['efu', 'upload', 'no_exists.json'])
+            subprocess.check_call(['efu', 'push', 'no_exists.json'])
 
-    def test_upload_command_runs_successfully(self):
-        pkg = self.fixture.set_transaction(1)
-        command = ['efu', 'upload', pkg]
+    def test_push_command_runs_successfully(self):
+        pkg = self.fixture.set_push(1)
+        command = ['efu', 'push', pkg]
         response = subprocess.check_call(command)
         self.assertEqual(response, 0)
 
 
-class UploadOutputTestCase(BaseTransactionTestCase):
+class PushOutputTestCase(BasePushTestCase):
 
     def setUp(self):
         super().setUp()
@@ -45,55 +45,55 @@ class UploadOutputTestCase(BaseTransactionTestCase):
         return re.sub(self.pattern, '', content)
 
     def get_cmd_output(self, pkg):
-        command = 'efu upload {} > {}'.format(pkg, self.stdout)
+        command = 'efu push {} > {}'.format(pkg, self.stdout)
         subprocess.call(command, shell=True)
         with open(self.stdout) as fp:
             content = fp.read()
         return re.sub(self.pattern, '', content)
 
     def test_success_output(self):
-        pkg = self.fixture.set_transaction(1, file_size=5, success_files=2)
+        pkg = self.fixture.set_push(1, file_size=5, success_files=2)
         expected = self.get_fixture_output('success')
         observed = self.get_cmd_output(pkg)
         self.assertEqual(expected, observed)
 
     def test_existent_files_output(self):
-        pkg = self.fixture.set_transaction(
+        pkg = self.fixture.set_push(
             1, file_size=5, existent_files=2, success_files=0)
         expected = self.get_fixture_output('existent_files')
         observed = self.get_cmd_output(pkg)
         self.assertEqual(expected, observed)
 
-    def test_start_transaction_fail_output(self):
-        pkg = self.fixture.set_transaction(
+    def test_start_push_fail_output(self):
+        pkg = self.fixture.set_push(
             1, file_size=5, start_success=False)
-        expected = self.get_fixture_output('start_transaction_fail')
+        expected = self.get_fixture_output('start_push_fail')
         observed = self.get_cmd_output(pkg)
         self.assertEqual(expected, observed)
 
-    def test_finish_transaction_fail_output(self):
-        pkg = self.fixture.set_transaction(
+    def test_finish_push_fail_output(self):
+        pkg = self.fixture.set_push(
             1, file_size=5, finish_success=False)
-        expected = self.get_fixture_output('finish_transaction_fail')
+        expected = self.get_fixture_output('finish_push_fail')
         observed = self.get_cmd_output(pkg)
         self.assertEqual(expected, observed)
 
     def test_finish_file_fail_output(self):
-        pkg = self.fixture.set_transaction(
+        pkg = self.fixture.set_push(
             1, file_size=5, finish_fail_files=2, success_files=0)
         expected = self.get_fixture_output('finish_file_fail')
         observed = self.get_cmd_output(pkg)
         self.assertEqual(expected, observed)
 
     def test_part_file_fail_output(self):
-        pkg = self.fixture.set_transaction(
+        pkg = self.fixture.set_push(
             1, file_size=5, part_fail_files=2, success_files=0)
         expected = self.get_fixture_output('file_part_fail')
         observed = self.get_cmd_output(pkg)
         self.assertEqual(expected, observed)
 
     def test_mixed_output(self):
-        pkg = self.fixture.set_transaction(
+        pkg = self.fixture.set_push(
             1, file_size=5, success_files=1, finish_fail_files=1,
             part_fail_files=1, existent_files=1)
         expected = self.get_fixture_output('mixed')

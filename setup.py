@@ -18,7 +18,7 @@ setup(
     packages=[
         'efu',
         'efu.config',
-        'efu.upload',
+        'efu.push',
     ],
     entry_points={
         'console_scripts': ['efu=efu.__main__:main']

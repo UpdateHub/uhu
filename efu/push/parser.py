@@ -5,19 +5,19 @@ import sys
 
 import click
 
-from .upload import Transaction
+from .push import Push
 from .exceptions import InvalidFileError, InvalidPackageFileError
 
 
-@click.command(name='upload')
+@click.command(name='push')
 @click.argument('package_file', type=click.Path())
-def transaction_command(package_file):
+def push_command(package_file):
     """
-    Makes a upload transaction based on a package file.
+    Makes a push transaction based on a package file.
     Package file must be in json format.
     """
     try:
-        sys.exit(Transaction(package_file).run())
+        sys.exit(Push(package_file).run())
     except InvalidFileError:
         raise click.BadParameter('Invalid file within package')
     except InvalidPackageFileError:

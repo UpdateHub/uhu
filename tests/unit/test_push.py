@@ -5,16 +5,16 @@ import hashlib
 import json
 import os
 
-from efu.upload.upload import (
-    File, Package, Transaction,
-    UploadStatus, TransactionExitCode
+from efu.push.push import (
+    File, Package, Push,
+    UploadStatus, PushExitCode
 )
-from efu.upload import exceptions
+from efu.push import exceptions
 
-from ..base import BaseTransactionTestCase
+from ..base import BasePushTestCase
 
 
-class FileTestCase(BaseTransactionTestCase):
+class FileTestCase(BasePushTestCase):
 
     def setUp(self):
         super().setUp()
@@ -116,7 +116,7 @@ class FileTestCase(BaseTransactionTestCase):
         self.assertEqual(result, UploadStatus.SUCCESS)
 
 
-class PackageTestCase(BaseTransactionTestCase):
+class PackageTestCase(BasePushTestCase):
 
     def setUp(self):
         super().setUp()
@@ -150,7 +150,7 @@ class PackageTestCase(BaseTransactionTestCase):
             self.assertEqual(package.files.index(file), file.id)
 
 
-class TransactionTestCase(BaseTransactionTestCase):
+class PushTestCase(BasePushTestCase):
 
     def setUp(self):
         super().setUp()
@@ -173,8 +173,8 @@ class TransactionTestCase(BaseTransactionTestCase):
             hashes.append(hashlib.sha256(content).hexdigest())
 
         pkg = self.fixture.set_package(product_id, files)
-        transaction = Transaction(pkg)
-        payload = json.loads(transaction._initial_payload)
+        push = Push(pkg)
+        payload = json.loads(push._initial_payload)
 
         self.assertEqual(payload['product_id'], product_id)
         self.assertEqual(len(payload['files']), len(files))
@@ -183,37 +183,37 @@ class TransactionTestCase(BaseTransactionTestCase):
 
     def test_can_retrieve_host_url_by_hardcode(self):
         del os.environ['EFU_SERVER_URL']
-        transaction = Transaction(self.package_fn)
+        push = Push(self.package_fn)
         expected = 'http://0.0.0.0/product/P1234/upload/'
-        observed = transaction._start_transaction_url
+        observed = push._start_push_url
         self.assertEqual(observed, expected)
 
     def test_can_retrieve_host_url_by_environment_variable(self):
         os.environ['EFU_SERVER_URL'] = 'http://spam.eggs.com'
-        transaction = Transaction(self.package_fn)
+        push = Push(self.package_fn)
         expected = 'http://spam.eggs.com/product/P1234/upload/'
-        observed = transaction._start_transaction_url
+        observed = push._start_push_url
         self.assertEqual(observed, expected)
 
-    def test_start_transaction_returns_NONE_when_successful(self):
-        self.fixture.register_start_transaction_url(
+    def test_start_push_returns_NONE_when_successful(self):
+        self.fixture.register_start_push_url(
             self.product_id, self.responses)
-        transaction = Transaction(self.package_fn)
-        observed = transaction._start_transaction()
+        push = Push(self.package_fn)
+        observed = push._start_push()
         self.assertIsNone(observed)
 
-    def test_start_transaction_raises_exception_when_fail(self):
-        self.fixture.register_start_transaction_url(
+    def test_start_push_raises_exception_when_fail(self):
+        self.fixture.register_start_push_url(
             self.product_id, self.files, start_success=False)
-        transaction = Transaction(self.package_fn)
-        with self.assertRaises(exceptions.StartTransactionError):
-            transaction._start_transaction()
+        push = Push(self.package_fn)
+        with self.assertRaises(exceptions.StartPushError):
+            push._start_push()
 
-    def test_start_transaction_request_is_made_correctly(self):
-        start_url, _ = self.fixture.register_start_transaction_url(
+    def test_start_push_request_is_made_correctly(self):
+        start_url, _ = self.fixture.register_start_push_url(
             self.product_id, self.responses)
-        transaction = Transaction(self.package_fn)
-        transaction._start_transaction()
+        push = Push(self.package_fn)
+        push._start_push()
         request = self.httpd.requests[0]
         request_body = json.loads(request.body.decode())
 
@@ -223,47 +223,47 @@ class TransactionTestCase(BaseTransactionTestCase):
         self.assertEqual(request_body['product_id'], self.product_id)
         self.assertEqual(len(request_body['files']), 2)
 
-    def test_start_transaction_updates_finish_transaction_url(self):
-        _, finish_url = self.fixture.register_start_transaction_url(
+    def test_start_push_updates_finish_push_url(self):
+        _, finish_url = self.fixture.register_start_push_url(
             self.product_id, self.responses)
-        transaction = Transaction(self.package_fn)
-        transaction._start_transaction()
-        self.assertEqual(transaction._finish_transaction_url, finish_url)
+        push = Push(self.package_fn)
+        push._start_push()
+        self.assertEqual(push._finish_push_url, finish_url)
 
-    def test_start_transaction_updates_files_data(self):
-        self.fixture.register_start_transaction_url(
+    def test_start_push_updates_files_data(self):
+        self.fixture.register_start_push_url(
             self.product_id, self.responses)
-        transaction = Transaction(self.package_fn)
-        transaction._start_transaction()
-        for file, expected in zip(transaction.files, self.responses):
+        push = Push(self.package_fn)
+        push._start_push()
+        for file, expected in zip(push.files, self.responses):
             self.assertEqual(file.exists_in_server, expected['exists'])
             self.assertEqual(file.chunk_size, expected['chunk_size'])
             self.assertEqual(file.part_upload_urls, expected['urls'])
             self.assertEqual(file.finish_upload_url,
                              expected['finish_upload_url'])
 
-    def test_finish_transaction_returns_NONE_when_successful(self):
-        url = self.fixture.register_finish_transaction_url(
+    def test_finish_push_returns_NONE_when_successful(self):
+        url = self.fixture.register_finish_push_url(
             self.product_id, success=True)
-        transaction = Transaction(self.package_fn)
-        transaction._finish_transaction_url = url
-        observed = transaction._finish_transaction()
+        push = Push(self.package_fn)
+        push._finish_push_url = url
+        observed = push._finish_push()
         self.assertIsNone(observed)
 
-    def test_finish_transaction_raises_exception_when_fail(self):
-        url = self.fixture.register_finish_transaction_url(
+    def test_finish_push_raises_exception_when_fail(self):
+        url = self.fixture.register_finish_push_url(
             self.product_id, success=False)
-        transaction = Transaction(self.package_fn)
-        transaction._finish_transaction_url = url
-        with self.assertRaises(exceptions.FinishTransactionError):
-            transaction._finish_transaction()
+        push = Push(self.package_fn)
+        push._finish_push_url = url
+        with self.assertRaises(exceptions.FinishPushError):
+            push._finish_push()
 
-    def test_finish_transaction_request_is_made_correctly(self):
-        url = self.fixture.register_finish_transaction_url(
+    def test_finish_push_request_is_made_correctly(self):
+        url = self.fixture.register_finish_push_url(
             self.product_id, success=True)
-        transaction = Transaction(self.package_fn)
-        transaction._finish_transaction_url = url
-        transaction._finish_transaction()
+        push = Push(self.package_fn)
+        push._finish_push_url = url
+        push._finish_push()
 
         request = self.httpd.requests[0]
         self.assertEqual(len(self.httpd.requests), 1)
@@ -272,82 +272,82 @@ class TransactionTestCase(BaseTransactionTestCase):
         self.assertEqual(request.body, b'')
 
     def test_upload_files_return_NONE_when_successful(self):
-        pkg = self.fixture.set_transaction(1)
-        transaction = Transaction(pkg)
-        transaction._start_transaction()
-        observed = transaction._upload_files()
+        pkg = self.fixture.set_push(1)
+        push = Push(pkg)
+        push._start_push()
+        observed = push._upload_files()
         self.assertIsNone(observed)
 
     def test_upload_files_return_NONE_when_file_exists(self):
-        pkg = self.fixture.set_transaction(
+        pkg = self.fixture.set_push(
             1, success_files=0, existent_files=3)
-        transaction = Transaction(pkg)
-        transaction._start_transaction()
-        observed = transaction._upload_files()
+        push = Push(pkg)
+        push._start_push()
+        observed = push._upload_files()
         self.assertIsNone(observed)
 
     def test_upload_files_raises_exception_when_upload_part_fails(self):
-        pkg = self.fixture.set_transaction(
+        pkg = self.fixture.set_push(
             1, success_files=0, part_fail_files=3)
-        transaction = Transaction(pkg)
-        transaction._start_transaction()
+        push = Push(pkg)
+        push._start_push()
         with self.assertRaises(exceptions.FileUploadError):
-            transaction._upload_files()
+            push._upload_files()
 
     def test_upload_files_raises_exception_when_finish_upload_fails(self):
-        pkg = self.fixture.set_transaction(
+        pkg = self.fixture.set_push(
             1, success_files=0, finish_fail_files=3)
-        transaction = Transaction(pkg)
-        transaction._start_transaction()
+        push = Push(pkg)
+        push._start_push()
         with self.assertRaises(exceptions.FileUploadError):
-            transaction._upload_files()
+            push._upload_files()
 
     def test_upload_files_requests_are_made_correctly(self):
-        pkg = self.fixture.set_transaction(
+        pkg = self.fixture.set_push(
             1, success_files=2, existent_files=1, chunk_size=1, file_size=3)
-        transaction = Transaction(pkg)
-        transaction._start_transaction()
-        transaction._upload_files()
-        # 1 request for starting transaction
+        push = Push(pkg)
+        push._start_push()
+        push._upload_files()
+        # 1 request for starting push
         # 6 requests since 2 files must be uploaded in 3 chunks each
         # 2 requests to finish each file upload
         # Total: 9 requests
         total_requests = 9
         self.assertEqual(len(self.httpd.requests), total_requests)
 
-    def test_transaction_run_returns_SUCCESS_when_successful(self):
-        pkg = self.fixture.set_transaction(1)
-        transaction = Transaction(pkg)
-        observed = transaction.run()
-        self.assertEqual(observed, TransactionExitCode.SUCCESS)
+    def test_push_run_returns_SUCCESS_when_successful(self):
+        pkg = self.fixture.set_push(1)
+        push = Push(pkg)
+        observed = push.run()
+        self.assertEqual(observed, PushExitCode.SUCCESS)
 
-    def test_transaction_run_returns_START_FAIL_when_fail_on_start(self):
-        pkg = self.fixture.set_transaction(1, start_success=False)
-        transaction = Transaction(pkg)
-        observed = transaction.run()
-        self.assertEqual(observed, TransactionExitCode.START_FAIL)
+    def test_push_run_returns_START_FAIL_when_fail_on_start(self):
+        pkg = self.fixture.set_push(1, start_success=False)
+        push = Push(pkg)
+        observed = push.run()
+        self.assertEqual(observed, PushExitCode.START_FAIL)
 
-    def test_transaction_run_returns_UPLOAD_FAIL_when_fail_on_upload(self):
-        pkg = self.fixture.set_transaction(
+    def test_push_run_returns_UPLOAD_FAIL_when_fail_on_upload(self):
+        pkg = self.fixture.set_push(
             1, success_files=0, finish_fail_files=3)
-        transaction = Transaction(pkg)
-        observed = transaction.run()
-        self.assertEqual(observed, TransactionExitCode.UPLOAD_FAIL)
+        push = Push(pkg)
+        observed = push.run()
+        self.assertEqual(observed, PushExitCode.UPLOAD_FAIL)
 
-        pkg = self.fixture.set_transaction(
+        pkg = self.fixture.set_push(
             2, success_files=0, part_fail_files=3)
-        transaction = Transaction(pkg)
-        observed = transaction.run()
-        self.assertEqual(observed, TransactionExitCode.UPLOAD_FAIL)
+        push = Push(pkg)
+        observed = push.run()
+        self.assertEqual(observed, PushExitCode.UPLOAD_FAIL)
 
-        pkg = self.fixture.set_transaction(
+        pkg = self.fixture.set_push(
             3, success_files=0, part_fail_files=1, finish_fail_files=1)
-        transaction = Transaction(pkg)
-        observed = transaction.run()
-        self.assertEqual(observed, TransactionExitCode.UPLOAD_FAIL)
+        push = Push(pkg)
+        observed = push.run()
+        self.assertEqual(observed, PushExitCode.UPLOAD_FAIL)
 
-    def test_transaction_run_returns_FINISH_FAIL_when_fail_on_finish(self):
-        pkg = self.fixture.set_transaction(1, finish_success=False)
-        transaction = Transaction(pkg)
-        observed = transaction.run()
-        self.assertEqual(observed, TransactionExitCode.FINISH_FAIL)
+    def test_push_run_returns_FINISH_FAIL_when_fail_on_finish(self):
+        pkg = self.fixture.set_push(1, finish_success=False)
+        push = Push(pkg)
+        observed = push.run()
+        self.assertEqual(observed, PushExitCode.FINISH_FAIL)

@@ -9,7 +9,7 @@ import tempfile
 from random import choice
 
 from efu.config.config import Config
-from efu.upload.upload import File
+from efu.push.push import File
 
 from .httpmock.utils import BaseHTTPServerTestCase
 
@@ -56,27 +56,27 @@ class ServerMocker(object):
             fp.write(content)
         return fn
 
-    def register_finish_transaction_url(self, product_id, success=True):
+    def register_finish_push_url(self, product_id, success=True):
         '''
-        Helper function that register a finish transaction path.
+        Helper function that register a finish push path.
         '''
         path = '/product/{}/upload/finish/'.format(product_id)
         code = self._generate_status_code(success)
         self.httpd.register_response(path, 'POST', status_code=code)
         return self.httpd.url(path)
 
-    def register_start_transaction_url(
+    def register_start_push_url(
             self, product_id, files,
             start_success=True, finish_success=True):
         '''
-        Helper function that register a start transaction path.
+        Helper function that register a start push path.
         '''
         start_path = '/product/{}/upload/'.format(product_id)
         code = self._generate_status_code(start_success)
-        finish_url = self.register_finish_transaction_url(
+        finish_url = self.register_finish_push_url(
             product_id, finish_success)
         body = json.dumps({
-            'finish_transaction_url': finish_url,
+            'finish_push_url': finish_url,
             'files': files
         })
         self.httpd.register_response(
@@ -137,13 +137,13 @@ class ServerMocker(object):
         pkg = self.create_file(content=content)
         return pkg
 
-    def set_transaction(self, product_id, file_size=1, chunk_size=1,
-                        start_success=True, finish_success=True,
-                        success_files=3, existent_files=0,
-                        finish_fail_files=0, part_fail_files=0):
+    def set_push(self, product_id, file_size=1, chunk_size=1,
+                 start_success=True, finish_success=True,
+                 success_files=3, existent_files=0,
+                 finish_fail_files=0, part_fail_files=0):
         '''
         Helper function that creates all needed responses to complete an
-        upload transaction.
+        upload push.
         '''
         files = []
         responses = []
@@ -172,7 +172,7 @@ class ServerMocker(object):
             files.append(fn)
             responses.append(response)
 
-        self.register_start_transaction_url(
+        self.register_start_push_url(
             product_id, responses, start_success=start_success,
             finish_success=finish_success)
         pkg = self.set_package(product_id, files)
@@ -190,7 +190,7 @@ class ConfigTestCaseMixin(object):
         self.config = Config()
 
 
-class BaseTransactionTestCase(ConfigTestCaseMixin, BaseHTTPServerTestCase):
+class BasePushTestCase(ConfigTestCaseMixin, BaseHTTPServerTestCase):
 
     @classmethod
     def setUpClass(cls):
