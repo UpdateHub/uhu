@@ -2,7 +2,7 @@
 # This software is released under the MIT License
 
 from ..request import Request
-from ..utils import get_chunk_size, get_server_url
+from ..utils import get_chunk_size
 
 from .ui import UploadProgressBar, SUCCESS_MSG, FAIL_MSG
 
@@ -46,7 +46,7 @@ class Upload(object):
             for part_number, part in enumerate(parts):
                 part_meta = self._parts_meta[str(part_number)]
                 if not part_meta['exists']:
-                    url = get_server_url(part_meta['url_path'])
+                    url = part_meta['url']
                     response = Request(url, 'POST', part).send()
                     if response.status_code != 201:
                         status = UploadStatus.FAIL

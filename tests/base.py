@@ -118,11 +118,11 @@ class HTTPServerMockMixin(object):
     def clean_server_url(self):
         delete_environment_variable('EFU_SERVER_URL')
 
-    def generic_path(self, success):
+    def generic_url(self, success):
         code = self.generate_status_code(success)
         path = '/{}'.format(uuid4().hex)
         self.httpd.register_response(path, 'POST', status_code=code)
-        return path
+        return self.httpd.url(path)
 
 
 class UploadMockMixin(PackageMockMixin, HTTPServerMockMixin, ConfigMockMixin):
@@ -130,13 +130,13 @@ class UploadMockMixin(PackageMockMixin, HTTPServerMockMixin, ConfigMockMixin):
     def create_upload_meta(self, file, file_exists=False,
                            part_exists=False, success=True):
         if success:
-            path = self.generic_path(success=True)
+            url = self.generic_url(success=True)
         else:
-            path = self.generic_path(success=False)
+            url = self.generic_url(success=False)
 
         part_obj = {
             'exists': part_exists,
-            'url_path': path
+            'url': url,
         }
         parts = {str(part): part_obj for part in range(file.n_chunks)}
         file_obj = {
@@ -164,16 +164,16 @@ class PushMockMixin(UploadMockMixin):
     def set_push(self, product_id, start_success=True,
                  finish_success=True, uploads=None):
         if finish_success:
-            finish_path = self.generic_path(success=True)
+            finish_url = self.generic_url(success=True)
         else:
-            finish_path = self.generic_path(success=False)
+            finish_url = self.generic_url(success=False)
 
         self.httpd.register_response(
             '/products/{}/commits'.format(product_id),
             method='POST',
             body=json.dumps({
                 'uploads': [] if not uploads else uploads,
-                'finish_url_path': finish_path,
+                'finish_url': finish_url,
             }),
             status_code=self.generate_status_code(start_success)
         )

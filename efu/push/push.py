@@ -46,8 +46,7 @@ class Push(object):
         response_body = response.json()
         self._upload_list = {upload['object_id']: upload
                              for upload in response_body['uploads']}
-        self._finish_push_url = get_server_url(
-            response_body['finish_url_path'])
+        self._finish_push_url = response_body['finish_url']
 
     def _upload_files(self):
         results = []
