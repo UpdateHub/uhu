@@ -109,19 +109,19 @@ class HTTPServerMockMixin(object):
         self.clean_server_url()
         self.httpd.clear_history()
 
-    def generate_status_code(self, success=True, success_code=201):
-        return success_code if success else 400
-
     def set_server_url(self):
         os.environ['EFU_SERVER_URL'] = self.httpd.url('')
 
     def clean_server_url(self):
         delete_environment_variable('EFU_SERVER_URL')
 
-    def generic_url(self, success):
+    def generate_status_code(self, success=True, success_code=201):
+        return success_code if success else 400
+
+    def generic_url(self, success, body=None):
         code = self.generate_status_code(success)
         path = '/{}'.format(uuid4().hex)
-        self.httpd.register_response(path, 'POST', status_code=code)
+        self.httpd.register_response(path, 'POST', status_code=code, body=body)
         return self.httpd.url(path)
 
 
@@ -161,19 +161,18 @@ class PushMockMixin(UploadMockMixin):
         self.files = list(self.package.files.values())
         File._File__reset_id_generator()
 
+    def finish_push_url(self, success=True):
+        return self.generic_url(
+            success, body=json.dumps({'commit_id': 1}))
+
     def set_push(self, product_id, start_success=True,
                  finish_success=True, uploads=None):
-        if finish_success:
-            finish_url = self.generic_url(success=True)
-        else:
-            finish_url = self.generic_url(success=False)
-
         self.httpd.register_response(
             '/products/{}/commits'.format(product_id),
             method='POST',
             body=json.dumps({
                 'uploads': [] if not uploads else uploads,
-                'finish_url': finish_url,
+                'finish_url': self.finish_push_url(finish_success)
             }),
             status_code=self.generate_status_code(start_success)
         )

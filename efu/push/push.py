@@ -26,6 +26,7 @@ class Push(object):
         self._package = package
         self._upload_list = None
         self._finish_push_url = None
+        self._commit_id = None
 
     @property
     def _start_push_url(self):
@@ -64,6 +65,7 @@ class Push(object):
         response = request.send()
         if response.status_code != 201:
             raise exceptions.FinishPushError
+        self._commit_id = response.json().get('commit_id')
 
     def run(self):
         # START
@@ -86,6 +88,7 @@ class Push(object):
             click.echo('Finishing push: ', nl=False)
             self._finish_push()
             click.echo(SUCCESS_MSG)
+            click.echo('Commit ID: {}'.format(self._commit_id))
         except exceptions.FinishPushError:
             click.echo(FAIL_MSG)
             return PushExitCode.FINISH_FAIL

@@ -57,22 +57,21 @@ class PushTestCase(EFUTestCase):
 
     def test_finish_push_returns_NONE_when_successful(self):
         push = Push(self.package)
-        push._finish_push_url = self.generic_url(success=True)
+        push._finish_push_url = self.finish_push_url(success=True)
         observed = push._finish_push()
         self.assertIsNone(observed)
 
     def test_finish_push_raises_exception_when_fail(self):
         push = Push(self.package)
-        push._finish_push_url = self.generic_url(success=False)
+        push._finish_push_url = self.finish_push_url(success=False)
         with self.assertRaises(exceptions.FinishPushError):
             push._finish_push()
 
     def test_finish_push_request_is_made_correctly(self):
-        url = self.generic_url(success=True)
+        url = self.finish_push_url(success=True)
         push = Push(self.package)
         push._finish_push_url = url
         push._finish_push()
-
         request = self.httpd.requests[0]
         self.assertEqual(len(self.httpd.requests), 1)
         self.assertEqual(request.method, 'POST')
