@@ -91,6 +91,18 @@ class RequestTestCase(EFUTestCase):
         auth_header = response.headers.get('Authorization')
         self.assertIsNotNone(auth_header)
 
+    def test_host_header_includes_port_if_provided(self):
+        req = Request('http://localhost:123', 'GET', '')
+        expected = 'localhost:123'
+        observed = req.headers.get('Host')
+        self.assertEqual(observed, expected)
+
+    def test_host_header_does_not_include_port_if_not_provided(self):
+        req = Request('http://localhost', 'GET', '')
+        expected = 'localhost'
+        observed = req.headers.get('Host')
+        self.assertEqual(observed, expected)
+
 
 class CanonicalRequestTestCase(unittest.TestCase):
 

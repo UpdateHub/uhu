@@ -23,7 +23,7 @@ class Request(object):
         self.payload_sha256 = self._generate_payload_sha256()
 
         self.headers = {
-            'Host': self._url.hostname,
+            'Host': self._url.netloc,
             'Timestamp': self.date.timestamp(),
             'Content-sha256': self.payload_sha256,
             'Api-Content-Type': 'application/vnd.fota-server-v1+json',
