@@ -54,11 +54,8 @@ class PushOutputTestCase(EFUTestCase):
     def test_success_output(self):
         uploads = self.create_uploads_meta(self.files)
         self.set_push(self.product_id, uploads=uploads)
-
         expected = self.get_fixture_output('success')
         observed = self.get_cmd_output()
-
-        print(observed)
         self.assertEqual(expected, observed)
 
     def test_existent_files_output(self):
