@@ -1,7 +1,6 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-from pip.req import parse_requirements
 from setuptools import setup
 
 
