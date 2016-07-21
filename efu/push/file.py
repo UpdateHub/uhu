@@ -65,6 +65,12 @@ class File(object):
         }
 
     @property
+    def metadata(self):
+        return {
+            'sha256sum': self.sha256sum
+        }
+
+    @property
     def n_chunks(self):
         return len(self.chunks)
 

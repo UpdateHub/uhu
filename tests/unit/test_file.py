@@ -95,3 +95,11 @@ class FileTestCase(EFUTestCase):
         }
         observed = file.as_dict()
         self.assertEqual(observed, expected)
+
+    def test_file_metadata(self):
+        file = File(self.file_name)
+        expected = {
+            'sha256sum': self.spam_sha256sum
+        }
+        observed = file.metadata
+        self.assertEqual(observed, expected)
