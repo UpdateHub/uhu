@@ -20,20 +20,24 @@ class PackageTestCase(EFUTestCase):
 
     def test_can_load_package_file(self):
         files = [self.create_file(b'0') for _ in range(15)]
+        id_ = 1234
+        version = '2.0'
+        fn = self.create_package_file(
+            product_id=id_, version=version, files=files)
+        package = Package(fn)
 
-        product_id = 1234
-        package_fn = self.create_package_file(product_id, files)
-        package = Package(package_fn)
-
-        self.assertEqual(package.product_id, product_id)
+        self.assertEqual(package.product_id, id_)
+        self.assertEqual(package.version, version)
         self.assertEqual(len(package.files), len(files))
         for file in package.files.values():
             self.assertIsInstance(file, File)
 
     def test_package_as_dict(self):
         files = [self.create_file(bytes(i)) for i in range(3)]
-        package = Package(self.create_package_file(123, files))
-        observed = package.as_dict()
+        fn = self.create_package_file(
+            product_id=123, version='2.0', files=files)
+        observed = Package(fn).as_dict()
+        self.assertEqual(observed['version'], '2.0')
         self.assertEqual(len(observed['objects']), len(files))
         for file in observed['objects']:
             self.assertIsNotNone(file['id'])

@@ -81,9 +81,10 @@ class FileMockMixin(object):
 
 class PackageMockMixin(FileMockMixin):
 
-    def create_package_file(self, product_id, files):
+    def create_package_file(self, product_id, version, files):
         content = json.dumps({
             'product_id': product_id,
+            'version': version,
             'files': files,
         }).encode()
         return self.create_file(content=content)
@@ -155,8 +156,9 @@ class PushMockMixin(UploadMockMixin):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
         self.product_id = 'P1234'
+        self.version = '2.0'
         self.fns = [self.create_file(b'123') for i in range(3)]
-        pkg = self.create_package_file(self.product_id, self.fns)
+        pkg = self.create_package_file(self.product_id, self.version, self.fns)
         self.package = Package(pkg)
         self.files = list(self.package.files.values())
         File._File__reset_id_generator()

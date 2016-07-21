@@ -13,6 +13,7 @@ class Package(object):
         self.file = fn
         self._package = self._validate_package(self.file)
         self.product_id = self._package.get('product_id')
+        self.version = self._package.get('version')
         self.files = {}
         for fn in self._package.get('files'):
             file = File(fn)
@@ -34,5 +35,6 @@ class Package(object):
 
     def as_dict(self):
         return {
+            'version': self.version,
             'objects': [file.as_dict() for file in self.files.values()]
         }

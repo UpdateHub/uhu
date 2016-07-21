@@ -40,6 +40,7 @@ class PushTestCase(EFUTestCase):
         self.assertEqual(request.method, 'POST')
         self.assertEqual(request.url, start_url)
         self.assertEqual(len(request_body.get('objects')), 3)
+        self.assertEqual(request_body.get('version'), '2.0')
         self.assertEqual(request.headers['Content-Type'], 'application/json')
         for file in request_body.get('objects'):
             self.assertIsNotNone(file.get('id'))
@@ -105,7 +106,7 @@ class PushTestCase(EFUTestCase):
 
     def test_upload_files_requests_are_made_correctly(self):
         fns = [self.create_file(b'000') for i in range(3)]
-        pkg_fn = self.create_package_file(123, fns)
+        pkg_fn = self.create_package_file(123, '2.0', fns)
         pkg = Package(pkg_fn)
         files = list(pkg.files.values())
         File._File__reset_id_generator()

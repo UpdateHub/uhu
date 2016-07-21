@@ -19,14 +19,14 @@ class EFUTestServer(PushMockMixin):
         self.cmd = '- {}:\nefu push {}'
 
     def cmd_success(self):
-        pkg = Package(self.create_package_file(1, self.fns))
+        pkg = Package(self.create_package_file(1, '2.0', self.fns))
         uploads = self.create_uploads_meta(pkg.files.values())
         self.set_push(1, uploads=uploads)
         print(self.cmd.format('SUCCESS', pkg.file))
         File._File__reset_id_generator()
 
     def cmd_existent(self):
-        pkg = Package(self.create_package_file(2, self.fns))
+        pkg = Package(self.create_package_file(2, '2.0', self.fns))
         uploads = self.create_uploads_meta(
             pkg.files.values(), file_exists=True)
         self.set_push(2, uploads=uploads)
@@ -34,21 +34,21 @@ class EFUTestServer(PushMockMixin):
         File._File__reset_id_generator()
 
     def cmd_finish_push_fail(self):
-        pkg = Package(self.create_package_file(3, self.fns))
+        pkg = Package(self.create_package_file(3, '2.0', self.fns))
         uploads = self.create_uploads_meta(pkg.files.values())
         self.set_push(3, uploads=uploads, finish_success=False)
         print(self.cmd.format('FINISH FAIL', pkg.file))
         File._File__reset_id_generator()
 
     def cmd_file_part_fail(self):
-        pkg = Package(self.create_package_file(4, self.fns))
+        pkg = Package(self.create_package_file(4, '2.0', self.fns))
         uploads = self.create_uploads_meta(pkg.files.values(), success=False)
         self.set_push(4, uploads=uploads)
         print(self.cmd.format('FILE PART FAIL', pkg.file))
         File._File__reset_id_generator()
 
     def cmd_mixed(self):
-        pkg = Package(self.create_package_file(5, self.fns))
+        pkg = Package(self.create_package_file(5, '2.0', self.fns))
         f1, f2, f3 = list(pkg.files.values())
         u1 = self.create_upload_meta(f1)
         u2 = self.create_upload_meta(f2, success=False)
