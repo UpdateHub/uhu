@@ -88,7 +88,10 @@ class FileTestCase(EFUTestCase):
                 FileChunk(b'p').as_dict(),
                 FileChunk(b'a').as_dict(),
                 FileChunk(b'm').as_dict()
-            ]
+            ],
+            'metadata': {
+                'sha256sum': self.spam_sha256sum
+            }
         }
         observed = file.as_dict()
         self.assertEqual(observed, expected)

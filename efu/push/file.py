@@ -59,6 +59,9 @@ class File(object):
             'id': self.id,
             'sha256sum': self.sha256sum,
             'parts': [chunk.as_dict() for chunk in self.chunks],
+            'metadata': {
+                'sha256sum': self.sha256sum
+            }
         }
 
     @property
