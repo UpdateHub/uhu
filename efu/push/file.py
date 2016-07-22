@@ -36,17 +36,17 @@ class File(object):
 
     _id = count()
 
+    def __new__(cls, fn):
+        if os.path.isfile(fn):
+            return super().__new__(cls)
+        raise exceptions.InvalidFileError(
+            'file {} does not exist'.format(fn))
+
     def __init__(self, fn):
         self.id = next(self._id)
-        self.name = self._validate_file(fn)
+        self.name = fn
         self.size = os.path.getsize(self.name)
         self.sha256sum, self.chunks = self._generate_file_hashes()
-
-    def _validate_file(self, fn):
-        if os.path.exists(fn):
-            return fn
-        raise exceptions.InvalidFileError(
-            'file {} to be uploaded does not exist'.format(fn))
 
     def _generate_file_hashes(self):
         sha256sum = hashlib.sha256()
