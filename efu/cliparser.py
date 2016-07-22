@@ -3,6 +3,7 @@
 
 import click
 
+from .pull.parser import pull_command
 from .push.parser import push_command
 from .config.parser import config_command
 
@@ -13,5 +14,6 @@ def cli():
     pass
 
 
+cli.add_command(pull_command)
 cli.add_command(push_command)
 cli.add_command(config_command)

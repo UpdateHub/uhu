@@ -18,6 +18,7 @@ setup(
         'efu',
         'efu.config',
         'efu.push',
+        'efu.pull',
     ],
     entry_points={
         'console_scripts': ['efu=efu.__main__:main']

@@ -94,7 +94,9 @@ class FileTestCase(EFUTestCase):
                 FileChunk(b'm').as_dict()
             ],
             'metadata': {
-                'sha256sum': self.spam_sha256sum
+                'filename': file.name,
+                'sha256sum': self.spam_sha256sum,
+                'size': 4
             }
         }
         observed = file.as_dict()
