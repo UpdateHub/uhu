@@ -36,6 +36,7 @@ class File(object):
     def __init__(self, fn):
         self.id = next(self._id)
         self.name = self._validate_file(fn)
+        self.size = os.path.getsize(self.name)
         self.sha256sum, self.chunks = self._generate_file_hashes()
 
     def _validate_file(self, fn):
@@ -68,7 +69,8 @@ class File(object):
     def metadata(self):
         return {
             'filename': self.name,
-            'sha256sum': self.sha256sum
+            'sha256sum': self.sha256sum,
+            'size': self.size
         }
 
     @property

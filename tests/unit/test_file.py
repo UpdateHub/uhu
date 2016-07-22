@@ -99,8 +99,9 @@ class FileTestCase(EFUTestCase):
     def test_file_metadata(self):
         file = File(self.filename)
         expected = {
-            'filename': self.filename,
-            'sha256sum': self.spam_sha256sum
+            'filename': file.name,
+            'sha256sum': self.spam_sha256sum,
+            'size': 4
         }
         observed = file.metadata
         self.assertEqual(observed, expected)
@@ -109,3 +110,9 @@ class FileTestCase(EFUTestCase):
         fn = __file__
         file = File(fn)
         self.assertEqual(file.name, fn)
+
+    def test_file_size(self):
+        file = File(self.filename)
+        expected = 4
+        observed = file.size
+        self.assertEqual(observed, expected)
