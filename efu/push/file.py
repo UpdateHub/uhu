@@ -18,6 +18,7 @@ class FileChunk(object):
         return super().__new__(cls) if chunk else None
 
     def __init__(self, chunk):
+        self.data = chunk
         self.number = next(self._number)
         self.sha256sum = hashlib.sha256(chunk).hexdigest()
 
@@ -44,19 +45,18 @@ class File(object):
 
     def __init__(self, fn):
         self.id = next(self._id)
+        self._file = open(fn, 'br')
         self.name = fn
         self.size = os.path.getsize(self.name)
-        self.sha256sum, self.chunks = self._generate_file_hashes()
+        self.chunks = []
 
-    def _generate_file_hashes(self):
         sha256sum = hashlib.sha256()
-        chunks = []
-        with open(self.name, 'br') as fp:
-            for chunk in iter(lambda: fp.read(get_chunk_size()), b''):
-                chunks.append(FileChunk(chunk))
-                sha256sum.update(chunk)
+        for chunk in self:
+            self.chunks.append(chunk)
+            sha256sum.update(chunk.data)
+        self.sha256sum = sha256sum.hexdigest()
+
         FileChunk.reset_number_generator()
-        return (sha256sum.hexdigest(), chunks)
 
     def as_dict(self):
         return {
@@ -83,3 +83,6 @@ class File(object):
     @classmethod
     def __reset_id_generator(cls):
         cls._id = count()
+
+    def __iter__(self):
+        return iter(lambda: FileChunk(self._file.read(get_chunk_size())), None)
