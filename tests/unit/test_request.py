@@ -103,6 +103,12 @@ class RequestTestCase(EFUTestCase):
         observed = req.headers.get('Host')
         self.assertEqual(observed, expected)
 
+    @patch('efu.request.requests.request')
+    def test_can_pass_extra_kwargs_to_requests(self, mock):
+        Request('http://localhost', 'GET', '', stream=True).send()
+        observed = list(mock.call_args)[1].get('stream')
+        self.assertTrue(observed)
+
 
 class CanonicalRequestTestCase(unittest.TestCase):
 

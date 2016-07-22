@@ -13,11 +13,12 @@ from .config import config
 
 class Request(object):
 
-    def __init__(self, url, method, payload, json=False):
+    def __init__(self, url, method, payload, json=False, **requests_kwargs):
         self.url = url
         self._url = urlparse(self.url)
         self.method = method.upper()
         self.payload = payload
+        self._requests_kwargs = requests_kwargs
 
         self.date = datetime.now(timezone.utc)
         self.payload_sha256 = self._generate_payload_sha256()
@@ -86,6 +87,7 @@ class Request(object):
             self.method,
             self.url,
             headers=headers,
-            data=self.payload
+            data=self.payload,
+            **self._requests_kwargs
         )
         return response
