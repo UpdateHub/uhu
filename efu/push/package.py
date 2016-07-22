@@ -36,5 +36,14 @@ class Package(object):
     def as_dict(self):
         return {
             'version': self.version,
-            'objects': [file.as_dict() for file in self.files.values()]
+            'objects': [file.as_dict() for file in self.files.values()],
+            'metadata': self.metadata
+        }
+
+    @property
+    def metadata(self):
+        return {
+            'product': self.product_id,
+            'version': self.version,
+            'images': [file.metadata for file in self.files.values()]
         }

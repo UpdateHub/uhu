@@ -42,6 +42,7 @@ class PushTestCase(EFUTestCase):
         self.assertEqual(len(request_body.get('objects')), 3)
         self.assertEqual(request_body.get('version'), '2.0')
         self.assertEqual(request.headers['Content-Type'], 'application/json')
+        # objects
         for file in request_body.get('objects'):
             self.assertIsNotNone(file.get('id'))
             self.assertIsNotNone(file.get('sha256sum'))
@@ -49,6 +50,15 @@ class PushTestCase(EFUTestCase):
             for part in file.get('parts'):
                 self.assertIsNotNone(part.get('sha256sum'))
                 self.assertIsNotNone(part.get('number'))
+        # metadata
+        metadata = request_body.get('metadata')
+        self.assertIsNotNone(metadata)
+        self.assertEqual(metadata['version'], '2.0')
+        self.assertEqual(metadata['product'], self.product_id)
+        for image in metadata['images']:
+            self.assertIsNotNone(image['sha256sum'])
+            self.assertIsNotNone(image['filename'])
+            self.assertIsNotNone(image['size'])
 
     def test_start_push_updates_finish_push_url(self):
         self.set_push(self.product_id)

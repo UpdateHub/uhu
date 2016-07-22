@@ -42,3 +42,18 @@ class PackageTestCase(EFUTestCase):
         for file in observed['objects']:
             self.assertIsNotNone(file['id'])
             self.assertIsNotNone(file['sha256sum'])
+
+    def test_package_metadata(self):
+        files = [self.create_file(bytes(i)) for i in range(3)]
+        fn = self.create_package_file(
+            product_id='10', version='2.0', files=files)
+        observed = Package(fn).metadata
+
+        self.assertEqual(observed['product'], '10')
+        self.assertEqual(observed['version'], '2.0')
+        self.assertEqual(len(observed['images']), len(files))
+
+        for file in observed['images']:
+            self.assertIsNotNone(file['sha256sum'])
+            self.assertIsNotNone(file['filename'])
+            self.assertIsNotNone(file['size'])
