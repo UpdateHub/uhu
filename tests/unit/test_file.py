@@ -12,19 +12,23 @@ class FileChunkTestCase(EFUTestCase):
     def setUp(self):
         self.addCleanup(FileChunk.reset_number_generator)
 
+    def test_empty_chunk_returns_None(self):
+        self.assertIsNone(FileChunk(b''))
+        self.assertIsNotNone(FileChunk(b'0'))
+
     def test_number_generation(self):
-        c1 = FileChunk(b'')
-        c2 = FileChunk(b'')
-        c3 = FileChunk(b'')
+        c1 = FileChunk(b'0')
+        c2 = FileChunk(b'0')
+        c3 = FileChunk(b'0')
         self.assertEqual(c1.number, 0)
         self.assertEqual(c2.number, 1)
         self.assertEqual(c3.number, 2)
 
     def test_number_generator_reset(self):
-        FileChunk(b'')
-        FileChunk(b'')
+        FileChunk(b'0')
+        FileChunk(b'0')
         FileChunk.reset_number_generator()
-        chunk = FileChunk(b'')
+        chunk = FileChunk(b'0')
         self.assertEqual(chunk.number, 0)
 
     def test_chunk_sha256sum(self):

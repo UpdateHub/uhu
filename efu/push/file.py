@@ -14,6 +14,9 @@ class FileChunk(object):
 
     _number = count()
 
+    def __new__(cls, chunk):
+        return super().__new__(cls) if chunk else None
+
     def __init__(self, chunk):
         self.number = next(self._number)
         self.sha256sum = hashlib.sha256(chunk).hexdigest()
