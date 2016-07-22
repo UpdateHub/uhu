@@ -67,6 +67,7 @@ class File(object):
     @property
     def metadata(self):
         return {
+            'filename': self.name,
             'sha256sum': self.sha256sum
         }
 
