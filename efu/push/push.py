@@ -61,7 +61,7 @@ class Push(object):
             raise exceptions.FileUploadError
 
     def _finish_push(self):
-        request = Request(self._finish_push_url, 'POST', '')
+        request = Request(self._finish_push_url, 'POST')
         response = request.send()
         if response.status_code != 201:
             raise exceptions.FinishPushError

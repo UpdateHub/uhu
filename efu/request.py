@@ -13,7 +13,7 @@ from .config import config
 
 class Request(object):
 
-    def __init__(self, url, method, payload, json=False, **requests_kwargs):
+    def __init__(self, url, method, payload='', json=False, **requests_kwargs):
         self.url = url
         self._url = urlparse(self.url)
         self.method = method.upper()

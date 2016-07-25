@@ -24,7 +24,7 @@ class Pull(object):
         path = '/products/{product}/commits/{commit}'.format(
             product=self.product_id, commit=self.commit_id)
         url = get_server_url(path)
-        response = Request(url, 'GET', '').send()
+        response = Request(url, 'GET').send()
         if response.ok:
             return response.json()
         return None
@@ -36,7 +36,7 @@ class Pull(object):
         download_path = '/products/{product}/objects/{obj}'.format(
             product=self.product_id, obj=image['sha256sum'])
         url = get_server_url(download_path)
-        response = Request(url, 'GET', '', stream=True).send()
+        response = Request(url, 'GET', stream=True).send()
         if response.ok:
             with open(image['filename'], 'wb') as fp:
                 for chunk in response.iter_content():
