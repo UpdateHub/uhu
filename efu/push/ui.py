@@ -3,7 +3,6 @@
 
 import sys
 
-import click
 from progress.bar import Bar
 
 
@@ -22,5 +21,5 @@ class UploadProgressBar(Bar):
     def finish_with_msg(self, msg):
         self.clearln()
         file = self.message
-        click.echo('{} {}'.format(file, msg), nl=False)
+        print('{} {}'.format(file, msg), end='')
         self.finish()

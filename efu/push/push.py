@@ -3,8 +3,6 @@
 
 import json
 
-import click
-
 from ..request import Request
 from ..utils import get_server_url
 
@@ -70,11 +68,11 @@ class Push(object):
     def run(self):
         # START
         try:
-            click.echo('Starting push: ', nl=False)
+            print('Starting push: ', end='')
             self._start_push()
-            click.echo(SUCCESS_MSG)
+            print(SUCCESS_MSG)
         except exceptions.StartPushError:
-            click.echo(FAIL_MSG)
+            print(FAIL_MSG)
             return PushExitCode.START_FAIL
 
         # UPLOAD
@@ -85,12 +83,12 @@ class Push(object):
 
         # FINISH
         try:
-            click.echo('Finishing push: ', nl=False)
+            print('Finishing push: ', end='')
             self._finish_push()
-            click.echo(SUCCESS_MSG)
-            click.echo('Commit ID: {}'.format(self._commit_id))
+            print(SUCCESS_MSG)
+            print('Commit ID: {}'.format(self._commit_id))
         except exceptions.FinishPushError:
-            click.echo(FAIL_MSG)
+            print(FAIL_MSG)
             return PushExitCode.FINISH_FAIL
 
         return PushExitCode.SUCCESS

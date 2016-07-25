@@ -40,7 +40,7 @@ def get(entry, section):
     '''
     value = config.get(entry, section=section)
     if value:
-        click.echo(value)
+        print(value)
 
 
 config_command.add_command(set_)
