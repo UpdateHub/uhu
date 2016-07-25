@@ -2,13 +2,9 @@
 # This software is released under the MIT License
 
 
-class StartPushError(Exception):
+class InvalidPackageFileError(Exception):
     pass
 
 
-class FileUploadError(Exception):
-    pass
-
-
-class FinishPushError(Exception):
+class InvalidFileError(Exception):
     pass

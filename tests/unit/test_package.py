@@ -1,9 +1,7 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-from efu.push import exceptions
-from efu.push.file import File
-from efu.push.package import Package
+from efu.package import exceptions, File, Package
 
 from ..base import EFUTestCase
 

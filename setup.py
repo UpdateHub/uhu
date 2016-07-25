@@ -17,6 +17,7 @@ setup(
     packages=[
         'efu',
         'efu.config',
+        'efu.package',
         'efu.push',
         'efu.pull',
     ],

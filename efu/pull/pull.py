@@ -1,8 +1,8 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-from ..push.exceptions import InvalidFileError
-from ..push.file import File
+from ..package import File
+from ..package.exceptions import InvalidFileError
 from ..utils import get_server_url
 from ..request import Request
 

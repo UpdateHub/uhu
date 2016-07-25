@@ -5,8 +5,7 @@ import hashlib
 import json
 import os
 
-from efu.push.file import File
-from efu.push.package import Package
+from efu.package import File, Package
 from efu.pull.pull import Pull, DownloadObjectStatus
 
 from ..base import EFUTestCase

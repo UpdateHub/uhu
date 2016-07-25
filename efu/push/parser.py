@@ -5,8 +5,9 @@ import sys
 
 import click
 
-from .exceptions import InvalidFileError, InvalidPackageFileError
-from .package import Package
+from ..package import Package
+from ..package.exceptions import InvalidFileError, InvalidPackageFileError
+
 from .push import Push
 
 
