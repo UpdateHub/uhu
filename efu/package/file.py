@@ -12,25 +12,20 @@ from . import exceptions
 
 class FileChunk(object):
 
-    _number = count()
+    def __new__(cls, *args):
+        ''' Returns None if data (args[0]) is empty '''
+        return super().__new__(cls) if args[0] else None
 
-    def __new__(cls, chunk):
-        return super().__new__(cls) if chunk else None
-
-    def __init__(self, chunk):
-        self.data = chunk
-        self.number = next(self._number)
-        self.sha256sum = hashlib.sha256(chunk).hexdigest()
+    def __init__(self, data, number):
+        self.data = data
+        self.number = number
+        self.sha256sum = hashlib.sha256(self.data).hexdigest()
 
     def as_dict(self):
         return {
             'sha256sum': self.sha256sum,
             'number': self.number,
         }
-
-    @classmethod
-    def reset_number_generator(cls):
-        cls._number = count()
 
 
 class File(object):
@@ -45,6 +40,7 @@ class File(object):
 
     def __init__(self, fn):
         self.id = next(self._id)
+        self._chunk_number = count()
         self._file = open(fn, 'br')
         self.name = fn
         self.size = os.path.getsize(self.name)
@@ -55,8 +51,6 @@ class File(object):
             self.chunks.append(chunk)
             sha256sum.update(chunk.data)
         self.sha256sum = sha256sum.hexdigest()
-
-        FileChunk.reset_number_generator()
 
     def as_dict(self):
         return {
@@ -82,5 +76,9 @@ class File(object):
     def __reset_id_generator(cls):
         cls._id = count()
 
+    def _read(self):
+        data = self._file.read(get_chunk_size())
+        return FileChunk(data, next(self._chunk_number))
+
     def __iter__(self):
-        return iter(lambda: FileChunk(self._file.read(get_chunk_size())), None)
+        return iter(self._read, None)
