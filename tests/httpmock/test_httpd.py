@@ -1,6 +1,7 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+import unittest
 from unittest.mock import patch
 
 import requests
@@ -159,3 +160,16 @@ class HTTPServerTestCase(EFUTestCase):
         self.assertEqual(request.url, url)
         self.assertEqual(request.body, b'\0')
         self.assertEqual(request.headers['CustomHeader'], '42')
+
+
+class ResponseTestCase(unittest.TestCase):
+
+    def test_can_handle_bytes_body(self):
+        body = b'bytes_body'
+        response = httpd.Response(200, {}, body)
+        self.assertEqual(response.body, body)
+
+    def test_can_convert_text_body_into_bytes(self):
+        body = 'string_body'
+        response = httpd.Response(200, {}, body)
+        self.assertEqual(response.body, b'string_body')

@@ -23,7 +23,10 @@ class Response(object):
     def __init__(self, status_code, headers, body=None):
         self.status_code = status_code
         self.headers = headers
-        self.body = body
+        try:
+            self.body = body.encode()
+        except AttributeError:
+            self.body = body
 
 
 class RequestHandler(BaseHTTPRequestHandler):
@@ -74,7 +77,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 self.send_header(*header)
             self.end_headers()
             if response.body:
-                self.wfile.write(response.body.encode())
+                self.wfile.write(response.body)
+
         return wrapped
 
     @generic_handler
