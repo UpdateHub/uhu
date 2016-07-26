@@ -1,6 +1,10 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+import unittest
+
+import click
+
 from efu.package import exceptions, File, Package
 
 from ..base import EFUTestCase
