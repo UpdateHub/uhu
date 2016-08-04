@@ -34,8 +34,8 @@ class PullTestCase(EFUTestCase):
 
         pkg = self.create_package_file(
             self.product, self.version, [self.file])
-
-        self.metadata = Package(pkg).metadata
+        os.environ['EFU_PACKAGE_FILE'] = pkg
+        self.metadata = Package().metadata
         self.file_metadata = self.metadata['images'][0]
         self.file_sha256sum = self.file_metadata['sha256sum']
         self.httpd.register_response(

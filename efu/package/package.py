@@ -3,14 +3,15 @@
 
 import json
 
+from ..utils import get_package_file
 from . import exceptions
 from .file import File
 
 
 class Package(object):
 
-    def __init__(self, fn):
-        self.file = fn
+    def __init__(self):
+        self.file = get_package_file()
         self._package = self._validate_package(self.file)
         self.product_id = self._package.get('product_id')
         self.version = self._package.get('version')

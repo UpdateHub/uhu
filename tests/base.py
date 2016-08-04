@@ -158,9 +158,14 @@ class PushMockMixin(UploadMockMixin):
         self.version = '2.0'
         self.fns = [self.create_file(b'123') for i in range(3)]
         pkg = self.create_package_file(self.product_id, self.version, self.fns)
-        self.package = Package(pkg)
+        os.environ['EFU_PACKAGE_FILE'] = pkg
+        self.package = Package()
         self.files = list(self.package.files.values())
         File._File__reset_id_generator()
+
+    def clean(self):
+        super().clean()
+        delete_environment_variable('EFU_PACKAGE_FILE')
 
     def finish_push_url(self, success=True):
         return self.generic_url(
