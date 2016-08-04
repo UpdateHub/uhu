@@ -22,7 +22,7 @@ def interactive_mode(ctx):
     return params
 
 
-def explicity_mode(mode, params):
+def explicit_mode(mode, params):
     cleaned_params = clean_params(params)
     final_params = inject_default_values(mode, cleaned_params)
     validate_dependencies(mode, final_params)

@@ -5,7 +5,7 @@ import click
 
 from .exceptions import DotEfuExistsError
 from .parser_options import ALL_PARAMS
-from .parser_modes import interactive_mode, explicity_mode
+from .parser_modes import interactive_mode, explicit_mode
 from .utils import create_efu_file, add_image
 
 
@@ -15,7 +15,7 @@ def add_command(ctx, filename, **params):
     ''' Adds an entry in the package file for the given artifact '''
     install_mode = ctx.install_mode
     if install_mode is not None:
-        image = explicity_mode(install_mode, params)
+        image = explicit_mode(install_mode, params)
     else:
         image = interactive_mode(ctx)
     add_image(filename, image)

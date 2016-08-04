@@ -13,7 +13,7 @@ import efu.package.parser
 from efu.package.parser import add_command
 from efu.package.parser_modes import (
     inject_default_values, validate_dependencies,
-    clean_params, interactive_mode, explicity_mode)
+    clean_params, interactive_mode, explicit_mode)
 from efu.package.parser_options import INSTALL_MODE, FORMAT_OPTIONS
 from efu.package.parser_utils import click as patched_click
 from efu.package.parser_utils import (
@@ -390,7 +390,7 @@ class ParserModeTestCase(unittest.TestCase):
     @patch('click.prompt')
     def test_no_prompt_in_interactive_mode_if_missing_dependency(self, prompt):
         '''
-        Different from explicity mode, if a option dependency is not
+        Different from explicit mode, if a option dependency is not
         satisfied, we should not raise an exception. Instead, we must
         not prompt this specific option.
 
@@ -460,15 +460,15 @@ class ParserModeTestCase(unittest.TestCase):
 
         mode = InstallMode('copy', optional=[eggs, ham], required=[spam])
         params = {'ham': None, 'spam': True, 'eggs': None}
-        observed = explicity_mode(mode, params)
+        observed = explicit_mode(mode, params)
         expected = {'spam': True, 'eggs': 2}
         self.assertEqual(observed, expected)
 
 
 class AddCommandTestCase(unittest.TestCase):
 
-    @patch('efu.package.parser.explicity_mode')
-    def test_explicity_command_is_called_if_options_are_provided(self, mock):
+    @patch('efu.package.parser.explicit_mode')
+    def test_explicit_command_is_called_if_options_are_provided(self, mock):
         mock.returned_value = {}
         runner = CliRunner()
         with patch('efu.package.parser.interactive_mode') as interactive_mock:
@@ -478,11 +478,11 @@ class AddCommandTestCase(unittest.TestCase):
         self.assertTrue(mock.called)
 
     @patch('efu.package.parser.interactive_mode')
-    def test_explicity_command_is_called_if_options_are_provided(self, mock):
+    def test_explicit_command_is_called_if_options_are_provided(self, mock):
         mock.returned_value = {}
         runner = CliRunner()
 
-        with patch('efu.package.parser.explicity_mode') as explicity_mock:
+        with patch('efu.package.parser.explicit_mode') as explicit_mock:
             result = runner.invoke(add_command, [__file__])
-            self.assertFalse(explicity_mock.called)
+            self.assertFalse(explicit_mock.called)
         self.assertTrue(mock.called)
