@@ -14,6 +14,7 @@ class UtilsTestCase(unittest.TestCase):
     def setUp(self):
         self.addCleanup(delete_environment_variable, 'EFU_CHUNK_SIZE')
         self.addCleanup(delete_environment_variable, 'EFU_SERVER_URL')
+        self.addCleanup(delete_environment_variable, 'EFU_PACKAGE_FILE')
 
     def test_get_chunk_size_by_environment_variable(self):
         os.environ['EFU_CHUNK_SIZE'] = '1'
@@ -37,3 +38,12 @@ class UtilsTestCase(unittest.TestCase):
         os.environ['EFU_SERVER_URL'] = 'http://ossystems.com.br'
         observed = utils.get_server_url('/test')
         self.assertEqual(observed, 'http://ossystems.com.br/test')
+
+    def test_can_get_package_file(self):
+        observed = utils.get_package_file()
+        self.assertEqual(observed, utils._PACKAGE_FILE)
+
+    def test_can_get_package_file_by_environment_variable(self):
+        os.environ['EFU_PACKAGE_FILE'] = '.test-efu'
+        observed = utils.get_package_file()
+        self.assertEqual(observed, '.test-efu')

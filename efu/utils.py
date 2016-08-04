@@ -5,6 +5,7 @@ import os
 
 _DEFAULT_CHUNK_SIZE = 1024 * 1024 * 5  # 5 MiB
 _SERVER_URL = 'http://0.0.0.0'  # must be replaced by the right URL
+_PACKAGE_FILE = '.efu'
 
 
 def get_chunk_size():
@@ -16,3 +17,7 @@ def get_server_url(path=None):
     if path is not None:
         url = ''.join((url, path))
     return url
+
+
+def get_package_file():
+    return os.environ.get('EFU_PACKAGE_FILE', _PACKAGE_FILE)

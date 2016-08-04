@@ -4,16 +4,15 @@
 import json
 import os
 
+from ..utils import get_package_file
 from .exceptions import DotEfuExistsError, DotEfuDoesNotExistError
 
 
-EFU_FILE = '.efu'
-
-
 def create_efu_file(product, version):
-    if os.path.exists(EFU_FILE):
+    package = get_package_file()
+    if os.path.exists(package):
         raise DotEfuExistsError
-    with open(EFU_FILE, 'w') as fp:
+    with open(package, 'w') as fp:
         obj = {
             'product': product,
             'version': version
@@ -22,8 +21,9 @@ def create_efu_file(product, version):
 
 
 def add_image(filename, options):
+    package = get_package_file()
     try:
-        with open(EFU_FILE) as fp:
+        with open(package) as fp:
             dot_efu = json.load(fp)
     except FileNotFoundError:
         raise DotEfuDoesNotExistError
@@ -36,5 +36,5 @@ def add_image(filename, options):
 
     dot_efu['files'] = files
 
-    with open(EFU_FILE, 'w') as fp:
+    with open(package, 'w') as fp:
         json.dump(dot_efu, fp)
