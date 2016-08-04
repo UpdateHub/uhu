@@ -5,8 +5,10 @@ import json
 
 import click
 
+from .exceptions import DotEfuExistsError
 from .parser_options import ALL_PARAMS
 from .parser_modes import interactive_mode, explicity_mode
+from .utils import create_efu_file
 
 
 def set_image(filename, params):
@@ -32,3 +34,13 @@ def add_command(ctx, filename, **params):
     set_image(filename, image)
 
 add_command.params = ALL_PARAMS
+
+
+@click.command('use')
+@click.argument('product_id')
+@click.argument('version')
+def use_command(product_id, version):
+    try:
+        create_efu_file(product_id, version)
+    except DotEfuExistsError:
+        raise click.ClickException('.efu already initiated')

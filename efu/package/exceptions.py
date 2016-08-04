@@ -8,3 +8,7 @@ class InvalidPackageFileError(Exception):
 
 class InvalidFileError(Exception):
     pass
+
+
+class DotEfuExistsError(Exception):
+    pass
