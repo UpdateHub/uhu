@@ -1,8 +1,11 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+import os
+
 import click
 
+from ..utils import get_package_file
 from .exceptions import DotEfuExistsError
 from .parser_options import ALL_PARAMS
 from .parser_modes import interactive_mode, explicit_mode
@@ -13,6 +16,9 @@ from .utils import create_efu_file, add_image
 @click.pass_context
 def add_command(ctx, filename, **params):
     ''' Adds an entry in the package file for the given artifact '''
+    if not os.path.exists(get_package_file()):
+        raise click.ClickException(
+            'Package file does not exist. Create one with <efu use> command.')
     install_mode = ctx.install_mode
     if install_mode is not None:
         image = explicit_mode(install_mode, params)

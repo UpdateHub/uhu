@@ -1,6 +1,7 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+import os
 import unittest
 from unittest.mock import Mock, patch
 
@@ -467,22 +468,36 @@ class ParserModeTestCase(unittest.TestCase):
 
 class AddCommandTestCase(unittest.TestCase):
 
-    @patch('efu.package.parser.explicit_mode')
-    def test_explicit_command_is_called_if_options_are_provided(self, mock):
-        mock.returned_value = {}
-        runner = CliRunner()
-        with patch('efu.package.parser.interactive_mode') as interactive_mock:
-            result = runner.invoke(
-                add_command, [__file__, '-m', 'raw', '-td', 'device'])
-            self.assertFalse(interactive_mock.called)
-        self.assertTrue(mock.called)
+    def setUp(self):
+        with open('.efu-test', 'w'):
+            pass
+        self.addCleanup(os.remove, '.efu-test')
+        os.environ['EFU_PACKAGE_FILE'] = '.efu-test'
 
-    @patch('efu.package.parser.interactive_mode')
-    def test_explicit_command_is_called_if_options_are_provided(self, mock):
-        mock.returned_value = {}
+    def test_explicit_mode_is_called_if_options_are_provided(self):
         runner = CliRunner()
+        with patch('efu.package.parser.interactive_mode') as interactive:
+            with patch('efu.package.parser.explicit_mode') as explicit:
+                runner.invoke(
+                    add_command, [__file__, '-m', 'raw', '-td', 'device'])
+                self.assertTrue(explicit.called)
+                self.assertFalse(interactive.called)
 
-        with patch('efu.package.parser.explicit_mode') as explicit_mock:
-            result = runner.invoke(add_command, [__file__])
-            self.assertFalse(explicit_mock.called)
-        self.assertTrue(mock.called)
+    def test_interactive_mode_is_called_if_options_are_provided(self):
+        runner = CliRunner()
+        with patch('efu.package.parser.interactive_mode') as interactive:
+            with patch('efu.package.parser.explicit_mode') as explicit:
+                runner.invoke(add_command, [__file__])
+                self.assertTrue(interactive.called)
+                self.assertFalse(explicit.called)
+
+    def test_no_mode_is_called_if_package_file_does_not_exist(self):
+        del os.environ['EFU_PACKAGE_FILE']
+        runner = CliRunner()
+        with patch('efu.package.parser.interactive_mode') as interactive:
+            with patch('efu.package.parser.explicit_mode') as explicit:
+                runner.invoke(
+                    add_command, [__file__, '-m', 'raw', '-td', 'device'])
+                runner.invoke(add_command, [__file__])
+                self.assertFalse(explicit.called)
+                self.assertFalse(interactive.called)
