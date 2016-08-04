@@ -12,3 +12,7 @@ class InvalidFileError(Exception):
 
 class DotEfuExistsError(Exception):
     pass
+
+
+class DotEfuDoesNotExistError(Exception):
+    pass

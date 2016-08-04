@@ -1,25 +1,12 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-import json
-
 import click
 
 from .exceptions import DotEfuExistsError
 from .parser_options import ALL_PARAMS
 from .parser_modes import interactive_mode, explicity_mode
-from .utils import create_efu_file
-
-
-def set_image(filename, params):
-    '''Stub function, will be replaced with proper image evaluation code'''
-
-    params['filename'] = filename
-    params['install-mode'] = params['install_mode'].name
-    del params['install_mode']
-
-    image = json.dumps(params, indent=4, sort_keys=True)
-    print(image)
+from .utils import create_efu_file, add_image
 
 
 @click.command('add')
@@ -31,7 +18,7 @@ def add_command(ctx, filename, **params):
         image = explicity_mode(install_mode, params)
     else:
         image = interactive_mode(ctx)
-    set_image(filename, image)
+    add_image(filename, image)
 
 add_command.params = ALL_PARAMS
 
