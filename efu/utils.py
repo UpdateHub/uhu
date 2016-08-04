@@ -8,8 +8,7 @@ _SERVER_URL = 'http://0.0.0.0'  # must be replaced by the right URL
 
 
 def get_chunk_size():
-    chunk_size = _DEFAULT_CHUNK_SIZE
-    return int(os.environ.get('EFU_CHUNK_SIZE', chunk_size))
+    return int(os.environ.get('EFU_CHUNK_SIZE', _DEFAULT_CHUNK_SIZE))
 
 
 def get_server_url(path=None):
