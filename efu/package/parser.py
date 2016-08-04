@@ -33,7 +33,8 @@ add_command.params = ALL_PARAMS
 @click.argument('product_id')
 @click.argument('version')
 def use_command(product_id, version):
+    ''' Creates a package file '''
     try:
         create_efu_file(product_id, version)
     except DotEfuExistsError:
-        raise click.ClickException('.efu already initiated')
+        raise click.ClickException('Package file already exists.')
