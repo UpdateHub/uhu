@@ -37,38 +37,42 @@ class FileTestCase(EFUTestCase):
         super().setUp()
         self.filename = self.create_file(b'spam')
         self.spam_sha256sum = '4e388ab32b10dc8dbc7e28144f552830adc74787c1e2c0824032078a79f227fb'  # nopep8
+        self.options = {
+            'install-mode': 'raw',
+            'target-device': 'device'
+        }
 
     def test_id_generation(self):
-        f1 = File(self.filename)
-        f2 = File(self.filename)
-        f3 = File(self.filename)
+        f1 = File(self.filename, self.options)
+        f2 = File(self.filename, self.options)
+        f3 = File(self.filename, self.options)
         self.assertEqual(f1.id, 0)
         self.assertEqual(f2.id, 1)
         self.assertEqual(f3.id, 2)
 
     def test_id_generator_reset(self):
-        File(self.filename)
-        File(self.filename)
+        File(self.filename, self.options)
+        File(self.filename, self.options)
         File._File__reset_id_generator()
-        file = File(self.filename)
+        file = File(self.filename, self.options)
         self.assertEqual(file.id, 0)
 
     def test_file_validation(self):
         with self.assertRaises(exceptions.InvalidFileError):
-            File('inexistent_file.bin')
+            File('inexistent_file.bin', self.options)
 
     def test_file_sha256sum(self):
-        file = File(self.filename)
+        file = File(self.filename, self.options)
         expected = self.spam_sha256sum
         observed = file.sha256sum
         self.assertEqual(observed, expected)
 
     def test_file_n_chunks(self):
-        file = File(self.filename)
+        file = File(self.filename, self.options)
         self.assertEqual(file.n_chunks, 4)
 
     def test_file_as_dict(self):
-        file = File(self.filename)
+        file = File(self.filename, self.options)
         expected = {
             'id': 0,
             'sha256sum': self.spam_sha256sum,
@@ -81,41 +85,45 @@ class FileTestCase(EFUTestCase):
             'metadata': {
                 'filename': file.name,
                 'sha256sum': self.spam_sha256sum,
-                'size': 4
+                'size': 4,
+                'install-mode': 'raw',
+                'target-device': 'device',
             }
         }
         observed = file.as_dict()
         self.assertEqual(observed, expected)
 
     def test_file_metadata(self):
-        file = File(self.filename)
+        file = File(self.filename, self.options)
         expected = {
             'filename': file.name,
             'sha256sum': self.spam_sha256sum,
-            'size': 4
+            'size': 4,
+            'install-mode': 'raw',
+            'target-device': 'device',
         }
         observed = file.metadata
         self.assertEqual(observed, expected)
 
     def test_filename(self):
         fn = __file__
-        file = File(fn)
+        file = File(fn, self.options)
         self.assertEqual(file.name, fn)
 
     def test_file_size(self):
-        file = File(self.filename)
+        file = File(self.filename, self.options)
         expected = 4
         observed = file.size
         self.assertEqual(observed, expected)
 
     def test_chunk_numbers(self):
-        file = File(self.filename)
+        file = File(self.filename, self.options)
         expected = [0, 1, 2, 3]
         observed = [chunk.number for chunk in file.chunks]
         self.assertEqual(observed, expected)
 
     def test_read_file(self):
-        file = File(self.filename)
+        file = File(self.filename, self.options)
         file._file.seek(0)
         self.assertEqual(file._read().data, b's')
         self.assertEqual(file._read().data, b'p')

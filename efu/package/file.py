@@ -32,16 +32,17 @@ class File(object):
 
     _id = count()
 
-    def __new__(cls, fn):
+    def __new__(cls, fn, options=None):  # pylint: disable=W0613
         if os.path.isfile(fn):
             return super().__new__(cls)
         raise exceptions.InvalidFileError(
             'file {} does not exist'.format(fn))
 
-    def __init__(self, fn):
+    def __init__(self, fn, options=None):
         self.id = next(self._id)
         self._chunk_number = count()
         self._file = open(fn, 'br')
+        self._options = options
         self.name = fn
         self.size = os.path.getsize(self.name)
         self.chunks = []
@@ -62,11 +63,14 @@ class File(object):
 
     @property
     def metadata(self):
-        return {
+        metadata = {
             'filename': self.name,
             'sha256sum': self.sha256sum,
             'size': self.size
         }
+        if self._options is not None:
+            metadata.update(self._options)
+        return metadata
 
     @property
     def n_chunks(self):

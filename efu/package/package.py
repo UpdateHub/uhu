@@ -13,11 +13,11 @@ class Package(object):
     def __init__(self):
         self.file = get_package_file()
         self._package = self._validate_package(self.file)
-        self.product_id = self._package.get('product_id')
+        self.product_id = self._package.get('product')
         self.version = self._package.get('version')
         self.files = {}
-        for fn in self._package.get('files'):
-            file = File(fn)
+        for fn, options in self._package.get('files').items():
+            file = File(fn, options)
             self.files[file.id] = file
 
     def _validate_package(self, fn):

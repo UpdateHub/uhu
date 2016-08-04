@@ -1,3 +1,4 @@
+
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
@@ -81,10 +82,11 @@ class FileMockMixin(object):
 class PackageMockMixin(FileMockMixin):
 
     def create_package_file(self, product_id, version, files):
+        options = {'install-mode': 'raw', 'target-device': 'device'}
         content = json.dumps({
-            'product_id': product_id,
+            'product': product_id,
             'version': version,
-            'files': files,
+            'files': {file: options for file in files},
         }).encode()
         return self.create_file(content=content)
 
