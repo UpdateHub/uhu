@@ -12,3 +12,7 @@ class FileUploadError(Exception):
 
 class FinishPushError(Exception):
     pass
+
+
+class CommitDoesNotExist(Exception):
+    pass

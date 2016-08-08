@@ -9,7 +9,7 @@ from .package.parser import (
     add_command, remove_command, show_command
 )
 from .pull.parser import pull_command
-from .push.parser import push_command
+from .push.parser import push_command, status_command
 
 
 @click.group()
@@ -34,3 +34,4 @@ cli.add_command(show_command)
 # Commit commands
 cli.add_command(pull_command)
 cli.add_command(push_command)
+cli.add_command(status_command)
