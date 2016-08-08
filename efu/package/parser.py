@@ -15,7 +15,7 @@ from .parser_options import ALL_PARAMS
 from .parser_modes import interactive_mode, explicit_mode
 from .utils import (
     create_package_file, remove_package_file,
-    add_image, remove_image
+    add_image, remove_image, list_images
 )
 
 
@@ -60,6 +60,17 @@ def remove_command(filename):
     except ImageDoesNotExistError:
         print('{} does not exist within package.'.format(filename))
         sys.exit(2)
+
+
+@click.command('show')
+def show_command():
+    ''' Shows all configured images '''
+    try:
+        list_images()
+    except PackageFileDoesNotExistError:
+        print('Package file does not exist. '
+              'Create one with <efu use> command')
+        sys.exit(1)
 
 
 @click.command('cleanup')

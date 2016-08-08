@@ -11,8 +11,8 @@ from efu.package.exceptions import (
 )
 from efu.package.utils import (
     create_package_file, remove_package_file,
-    add_image, remove_image,
-    load_package, write_package
+    add_image, remove_image, list_images,
+    load_package, write_package,
 )
 from efu.package.parser_utils import InstallMode
 
@@ -138,3 +138,23 @@ class UtilsTestCase(unittest.TestCase):
         self.assertFalse(os.path.exists('.efu'))
         with self.assertRaises(PackageFileDoesNotExistError):
             remove_package_file()
+
+    def test_list_images_returns_NONE_if_successful(self):
+        package = {
+            'product': '1',
+            'version': '2',
+            'files': {
+                'spam.py': {
+                    'install-mode': 'raw',
+                    'target-device': 'device',
+                }
+            }
+        }
+        with open('.efu', 'w') as fp:
+            json.dump(package, fp)
+        observed = list_images()
+        self.assertIsNone(observed)
+
+    def test_list_images_raises_error_if_package_does_not_exist(self):
+        with self.assertRaises(PackageFileDoesNotExistError):
+            list_images()

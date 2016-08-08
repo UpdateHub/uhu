@@ -58,6 +58,15 @@ def remove_image(filename):
     write_package(package)
 
 
+def list_images():
+    package = load_package()
+    files = package.get('files')
+    for file, options in files.items():
+        print('- {}'.format(file))
+        for key, value in options.items():
+            print('  {}: {}'.format(key, value))
+
+
 def remove_package_file():
     try:
         os.remove(get_package_file())

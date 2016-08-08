@@ -13,7 +13,8 @@ import efu.package.parser_utils
 import efu.package.parser
 
 from efu.package import exceptions
-from efu.package.parser import add_command, remove_command, cleanup_command
+from efu.package.parser import (
+    add_command, remove_command, show_command, cleanup_command)
 from efu.package.parser_modes import (
     inject_default_values, validate_dependencies,
     clean_params, interactive_mode, explicit_mode)
@@ -579,4 +580,39 @@ class CleanupCommandTestCase(unittest.TestCase):
 
     def test_cleanup_command_returns_1_if_package_is_already_deleted(self):
         result = self.runner.invoke(cleanup_command)
+        self.assertEqual(result.exit_code, 1)
+
+
+class ShowCommandTestCase(unittest.TestCase):
+
+    def remove_package_file(self):
+        try:
+            os.remove('.efu-test')
+        except FileNotFoundError:
+            pass  # already deleted
+
+    def setUp(self):
+        os.environ['EFU_PACKAGE_FILE'] = '.efu-test'
+        self.runner = CliRunner()
+        self.addCleanup(os.environ.pop, 'EFU_PACKAGE_FILE')
+        self.addCleanup(self.remove_package_file)
+
+    def test_show_command_returns_0_if_successful(self):
+        package = {
+            'product': '1234',
+            'version': '2.0',
+            'files': {
+                'spam.py': {
+                    'install-mode': 'raw',
+                    'target-device': 'device',
+                }
+            }
+        }
+        with open('.efu-test', 'w') as fp:
+            json.dump(package, fp)
+        result = self.runner.invoke(show_command)
+        self.assertEqual(result.exit_code, 0)
+
+    def test_show_command_returns_1_if_package_does_not_exist(self):
+        result = self.runner.invoke(show_command)
         self.assertEqual(result.exit_code, 1)
