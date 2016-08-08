@@ -56,3 +56,10 @@ def remove_image(filename):
     except KeyError:
         raise ImageDoesNotExistError
     write_package(package)
+
+
+def remove_package_file():
+    try:
+        os.remove(get_package_file())
+    except FileNotFoundError:
+        raise PackageFileDoesNotExistError

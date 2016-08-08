@@ -10,7 +10,10 @@ from efu.package.exceptions import (
     ImageDoesNotExistError
 )
 from efu.package.utils import (
-    create_package_file, add_image, remove_image, load_package, write_package)
+    create_package_file, remove_package_file,
+    add_image, remove_image,
+    load_package, write_package
+)
 from efu.package.parser_utils import InstallMode
 
 
@@ -124,6 +127,14 @@ class UtilsTestCase(unittest.TestCase):
         with self.assertRaises(ImageDoesNotExistError):
             remove_image('spam.py')
 
-    def test_remove_image_raises_error_when_package_does_not_exist(self):
+    def test_can_remove_package_file(self):
+        with open('.efu', 'w') as fp:
+            pass
+        self.assertTrue(os.path.exists('.efu'))
+        remove_package_file()
+        self.assertFalse(os.path.exists('.efu'))
+
+    def test_remove_package_file_raises_error_when_file_already_deleted(self):
+        self.assertFalse(os.path.exists('.efu'))
         with self.assertRaises(PackageFileDoesNotExistError):
-            remove_image('spam.py')
+            remove_package_file()

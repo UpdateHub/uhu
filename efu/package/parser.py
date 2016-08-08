@@ -13,7 +13,10 @@ from .exceptions import (
 )
 from .parser_options import ALL_PARAMS
 from .parser_modes import interactive_mode, explicit_mode
-from .utils import create_package_file, add_image, remove_image
+from .utils import (
+    create_package_file, remove_package_file,
+    add_image, remove_image
+)
 
 
 @click.command('use')
@@ -57,3 +60,13 @@ def remove_command(filename):
     except ImageDoesNotExistError:
         print('{} does not exist within package.'.format(filename))
         sys.exit(2)
+
+
+@click.command('cleanup')
+def cleanup_command():
+    ''' Removes all efu generated files '''
+    try:
+        remove_package_file()
+    except PackageFileDoesNotExistError:
+        print('Package file already deleted.')
+        sys.exit(1)
