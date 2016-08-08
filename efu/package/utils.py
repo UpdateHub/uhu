@@ -27,14 +27,11 @@ def write_package(data):
         json.dump(data, fp)
 
 
-def create_package_file(product, version):
+def create_package_file(product):
     package_fn = get_package_file()
     if os.path.exists(package_fn):
         raise PackageFileExistsError
-    package = {
-        'product': product,
-        'version': version
-    }
+    package = {'product': product}
     write_package(package)
 
 

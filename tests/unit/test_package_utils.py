@@ -30,42 +30,39 @@ class UtilsTestCase(unittest.TestCase):
         self.addCleanup(self.remove_package_file_cleanup)
 
     def test_can_load_package(self):
-        create_package_file(product='1234X', version='2.0')
+        create_package_file(product='1234X')
         package = load_package()
         self.assertEqual(package['product'], '1234X')
-        self.assertEqual(package['version'], '2.0')
 
     def test_load_package_raises_error_if_package_does_not_exist(self):
         with self.assertRaises(PackageFileDoesNotExistError):
             load_package()
 
     def test_can_write_package(self):
-        write_package({'product': '1234', 'version': '2.0'})
+        write_package({'product': '1234'})
         with open('.efu') as fp:
             package = json.load(fp)
         self.assertEqual(package.get('product'), '1234')
-        self.assertEqual(package.get('version'), '2.0')
 
     def test_can_create_package_file(self):
-        create_package_file(product='1234X', version='2.0')
+        create_package_file(product='1234X')
         self.assertTrue(os.path.exists('.efu'))
         with open('.efu') as fp:
             data = json.load(fp)
         self.assertEqual(data['product'], '1234X')
-        self.assertEqual(data['version'], '2.0')
 
     def test_do_not_create_package_file_if_it_exists(self):
         with open('.efu', 'w'):
             pass
         with self.assertRaises(PackageFileExistsError):
-            create_package_file(product='1234X', version='2.0')
+            create_package_file(product='1234X')
 
     def test_add_image_raises_error_if_package_file_does_not_exist(self):
         with self.assertRaises(PackageFileDoesNotExistError):
             add_image('file.py', {})
 
     def test_can_add_image_within_package_file(self):
-        create_package_file(product='1234X', version='2.0')
+        create_package_file(product='1234X')
         mode = InstallMode('raw')
         options = {
             'install_mode': mode,
@@ -83,7 +80,7 @@ class UtilsTestCase(unittest.TestCase):
         self.assertEqual(files['spam.py']['target-device'], 'device')
 
     def test_can_update_a_image(self):
-        create_package_file(product='1234X', version='2.0')
+        create_package_file(product='1234X')
         mode = InstallMode('raw')
         options = {
             'install_mode': mode,
@@ -106,7 +103,7 @@ class UtilsTestCase(unittest.TestCase):
         self.assertEqual(files['spam.py']['target-device'], 'device-b')
 
     def test_can_remove_an_image(self):
-        create_package_file(product='1234X', version='2.0')
+        create_package_file(product='1234X')
         mode = InstallMode('raw')
         options = {'install_mode': mode, 'target-device': 'device-a'}
 
@@ -123,7 +120,7 @@ class UtilsTestCase(unittest.TestCase):
         self.assertEqual(len(package['files']), 0)
 
     def test_remove_image_raises_error_when_image_does_not_exist(self):
-        create_package_file(product='1234X', version='2.0')
+        create_package_file(product='1234X')
         with self.assertRaises(ImageDoesNotExistError):
             remove_image('spam.py')
 
@@ -142,7 +139,6 @@ class UtilsTestCase(unittest.TestCase):
     def test_list_images_returns_NONE_if_successful(self):
         package = {
             'product': '1',
-            'version': '2',
             'files': {
                 'spam.py': {
                     'install-mode': 'raw',

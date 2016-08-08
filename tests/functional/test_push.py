@@ -17,7 +17,7 @@ class PushCommandTestCase(EFUTestCase):
     def test_push_command_runs_successfully(self):
         uploads = self.create_uploads_meta(self.files)
         self.set_push(self.product_id, uploads=uploads)
-        command = ['efu', 'push']
+        command = ['efu', 'push', '2.0']
         response = subprocess.check_call(command)
         self.assertEqual(response, 0)
 
@@ -36,7 +36,7 @@ class PushOutputTestCase(EFUTestCase):
         return re.sub(self.pattern, '', content)
 
     def get_cmd_output(self):
-        command = 'efu push > {}'.format(self.stdout)
+        command = 'efu push {} > {}'.format(self.version, self.stdout)
 
         subprocess.call(command, shell=True)
         with open(self.stdout) as fp:

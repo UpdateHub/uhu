@@ -23,7 +23,6 @@ class PullTestCase(EFUTestCase):
     def setUp(self):
         super().setUp()
         self.product = '1234'
-        self.version = '2.0'
         self.file = 'image.bin'
         self.commit = '4321'
         self.file_content = b'123456789'
@@ -33,9 +32,9 @@ class PullTestCase(EFUTestCase):
         self.addCleanup(self.remove_file)
 
         pkg = self.create_package_file(
-            self.product, self.version, [self.file])
+            self.product, [self.file])
         os.environ['EFU_PACKAGE_FILE'] = pkg
-        self.metadata = Package().metadata
+        self.metadata = Package(self.version).metadata
         self.file_metadata = self.metadata['images'][0]
         self.file_sha256sum = self.file_metadata['sha256sum']
         self.httpd.register_response(

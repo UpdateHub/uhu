@@ -40,7 +40,7 @@ class PushTestCase(EFUTestCase):
         self.assertEqual(request.method, 'POST')
         self.assertEqual(request.url, start_url)
         self.assertEqual(len(request_body.get('objects')), 3)
-        self.assertEqual(request_body.get('version'), '2.0')
+        self.assertEqual(request_body.get('version'), self.version)
         self.assertEqual(request.headers['Content-Type'], 'application/json')
         # objects
         for file in request_body.get('objects'):
@@ -53,7 +53,7 @@ class PushTestCase(EFUTestCase):
         # metadata
         metadata = request_body.get('metadata')
         self.assertIsNotNone(metadata)
-        self.assertEqual(metadata['version'], '2.0')
+        self.assertEqual(metadata['version'], self.version)
         self.assertEqual(metadata['product'], self.product_id)
         for image in metadata['images']:
             self.assertIsNotNone(image['sha256sum'])
@@ -118,9 +118,9 @@ class PushTestCase(EFUTestCase):
 
     def test_upload_files_requests_are_made_correctly(self):
         fns = [self.create_file(b'000') for i in range(3)]
-        pkg_fn = self.create_package_file(123, '2.0', fns)
+        pkg_fn = self.create_package_file(123, fns)
         os.environ['EFU_PACKAGE_FILE'] = pkg_fn
-        pkg = Package()
+        pkg = Package(self.version)
         files = list(pkg.files.values())
         File._File__reset_id_generator()
         uploads = self.create_uploads_meta(files[:2])

@@ -10,11 +10,11 @@ from .file import File
 
 class Package(object):
 
-    def __init__(self):
+    def __init__(self, version):
         self.file = get_package_file()
         self._package = self._validate_package(self.file)
         self.product_id = self._package.get('product')
-        self.version = self._package.get('version')
+        self.version = version
         self.files = {}
         for fn, options in self._package.get('files').items():
             file = File(fn, options)

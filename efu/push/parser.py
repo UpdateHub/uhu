@@ -12,13 +12,13 @@ from .push import Push
 
 
 @click.command(name='push')
-def push_command():
-    """
-    Makes a push transaction based on a package file.
-    Package file must be in json format.
-    """
+@click.argument('version')
+def push_command(version):
+    '''
+    Pushes a package file to server with the given version.
+    '''
     try:
-        package = Package()
+        package = Package(version)
         sys.exit(Push(package).run())
     except InvalidFileError:
         raise click.BadParameter('Invalid file within package')

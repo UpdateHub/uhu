@@ -21,11 +21,10 @@ from .utils import (
 
 @click.command('use')
 @click.argument('product_id')
-@click.argument('version')
-def use_command(product_id, version):
+def use_command(product_id):
     ''' Creates a package file '''
     try:
-        create_package_file(product_id, version)
+        create_package_file(product_id)
     except PackageFileExistsError:
         raise click.ClickException('Package file already exists.')
 

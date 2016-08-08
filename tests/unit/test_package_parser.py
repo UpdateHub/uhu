@@ -526,7 +526,6 @@ class RemoveCommandTestCase(unittest.TestCase):
         self.package_fn = '.efu-test'
         data = {
             'product': '1234R',
-            'version': '2.0',
             'files': {'setup.py': {}}
         }
         os.environ['EFU_PACKAGE_FILE'] = self.package_fn
@@ -600,7 +599,6 @@ class ShowCommandTestCase(unittest.TestCase):
     def test_show_command_returns_0_if_successful(self):
         package = {
             'product': '1234',
-            'version': '2.0',
             'files': {
                 'spam.py': {
                     'install-mode': 'raw',

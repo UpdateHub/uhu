@@ -81,11 +81,10 @@ class FileMockMixin(object):
 
 class PackageMockMixin(FileMockMixin):
 
-    def create_package_file(self, product_id, version, files):
+    def create_package_file(self, product_id, files):
         options = {'install-mode': 'raw', 'target-device': 'device'}
         content = json.dumps({
             'product': product_id,
-            'version': version,
             'files': {file: options for file in files},
         }).encode()
         return self.create_file(content=content)
@@ -159,9 +158,9 @@ class PushMockMixin(UploadMockMixin):
         self.product_id = 'P1234'
         self.version = '2.0'
         self.fns = [self.create_file(b'123') for i in range(3)]
-        pkg = self.create_package_file(self.product_id, self.version, self.fns)
+        pkg = self.create_package_file(self.product_id, self.fns)
         os.environ['EFU_PACKAGE_FILE'] = pkg
-        self.package = Package()
+        self.package = Package(self.version)
         self.files = list(self.package.files.values())
         File._File__reset_id_generator()
 
