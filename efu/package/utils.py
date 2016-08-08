@@ -5,7 +5,10 @@ import json
 import os
 
 from ..utils import get_package_file
-from .exceptions import PackageFileExistsError, PackageFileDoesNotExistError
+from .exceptions import (
+    PackageFileExistsError, PackageFileDoesNotExistError,
+    ImageDoesNotExistError
+)
 
 
 def load_package():
@@ -43,4 +46,13 @@ def add_image(filename, options):
     files = package.get('files', {})
     files[filename] = options
     package['files'] = files
+    write_package(package)
+
+
+def remove_image(filename):
+    package = load_package()
+    try:
+        del package['files'][filename]
+    except KeyError:
+        raise ImageDoesNotExistError
     write_package(package)

@@ -4,7 +4,7 @@
 import click
 
 from .config.parser import config_command
-from .package.parser import add_command, use_command
+from .package.parser import add_command, use_command, remove_command
 from .pull.parser import pull_command
 from .push.parser import push_command
 
@@ -19,4 +19,5 @@ cli.add_command(add_command)
 cli.add_command(config_command)
 cli.add_command(pull_command)
 cli.add_command(push_command)
+cli.add_command(remove_command)
 cli.add_command(use_command)

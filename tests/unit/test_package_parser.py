@@ -1,6 +1,7 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+import json
 import os
 import unittest
 from unittest.mock import Mock, patch
@@ -11,7 +12,8 @@ from click.testing import CliRunner
 import efu.package.parser_utils
 import efu.package.parser
 
-from efu.package.parser import add_command
+from efu.package import exceptions
+from efu.package.parser import add_command, remove_command
 from efu.package.parser_modes import (
     inject_default_values, validate_dependencies,
     clean_params, interactive_mode, explicit_mode)
@@ -501,3 +503,55 @@ class AddCommandTestCase(unittest.TestCase):
                 runner.invoke(add_command, [__file__])
                 self.assertFalse(explicit.called)
                 self.assertFalse(interactive.called)
+
+
+class RemoveCommandTestCase(unittest.TestCase):
+
+    def remove_package_file_env_var(self):
+        try:
+            del os.environ['EFU_PACKAGE_FILE']
+        except KeyError:
+            # already deleted
+            pass
+
+    def remove_package_file(self):
+        try:
+            os.remove(self.package_fn)
+        except FileNotFoundError:
+            # already deleted
+            pass
+
+    def setUp(self):
+        self.package_fn = '.efu-test'
+        data = {
+            'product': '1234R',
+            'version': '2.0',
+            'files': {'setup.py': {}}
+        }
+        os.environ['EFU_PACKAGE_FILE'] = self.package_fn
+        self.addCleanup(self.remove_package_file_env_var)
+
+        with open(self.package_fn, 'w') as fp:
+            json.dump(data, fp)
+        self.addCleanup(self.remove_package_file)
+
+        self.runner = CliRunner()
+
+    def test_can_remove_image_with_rm_command(self):
+        self.runner.invoke(remove_command, args=['setup.py'])
+        with open(self.package_fn) as fp:
+            package = json.load(fp)
+        self.assertIsNone(package['files'].get('setup.py'))
+
+    def test_rm_command_returns_0_if_successful(self):
+        result = self.runner.invoke(remove_command, args=['setup.py'])
+        self.assertEqual(result.exit_code, 0)
+
+    def test_rm_command_returns_1_if_package_does_not_exist(self):
+        os.environ['EFU_PACKAGE_FILE'] = '.not-exists'
+        result = self.runner.invoke(remove_command, args=['setup.py'])
+        self.assertEqual(result.exit_code, 1)
+
+    def test_rm_command_returns_2_if_image_does_not_exist(self):
+        result = self.runner.invoke(remove_command, args=['not-exists.py'])
+        self.assertEqual(result.exit_code, 2)

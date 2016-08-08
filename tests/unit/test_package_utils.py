@@ -6,9 +6,11 @@ import os
 import unittest
 
 from efu.package.exceptions import (
-    PackageFileExistsError, PackageFileDoesNotExistError)
+    PackageFileExistsError, PackageFileDoesNotExistError,
+    ImageDoesNotExistError
+)
 from efu.package.utils import (
-    create_package_file, add_image, load_package, write_package)
+    create_package_file, add_image, remove_image, load_package, write_package)
 from efu.package.parser_utils import InstallMode
 
 
@@ -99,3 +101,29 @@ class UtilsTestCase(unittest.TestCase):
         self.assertEqual(len(files), 1)
         self.assertEqual(files['spam.py']['install-mode'], 'raw')
         self.assertEqual(files['spam.py']['target-device'], 'device-b')
+
+    def test_can_remove_an_image(self):
+        create_package_file(product='1234X', version='2.0')
+        mode = InstallMode('raw')
+        options = {'install_mode': mode, 'target-device': 'device-a'}
+
+        add_image(filename='spam.py', options=options)
+        with open('.efu') as fp:
+            package = json.load(fp)
+        self.assertIsNotNone(package['files']['spam.py'])
+        self.assertEqual(len(package['files']), 1)
+
+        remove_image('spam.py')
+        with open('.efu') as fp:
+            package = json.load(fp)
+        self.assertIsNone(package['files'].get('spam.py'))
+        self.assertEqual(len(package['files']), 0)
+
+    def test_remove_image_raises_error_when_image_does_not_exist(self):
+        create_package_file(product='1234X', version='2.0')
+        with self.assertRaises(ImageDoesNotExistError):
+            remove_image('spam.py')
+
+    def test_remove_image_raises_error_when_package_does_not_exist(self):
+        with self.assertRaises(PackageFileDoesNotExistError):
+            remove_image('spam.py')

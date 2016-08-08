@@ -16,3 +16,7 @@ class PackageFileExistsError(Exception):
 
 class PackageFileDoesNotExistError(Exception):
     pass
+
+
+class ImageDoesNotExistError(Exception):
+    pass
