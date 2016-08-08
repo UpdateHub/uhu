@@ -3,6 +3,7 @@
 
 import json
 import os
+import shutil
 
 from ..utils import get_package_file
 from .exceptions import (
@@ -62,6 +63,14 @@ def list_images():
         print('- {}'.format(file))
         for key, value in options.items():
             print('  {}: {}'.format(key, value))
+
+
+def copy_package_file(filename):
+    package_fn = get_package_file()
+    if os.path.exists(package_fn):
+        shutil.copyfile(package_fn, filename)
+    else:
+        raise PackageFileDoesNotExistError
 
 
 def remove_package_file():

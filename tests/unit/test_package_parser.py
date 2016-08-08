@@ -14,7 +14,8 @@ import efu.package.parser
 
 from efu.package import exceptions
 from efu.package.parser import (
-    add_command, remove_command, show_command, cleanup_command)
+    add_command, remove_command, show_command,
+    export_command, cleanup_command)
 from efu.package.parser_modes import (
     inject_default_values, validate_dependencies,
     clean_params, interactive_mode, explicit_mode)
@@ -613,4 +614,57 @@ class ShowCommandTestCase(unittest.TestCase):
 
     def test_show_command_returns_1_if_package_does_not_exist(self):
         result = self.runner.invoke(show_command)
+        self.assertEqual(result.exit_code, 1)
+
+
+class ExportCommandTestCase(unittest.TestCase):
+
+    def remove_file(self, fn):
+        try:
+            os.remove(fn)
+        except FileNotFoundError:
+            pass  # already deleted
+
+    def setUp(self):
+        self.package_fn = '.efu-test'
+        self.exported_package_fn = 'efu-exported'
+        os.environ['EFU_PACKAGE_FILE'] = self.package_fn
+        self.runner = CliRunner()
+        self.addCleanup(os.environ.pop, 'EFU_PACKAGE_FILE')
+
+        self.addCleanup(self.remove_file, self.package_fn)
+        self.addCleanup(self.remove_file, self.exported_package_fn)
+        self.package = {
+            'product': '1234',
+            'files': {
+                'spam.py': {
+                    'install-mode': 'raw',
+                    'target-device': 'device',
+                }
+            }
+        }
+
+    def create_package(self):
+        with open(self.package_fn, 'w') as fp:
+            json.dump(self.package, fp)
+
+    def test_can_export_package_file(self):
+        self.create_package()
+        self.assertFalse(os.path.exists(self.exported_package_fn))
+        self.runner.invoke(export_command, args=[self.exported_package_fn])
+        self.assertTrue(os.path.exists(self.exported_package_fn))
+
+        with open(self.exported_package_fn) as fp:
+            exported_package = json.load(fp)
+        self.assertEqual(exported_package, self.package)
+
+    def test_export_package_command_returns_0_if_successful(self):
+        self.create_package()
+        result = self.runner.invoke(
+            export_command, args=[self.exported_package_fn])
+        self.assertEqual(result.exit_code, 0)
+
+    def test_export_command_returns_1_if_package_does_not_exist(self):
+        result = self.runner.invoke(
+            export_command, args=[self.exported_package_fn])
         self.assertEqual(result.exit_code, 1)

@@ -10,7 +10,7 @@ from efu.package.exceptions import (
     ImageDoesNotExistError
 )
 from efu.package.utils import (
-    create_package_file, remove_package_file,
+    create_package_file, remove_package_file, copy_package_file,
     add_image, remove_image, list_images,
     load_package, write_package,
 )
@@ -19,15 +19,15 @@ from efu.package.parser_utils import InstallMode
 
 class UtilsTestCase(unittest.TestCase):
 
-    def remove_package_file_cleanup(self):
+    def remove_file(self, fn):
         try:
-            os.remove('.efu')
+            os.remove(fn)
         except:
             # file already deleted
             pass
 
     def setUp(self):
-        self.addCleanup(self.remove_package_file_cleanup)
+        self.addCleanup(self.remove_file, '.efu')
 
     def test_can_load_package(self):
         create_package_file(product='1234X')
@@ -154,3 +154,28 @@ class UtilsTestCase(unittest.TestCase):
     def test_list_images_raises_error_if_package_does_not_exist(self):
         with self.assertRaises(PackageFileDoesNotExistError):
             list_images()
+
+    def test_can_export_package_file(self):
+        self.addCleanup(self.remove_file, 'exported')
+        expected = {
+            'product': '1',
+            'files': {
+                'spam.py': {
+                    'install-mode': 'raw',
+                    'target-device': 'device',
+                }
+            }
+        }
+        with open('.efu', 'w') as fp:
+            json.dump(expected, fp)
+
+        copy_package_file('exported')
+
+        with open('exported') as fp:
+            observed = json.load(fp)
+        self.assertEqual(observed, expected)
+
+    def test_copy_package_file_raises_error_if_package_doesnt_exist(self):
+        with self.assertRaises(PackageFileDoesNotExistError):
+            copy_package_file('exported')
+        self.assertFalse(os.path.exists('exported'))

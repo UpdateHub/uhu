@@ -14,7 +14,7 @@ from .exceptions import (
 from .parser_options import ALL_PARAMS
 from .parser_modes import interactive_mode, explicit_mode
 from .utils import (
-    create_package_file, remove_package_file,
+    create_package_file, copy_package_file, remove_package_file,
     add_image, remove_image, list_images
 )
 
@@ -79,4 +79,16 @@ def cleanup_command():
         remove_package_file()
     except PackageFileDoesNotExistError:
         print('Package file already deleted.')
+        sys.exit(1)
+
+
+@click.command('export')
+@click.argument('filename', type=click.Path(dir_okay=False))
+def export_command(filename):
+    ''' Copy package file to the given filename '''
+    try:
+        copy_package_file(filename)
+    except PackageFileDoesNotExistError:
+        print('Package file does not exist. '
+              'Create one with <efu use> command')
         sys.exit(1)
