@@ -6,7 +6,8 @@ import os
 import unittest
 
 from efu.package.exceptions import DotEfuExistsError, DotEfuDoesNotExistError
-from efu.package.utils import create_efu_file, add_image
+from efu.package.utils import (
+    create_efu_file, add_image, load_package, write_package)
 from efu.package.parser_utils import InstallMode
 
 
@@ -21,6 +22,23 @@ class UtilsTestCase(unittest.TestCase):
 
     def setUp(self):
         self.addCleanup(self.remove_efu_file_cleanup)
+
+    def test_can_load_package(self):
+        create_efu_file(product='1234X', version='2.0')
+        package = load_package()
+        self.assertEqual(package['product'], '1234X')
+        self.assertEqual(package['version'], '2.0')
+
+    def test_load_package_raises_error_if_package_does_not_exist(self):
+        with self.assertRaises(DotEfuDoesNotExistError):
+            load_package()
+
+    def test_can_write_package(self):
+        write_package({'product': '1234', 'version': '2.0'})
+        with open('.efu') as fp:
+            package = json.load(fp)
+        self.assertEqual(package.get('product'), '1234')
+        self.assertEqual(package.get('version'), '2.0')
 
     def test_can_create_efu_file(self):
         create_efu_file(product='1234X', version='2.0')
