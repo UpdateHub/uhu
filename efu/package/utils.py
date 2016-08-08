@@ -5,7 +5,7 @@ import json
 import os
 
 from ..utils import get_package_file
-from .exceptions import DotEfuExistsError, DotEfuDoesNotExistError
+from .exceptions import PackageFileExistsError, PackageFileDoesNotExistError
 
 
 def load_package():
@@ -14,7 +14,7 @@ def load_package():
         with open(package_fn) as fp:
             package = json.load(fp)
     except FileNotFoundError:
-        raise DotEfuDoesNotExistError
+        raise PackageFileDoesNotExistError
     return package
 
 
@@ -24,10 +24,10 @@ def write_package(data):
         json.dump(data, fp)
 
 
-def create_efu_file(product, version):
+def create_package_file(product, version):
     package_fn = get_package_file()
     if os.path.exists(package_fn):
-        raise DotEfuExistsError
+        raise PackageFileExistsError
     package = {
         'product': product,
         'version': version

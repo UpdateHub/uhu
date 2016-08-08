@@ -6,10 +6,21 @@ import os
 import click
 
 from ..utils import get_package_file
-from .exceptions import DotEfuExistsError
+from .exceptions import PackageFileExistsError
 from .parser_options import ALL_PARAMS
 from .parser_modes import interactive_mode, explicit_mode
-from .utils import create_efu_file, add_image
+from .utils import create_package_file, add_image
+
+
+@click.command('use')
+@click.argument('product_id')
+@click.argument('version')
+def use_command(product_id, version):
+    ''' Creates a package file '''
+    try:
+        create_package_file(product_id, version)
+    except PackageFileExistsError:
+        raise click.ClickException('Package file already exists.')
 
 
 @click.command('add')
@@ -27,14 +38,3 @@ def add_command(ctx, filename, **params):
     add_image(filename, image)
 
 add_command.params = ALL_PARAMS
-
-
-@click.command('use')
-@click.argument('product_id')
-@click.argument('version')
-def use_command(product_id, version):
-    ''' Creates a package file '''
-    try:
-        create_efu_file(product_id, version)
-    except DotEfuExistsError:
-        raise click.ClickException('Package file already exists.')
