@@ -4,11 +4,22 @@
 import json
 import os
 import shutil
+from copy import deepcopy
 
 from ..utils import get_package_file
 from .exceptions import (
     PackageFileExistsError, PackageFileDoesNotExistError,
     ImageDoesNotExistError
+)
+
+
+VOLATILE_PACKAGE_OPTIONS = (
+    'version',
+)
+
+VOLATILE_IMAGE_OPTIONS = (
+    'size',
+    'sha256sum',
 )
 
 
@@ -78,3 +89,36 @@ def remove_package_file():
         os.remove(get_package_file())
     except FileNotFoundError:
         raise PackageFileDoesNotExistError
+
+
+def create_package_from_metadata(metadata):
+    try:
+        package = load_package()
+        if len(package.keys()) > 1:
+            raise PackageFileExistsError
+    except PackageFileDoesNotExistError:
+        # It is not a problem, we are going to create one
+        pass
+
+    package = deepcopy(metadata)
+    images = package.pop('images', [])
+
+    # Removes all volatile options within metadata
+    for package_option in VOLATILE_PACKAGE_OPTIONS:
+        try:
+            del package[package_option]
+        except KeyError:
+            pass  # option not present
+
+    # Removes all volatile options within images
+    for image in images:
+        for image_option in VOLATILE_IMAGE_OPTIONS:
+            try:
+                del image[image_option]
+            except KeyError:
+                pass  # option not present
+
+    package['files'] = images
+    with open(get_package_file(), 'w') as fp:
+        json.dump(package, fp)
+    return package

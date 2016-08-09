@@ -12,7 +12,7 @@ from efu.package.exceptions import (
 from efu.package.utils import (
     create_package_file, remove_package_file, copy_package_file,
     add_image, remove_image, list_images,
-    load_package, write_package,
+    load_package, write_package, create_package_from_metadata
 )
 from efu.package.parser_utils import InstallMode
 
@@ -179,3 +179,65 @@ class UtilsTestCase(unittest.TestCase):
         with self.assertRaises(PackageFileDoesNotExistError):
             copy_package_file('exported')
         self.assertFalse(os.path.exists('exported'))
+
+    def test_can_create_package_file_from_metadata(self):
+        expected = {
+            'product': '1234P',
+            'files': [
+                {
+                    'install-mode': 'copy',
+                    'filename': 'etc/passwd',
+                    'filesystem': 'btrfs',
+                    'target-device': '/dev/sda',
+                    'target-path': '/etc/passwd',
+                    'format': True,
+                    'format-option': '-a',
+                    'mount-options': '-b'
+                },
+                {
+                    'install-mode': 'tarball',
+                    'filename': 'etc/hostname',
+                    'filesystem': 'ext4',
+                    'target-device': '/dev/sda',
+                    'target-path': '/etc/hostname'
+                },
+                {
+                    'install-mode': 'raw',
+                    'filename': 'boot',
+                    'target-device': '/dev/sda1',
+                    'truncate': False,
+                    'count': 1024,
+                    'seek': 512,
+                    'skip': 256,
+                    'chunk-size': 128
+                }
+            ]
+        }
+        with open('tests/unit/fixtures/metadata.json') as fp:
+            metadata = json.load(fp)
+        self.assertFalse(os.path.exists('.efu'))
+
+        observed = create_package_from_metadata(metadata)
+
+        self.assertEqual(observed, expected)
+
+        self.assertTrue(os.path.exists('.efu'))
+        with open('.efu') as fp:
+            package = json.load(fp)
+        self.assertEqual(package, expected)
+
+    def test_metadata_isnt_changed_after_package_creation_from_metadata(self):
+        fp = open('tests/unit/fixtures/metadata.json')
+        observed = json.load(fp)
+        create_package_from_metadata(observed)
+        fp.seek(0)
+        expected = json.load(fp)
+        self.assertEqual(observed, expected)
+
+    def test_create_package_from_metadata_raises_error_if_package_exists(self):
+        with open('.efu', 'w') as fp:
+            json.dump({'package': '1234', 'version': '2.0'}, fp)
+        with open('tests/unit/fixtures/metadata.json') as fp:
+            metadata = json.load(fp)
+        with self.assertRaises(PackageFileExistsError):
+            create_package_from_metadata(metadata)
