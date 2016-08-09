@@ -1,8 +1,10 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+import hashlib
 import json
 import os
+import shutil
 import tempfile
 import unittest
 from uuid import uuid4
@@ -182,6 +184,49 @@ class PushMockMixin(UploadMockMixin):
             }),
             status_code=self.generate_status_code(start_success)
         )
+
+
+class PullMockMixin(object):
+
+    def remove_file(self, fn):
+        try:
+            os.remove(fn)
+        except:
+            pass  # already deleted
+
+    def set_directories(self):
+        self._cwd = os.getcwd()
+        self.dir = tempfile.mkdtemp()
+        os.chdir(self.dir)
+        self.addCleanup(os.chdir, self._cwd)
+        self.addCleanup(shutil.rmtree, self.dir)
+
+    def set_package_var(self):
+        self.package_fn = os.path.join(self.dir, '.efu')
+        os.environ['EFU_PACKAGE_FILE'] = self.package_fn
+        self.addCleanup(os.environ.pop, 'EFU_PACKAGE_FILE')
+
+    def set_file_image(self):
+        self.image_fn = 'image.bin'
+        self.image_content = b'123456789'
+        self.image_sha256sum = hashlib.sha256(self.image_content).hexdigest()
+        self.addCleanup(self.remove_file, self.image_fn)
+
+    def set_commit(self):
+        self.commit = '4321'
+        self.commit_file = 'efu-commit-{}.json'.format(self.commit)
+        self.addCleanup(self.remove_file, self.commit_file)
+
+    def set_urls(self):
+        # url to download metadata
+        self.httpd.register_response(
+            '/products/{}/commits/{}'.format(self.product_id, self.commit),
+            'GET', body=json.dumps(self.metadata), status_code=200)
+        # url to download image
+        self.httpd.register_response(
+            '/products/{}/objects/{}'.format(
+                self.product_id, self.image_sha256sum),
+            'GET', body=self.image_content, status_code=200)
 
 
 class EFUTestCase(PushMockMixin, unittest.TestCase):

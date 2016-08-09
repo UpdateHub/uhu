@@ -1,8 +1,12 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+import json
+
 from ..package import File
 from ..package.exceptions import InvalidFileError
+from ..package.utils import load_package, create_package_from_metadata
+from ..push.exceptions import CommitDoesNotExist
 from ..utils import get_server_url
 from ..request import Request
 
@@ -15,26 +19,30 @@ class DownloadObjectStatus:
 
 class Pull(object):
 
-    def __init__(self, product_id, commit_id):
-        self.product_id = product_id
+    def __init__(self, commit_id):
+        self.package = load_package()
         self.commit_id = commit_id
+        self.commit_file = 'efu-commit-{}.json'.format(self.commit_id)
         self.existent_files = []
 
     def get_metadata(self):
         path = '/products/{product}/commits/{commit}'.format(
-            product=self.product_id, commit=self.commit_id)
+            product=self.package['product'], commit=self.commit_id)
         url = get_server_url(path)
         response = Request(url, 'GET').send()
         if response.ok:
-            return response.json()
-        return None
+            metadata = response.json()
+            with open(self.commit_file, 'w') as fp:
+                json.dump(metadata, fp)
+            return metadata
+        raise CommitDoesNotExist
 
     def _get_object(self, image):
         if image['filename'] in self.existent_files:
             return DownloadObjectStatus.EXISTS
 
         download_path = '/products/{product}/objects/{obj}'.format(
-            product=self.product_id, obj=image['sha256sum'])
+            product=self.package['product'], obj=image['sha256sum'])
         url = get_server_url(download_path)
         response = Request(url, 'GET', stream=True).send()
         if response.ok:
@@ -45,13 +53,12 @@ class Pull(object):
         else:
             return DownloadObjectStatus.ERROR
 
-    def can_download(self, images):
+    def check_local_files(self, images):
         '''
-        Verifies if files will not overwrite existent local files if they
-        diverges.
+        Verifies if local files will not be overwritten by commit files.
 
-        Also, it populates self.existent_files with files that must be
-        not downloaded.
+        Also, it populates self.existent_files with files that must
+        not be downloaded.
         '''
         for image in images:
             try:
@@ -59,7 +66,7 @@ class Pull(object):
                 if file.sha256sum != image['sha256sum']:
                     # files with same name with different content.
                     # Must abort pull.
-                    return False
+                    raise FileExistsError
                 else:
                     # file exists and it is identical to the local.
                     # We can pull, but it should not be downloaded.
@@ -67,13 +74,12 @@ class Pull(object):
             except InvalidFileError:
                 # file does not exist, so we can download it
                 pass
-        # File does not exists or it is identical to local one.
-        # We can safely start to download.
-        return True
 
-    def pull(self):
+    def pull(self, full=True):
         metadata = self.get_metadata()
-        images = metadata.get('images')
-        if images is not None and self.can_download(images):
-            return [self._get_object(image) for image in images]
-        return None
+        create_package_from_metadata(metadata)
+        if full:
+            images = metadata.get('images')
+            if images is not None:
+                self.check_local_files(images)
+                return [self._get_object(image) for image in images]
