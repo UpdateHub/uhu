@@ -13,6 +13,8 @@ from .exceptions import (
 )
 from .parser_options import ALL_PARAMS
 from .parser_modes import interactive_mode, explicit_mode
+from .parser_utils import (
+    replace_format, replace_install_mode, replace_underscores)
 from .utils import (
     create_package_file, copy_package_file, remove_package_file,
     add_image, remove_image, list_images
@@ -41,6 +43,11 @@ def add_command(ctx, filename, **params):
         image = explicit_mode(install_mode, params)
     else:
         image = interactive_mode(ctx)
+
+    image = replace_format(image)
+    image = replace_underscores(image)
+    image = replace_install_mode(image)
+    # finally, adds the image into package
     add_image(filename, image)
 
 add_command.params = ALL_PARAMS

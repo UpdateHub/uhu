@@ -21,6 +21,9 @@ setup(
         'efu.push',
         'efu.pull',
     ],
+    package_data={
+        'efu.package': ['schemas/*.json']
+    },
     entry_points={
         'console_scripts': ['efu=efu.__main__:main']
     },
@@ -28,6 +31,8 @@ setup(
         'click==6.6',
         'progress==1.2',
         'requests==2.10.0',
+        'jsonschema==2.5.1',
+        'rfc3987==1.3.6',
     ],
     author='O.S. Systems Software LTDA',
     author_email='contato@ossystems.com.br',

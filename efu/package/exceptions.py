@@ -2,6 +2,10 @@
 # This software is released under the MIT License
 
 
+class InvalidMetadataError(Exception):
+    pass
+
+
 class InvalidPackageFileError(Exception):
     pass
 

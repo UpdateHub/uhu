@@ -118,14 +118,14 @@ class PushTestCase(EFUTestCase):
 
     def test_upload_files_requests_are_made_correctly(self):
         fns = [self.create_file(b'000') for i in range(3)]
-        pkg_fn = self.create_package_file(123, fns)
+        pkg_fn = self.create_package_file(self.product_id, fns)
         os.environ['EFU_PACKAGE_FILE'] = pkg_fn
         pkg = Package(self.version)
         files = list(pkg.files.values())
         File._File__reset_id_generator()
         uploads = self.create_uploads_meta(files[:2])
         uploads.append(self.create_upload_meta(files[-1], file_exists=True))
-        self.set_push(123, uploads=uploads)
+        self.set_push(self.product_id, uploads=uploads)
 
         push = Push(pkg)
         push._start_push()

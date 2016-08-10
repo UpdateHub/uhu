@@ -7,7 +7,8 @@ import click
 
 from ..package import Package
 from ..package.exceptions import (
-    InvalidFileError, InvalidPackageFileError, PackageFileDoesNotExistError)
+    InvalidFileError, InvalidPackageFileError,
+    PackageFileDoesNotExistError, InvalidMetadataError)
 
 from .exceptions import CommitDoesNotExist
 from .push import Push
@@ -27,6 +28,8 @@ def push_command(version):
         raise click.BadParameter('Invalid file within package')
     except InvalidPackageFileError:
         raise click.BadParameter('Invalid package file')
+    except InvalidMetadataError:
+        raise click.ClickException('Invalid metadata')
 
 
 @click.command(name='status')

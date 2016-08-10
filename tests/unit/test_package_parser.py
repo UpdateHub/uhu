@@ -24,7 +24,8 @@ from efu.package.parser_utils import click as patched_click
 from efu.package.parser_utils import (
     InstallMode, InstallModeChoiceType,
     ImageOption, LazyPromptOption,
-    get_param_names, image_prompt, NONE_DEFAULT
+    get_param_names, image_prompt, NONE_DEFAULT,
+    replace_format, replace_underscores, replace_install_mode
 )
 
 
@@ -79,6 +80,59 @@ class ParserUtilsTestCase(unittest.TestCase):
         expected = {'foo', 'bar', 'spam', 'foo_bar'}
         observed = get_param_names(options)
         self.assertEqual(observed, expected)
+
+    def test_can_replace_format_correctly(self):
+        image = {'format': True}
+        observed = replace_format(image)
+        self.assertIn('format?', observed)
+        self.assertTrue(observed['format?'])
+        self.assertEqual(len(observed), 1)
+
+    def test_replace_format_has_no_side_effects(self):
+        image = {'format': True}
+        expected = {'format': True}
+        replace_format(image)
+        self.assertEqual(image, expected)
+
+    def test_replace_format_doesnt_modify_image_if_nothing_to_replace(self):
+        image = {'mount-options': True}
+        observed = replace_format(image)
+        self.assertEqual(image, observed)
+
+    def test_can_replace_underscore(self):
+        image = {'install_mode': 'raw'}
+        observed = replace_underscores(image)
+        self.assertIn('install-mode', observed)
+        self.assertEqual(observed['install-mode'], 'raw')
+        self.assertEqual(len(observed), 1)
+
+    def test_replace_underscores_has_no_side_effects(self):
+        image = {'install_mode': 'raw'}
+        expected = {'install_mode': 'raw'}
+        replace_underscores(image)
+        self.assertEqual(expected, image)
+
+    def test_replace_underscores_returns_same_image_if_no_replace_occurs(self):
+        image = {'truncate': True}
+        observed = replace_underscores(image)
+        self.assertEqual(image, observed)
+
+    def test_can_replace_install_mode(self):
+        image = {'install-mode': InstallMode(name='raw')}
+        expected = {'install-mode': 'raw'}
+        observed = replace_install_mode(image)
+        self.assertEqual(observed, expected)
+
+    def test_replace_install_mode_has_no_side_effects(self):
+        image = {'install-mode': InstallMode(name='raw')}
+        expected = {'install-mode': InstallMode(name='raw')}
+        replace_install_mode(image)
+        self.assertNotEqual(image, expected)
+
+    def test_replace_install_mode_returns_same_image_if_mode_already_set(self):
+        image = {'install-mode': 'raw'}
+        observed = replace_install_mode(image)
+        self.assertEqual(image, observed)
 
 
 class InstallModeTestCase(unittest.TestCase):
@@ -477,32 +531,30 @@ class AddCommandTestCase(unittest.TestCase):
             pass
         self.addCleanup(os.remove, '.efu-test')
         os.environ['EFU_PACKAGE_FILE'] = '.efu-test'
+        self.runner = CliRunner()
 
     def test_explicit_mode_is_called_if_options_are_provided(self):
-        runner = CliRunner()
         with patch('efu.package.parser.interactive_mode') as interactive:
             with patch('efu.package.parser.explicit_mode') as explicit:
-                runner.invoke(
+                self.runner.invoke(
                     add_command, [__file__, '-m', 'raw', '-td', 'device'])
                 self.assertTrue(explicit.called)
                 self.assertFalse(interactive.called)
 
     def test_interactive_mode_is_called_if_options_are_provided(self):
-        runner = CliRunner()
         with patch('efu.package.parser.interactive_mode') as interactive:
             with patch('efu.package.parser.explicit_mode') as explicit:
-                runner.invoke(add_command, [__file__])
+                self.runner.invoke(add_command, [__file__])
                 self.assertTrue(interactive.called)
                 self.assertFalse(explicit.called)
 
     def test_no_mode_is_called_if_package_file_does_not_exist(self):
         del os.environ['EFU_PACKAGE_FILE']
-        runner = CliRunner()
         with patch('efu.package.parser.interactive_mode') as interactive:
             with patch('efu.package.parser.explicit_mode') as explicit:
-                runner.invoke(
+                self.runner.invoke(
                     add_command, [__file__, '-m', 'raw', '-td', 'device'])
-                runner.invoke(add_command, [__file__])
+                self.runner.invoke(add_command, [__file__])
                 self.assertFalse(explicit.called)
                 self.assertFalse(interactive.called)
 

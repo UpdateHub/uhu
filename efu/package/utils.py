@@ -6,12 +6,19 @@ import os
 import shutil
 from copy import deepcopy
 
+from jsonschema import Draft4Validator, FormatChecker, RefResolver
+from jsonschema.exceptions import ValidationError
+
 from ..utils import get_package_file
 from .exceptions import (
     PackageFileExistsError, PackageFileDoesNotExistError,
     ImageDoesNotExistError
 )
 
+
+BASE_DIR = os.path.dirname(__file__)
+
+SCHEMAS_DIR = os.path.join(BASE_DIR, 'schemas')
 
 VOLATILE_PACKAGE_OPTIONS = (
     'version',
@@ -49,9 +56,6 @@ def create_package_file(product):
 
 def add_image(filename, options):
     package = load_package()
-    options['install-mode'] = options['install_mode'].name
-    del options['install_mode']
-
     files = package.get('files', {})
     files[filename] = options
     package['files'] = files
@@ -122,3 +126,18 @@ def create_package_from_metadata(metadata):
     with open(get_package_file(), 'w') as fp:
         json.dump(package, fp)
     return package
+
+
+def is_metadata_valid(metadata):
+    with open(os.path.join(SCHEMAS_DIR, 'metadata.json')) as fp:
+        schema = json.load(fp)
+    base_uri = 'file://{}/'.format(SCHEMAS_DIR)
+    resolver = RefResolver(base_uri, schema)
+    format_checker = FormatChecker(formats=['uri'])
+    validator = Draft4Validator(
+        schema, resolver=resolver, format_checker=format_checker)
+    try:
+        validator.validate(metadata)
+        return True
+    except ValidationError:
+        return False

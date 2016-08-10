@@ -1,0 +1,55 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+
+    "title": "EasyFOTA agent metadata schema",
+    "description": "This schema formalizes the metadata JSON file used by EasyFOTA throughout its processes",
+
+    "type": "object",
+
+    "properties": {
+        "product": {
+            "description": "The id of the product that will be updated. It must be a hexadecimal number of 64 digits",
+            "$ref": "definitions.json#/sha256sum"
+        },
+        "version": {
+            "description": "Version of the software installed on device AFTER updating",
+            "type": "string",
+            "minLength": 1
+        },
+        "supported-hardware": {
+            "description": "A list of objects describing the update hardware targets",
+            "type": "array",
+            "items": {
+                "$ref": "supported-hardware.json"
+            },
+            "minItems": 1
+        },
+        "post-update-hook": {
+            "$ref": "post-update-hook.json"
+        },
+        "images": {
+            "type": "array",
+            "items": {
+                "anyOf": [
+                    {"$ref": "raw-image.json"},
+                    {"$ref": "copy-image.json"},
+                    {"$ref": "tarball-image.json"}
+                ]
+            },
+            "minItems": 1
+        },
+        "changelog": {
+            "description": "An URL for a text file containg the changelog between the current version and the new version",
+            "type": "string",
+            "format": "uri"
+        }
+    },
+
+    "required": [
+        "images",
+        "product",
+        "version"
+    ],
+
+    "additionalProperties": false
+}

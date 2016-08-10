@@ -14,7 +14,7 @@ class PushUtilsTestCase(EFUTestCase):
     def test_can_get_a_commit_status(self):
         expected = 'finished'
         self.httpd.register_response(
-            '/products/P1234/commits/1234/status',
+            '/products/{}/commits/1234/status'.format(self.product_id),
             status_code=200,
             body=json.dumps({'status': expected})
         )
@@ -23,7 +23,7 @@ class PushUtilsTestCase(EFUTestCase):
 
     def test_get_commit_status_raises_error_if_commit_doesnt_exist(self):
         self.httpd.register_response(
-            '/products/P1234/commits/1234/status',
+            '/products/{}/commits/1234/status'.format(self.product_id),
             status_code=404,
         )
         with self.assertRaises(CommitDoesNotExist):

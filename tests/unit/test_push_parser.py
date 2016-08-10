@@ -20,7 +20,7 @@ class StatusCommandTestCase(EFUTestCase):
 
     def test_status_command_returns_0_if_successful(self):
         self.httpd.register_response(
-            '/products/P1234/commits/1234/status',
+            '/products/{}/commits/1234/status'.format(self.product_id),
             status_code=200,
             body=json.dumps({'status': 'finished'})
         )
@@ -34,7 +34,7 @@ class StatusCommandTestCase(EFUTestCase):
 
     def test_status_command_returns_2_if_commit_doesnt_exist(self):
         self.httpd.register_response(
-            '/products/P1234/commits/1234/status',
+            '/products/{}/commits/1234/status'.format(self.product_id),
             status_code=404,
         )
         result = self.runner.invoke(status_command, args=['1234'])

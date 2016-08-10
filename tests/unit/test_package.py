@@ -39,7 +39,7 @@ class PackageTestCase(EFUTestCase):
     def test_package_as_dict(self):
         files = [self.create_file(bytes(i)) for i in range(3)]
         os.environ['EFU_PACKAGE_FILE'] = self.create_package_file(
-            product_id=123, files=files)
+            product_id=self.product_id, files=files)
         observed = Package(self.version).as_dict()
         self.assertEqual(observed['version'], self.version)
         self.assertEqual(len(observed['objects']), len(files))
@@ -50,10 +50,10 @@ class PackageTestCase(EFUTestCase):
     def test_package_metadata(self):
         files = [self.create_file(bytes(i)) for i in range(3)]
         os.environ['EFU_PACKAGE_FILE'] = self.create_package_file(
-            product_id='10', files=files)
+            product_id=self.product_id, files=files)
         observed = Package(self.version).metadata
 
-        self.assertEqual(observed['product'], '10')
+        self.assertEqual(observed['product'], self.product_id)
         self.assertEqual(observed['version'], self.version)
         self.assertEqual(len(observed['images']), len(files))
 

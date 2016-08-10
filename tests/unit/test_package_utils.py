@@ -12,7 +12,8 @@ from efu.package.exceptions import (
 from efu.package.utils import (
     create_package_file, remove_package_file, copy_package_file,
     add_image, remove_image, list_images,
-    load_package, write_package, create_package_from_metadata
+    load_package, write_package,
+    create_package_from_metadata, is_metadata_valid
 )
 from efu.package.parser_utils import InstallMode
 
@@ -63,9 +64,8 @@ class UtilsTestCase(unittest.TestCase):
 
     def test_can_add_image_within_package_file(self):
         create_package_file(product='1234X')
-        mode = InstallMode('raw')
         options = {
-            'install_mode': mode,
+            'install-mode': 'raw',
             'target-device': 'device'
         }
         add_image(filename='spam.py', options=options)
@@ -81,15 +81,14 @@ class UtilsTestCase(unittest.TestCase):
 
     def test_can_update_a_image(self):
         create_package_file(product='1234X')
-        mode = InstallMode('raw')
         options = {
-            'install_mode': mode,
+            'install-mode': 'raw',
             'target-device': 'device-a'
         }
         add_image(filename='spam.py', options=options)
 
         options = {
-            'install_mode': mode,
+            'install-mode': 'raw',
             'target-device': 'device-b'
         }
         add_image(filename='spam.py', options=options)
@@ -104,8 +103,7 @@ class UtilsTestCase(unittest.TestCase):
 
     def test_can_remove_an_image(self):
         create_package_file(product='1234X')
-        mode = InstallMode('raw')
-        options = {'install_mode': mode, 'target-device': 'device-a'}
+        options = {'install_mode': 'raw', 'target-device': 'device-a'}
 
         add_image(filename='spam.py', options=options)
         with open('.efu') as fp:
@@ -182,7 +180,7 @@ class UtilsTestCase(unittest.TestCase):
 
     def test_can_create_package_file_from_metadata(self):
         expected = {
-            'product': '1234P',
+            'product': 'cfe2be1c64b0387500853de0f48303e3de7b1c6f1508dc719eeafa0d41c36722',  # nopep8
             'files': [
                 {
                     'install-mode': 'copy',
@@ -190,8 +188,8 @@ class UtilsTestCase(unittest.TestCase):
                     'filesystem': 'btrfs',
                     'target-device': '/dev/sda',
                     'target-path': '/etc/passwd',
-                    'format': True,
-                    'format-option': '-a',
+                    'format?': True,
+                    'format-options': '-a',
                     'mount-options': '-b'
                 },
                 {
@@ -241,3 +239,12 @@ class UtilsTestCase(unittest.TestCase):
             metadata = json.load(fp)
         with self.assertRaises(PackageFileExistsError):
             create_package_from_metadata(metadata)
+
+    def test_is_valid_metadata_returns_TRUE_if_valid_document(self):
+        with open('tests/unit/fixtures/metadata.json') as fp:
+            metadata = json.load(fp)
+        self.assertTrue(is_metadata_valid(metadata))
+
+    def test_is_valid_metadata_returns_FALSE_if_invalid_document(self):
+        metadata = {}
+        self.assertFalse(is_metadata_valid(metadata))

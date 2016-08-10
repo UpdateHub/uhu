@@ -6,6 +6,7 @@ import json
 from ..utils import get_package_file
 from . import exceptions
 from .file import File
+from .utils import is_metadata_valid
 
 
 class Package(object):
@@ -43,8 +44,11 @@ class Package(object):
 
     @property
     def metadata(self):
-        return {
+        metadata = {
             'product': self.product_id,
             'version': self.version,
             'images': [file.metadata for file in self.files.values()]
         }
+        if is_metadata_valid(metadata):
+            return metadata
+        raise exceptions.InvalidMetadataError

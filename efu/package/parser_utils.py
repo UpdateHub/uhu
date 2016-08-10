@@ -1,6 +1,8 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+from copy import deepcopy
+
 import click
 
 
@@ -23,6 +25,31 @@ click.termui._build_prompt = image_prompt  # pylint: disable=W0212
 
 def get_param_names(params):
     return {param.name for param in params}
+
+
+def replace_format(image):
+    ''' adds ? into format property '''
+    image = deepcopy(image)
+    if image.get('format') is not None:
+        image['format?'] = image.pop('format')
+    return image
+
+
+def replace_underscores(image):
+    ''' cleans click _/- mess '''
+    image = deepcopy(image)
+    for key in tuple(image.keys()):
+        option = key.replace('_', '-')
+        image[option] = image.pop(key)
+    return image
+
+
+def replace_install_mode(image):
+    ''' replace the object by name '''
+    image = deepcopy(image)
+    if not isinstance(image['install-mode'], str):
+        image['install-mode'] = image['install-mode'].name
+    return image
 
 
 class InstallMode:

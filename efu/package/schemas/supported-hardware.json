@@ -1,0 +1,22 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+
+    "title": "Supported hardware specification",
+    "description": "This object must be inside an array, to query all hardwares that will be updated",
+
+    "type": "object",
+
+    "properties": {
+        "board": {
+            "description": "The board name",
+            "type": "string",
+            "minLength": 1
+        },
+        "board-rev": {
+            "description": "The board revision",
+            "type": "string",
+            "minLength": 1
+        }
+    },
+    "additionalProperties": false
+}
