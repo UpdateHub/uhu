@@ -13,7 +13,8 @@ from efu.package.utils import (
     create_package_file, remove_package_file, copy_package_file,
     add_image, remove_image, list_images,
     load_package, write_package,
-    create_package_from_metadata, is_metadata_valid
+    create_package_from_metadata, is_metadata_valid,
+    yes_or_no
 )
 from efu.package.parser_utils import InstallMode
 
@@ -248,3 +249,13 @@ class UtilsTestCase(unittest.TestCase):
     def test_is_valid_metadata_returns_FALSE_if_invalid_document(self):
         metadata = {}
         self.assertFalse(is_metadata_valid(metadata))
+
+    def test_yes_or_no_returns_yes_if_TRUE(self):
+        expected = 'yes'
+        observed = yes_or_no(True)
+        self.assertEqual(observed, expected)
+
+    def test_yes_or_no_returns_no_if_FALSE(self):
+        expected = 'no'
+        observed = yes_or_no(False)
+        self.assertEqual(observed, expected)
