@@ -29,6 +29,12 @@ class BaseMockMixin(object):
         pass
 
 
+class BaseTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.addCleanup(self.clean)
+
+
 class ConfigMockMixin(BaseMockMixin):
 
     def __init__(self, *args, **kw):
@@ -43,7 +49,7 @@ class ConfigMockMixin(BaseMockMixin):
         delete_environment_variable(Config._ENV_VAR)
 
 
-class FileMockMixin(object):
+class FileMockMixin(BaseMockMixin):
 
     CHUNK_SIZE = 1
 
@@ -91,7 +97,7 @@ class PackageMockMixin(FileMockMixin):
         return self.create_file(content=content)
 
 
-class HTTPServerMockMixin(object):
+class HTTPServerMockMixin(BaseMockMixin):
 
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
@@ -186,7 +192,7 @@ class PushMockMixin(UploadMockMixin):
         )
 
 
-class PullMockMixin(object):
+class PullMockMixin(BaseMockMixin):
 
     def remove_file(self, fn):
         try:
@@ -229,7 +235,7 @@ class PullMockMixin(object):
             'GET', body=self.image_content, status_code=200)
 
 
-class EFUTestCase(PushMockMixin, unittest.TestCase):
+class EFUTestCase(PushMockMixin, BaseTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -238,6 +244,3 @@ class EFUTestCase(PushMockMixin, unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.stop_server()
-
-    def setUp(self):
-        self.addCleanup(self.clean)

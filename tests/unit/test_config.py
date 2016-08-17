@@ -2,14 +2,13 @@
 # This software is released under the MIT License
 
 import os
-import unittest
 
 from efu.config.config import Config, Sections
 
-from ..base import ConfigMockMixin
+from ..base import BaseTestCase, ConfigMockMixin
 
 
-class ConfigTestCase(ConfigMockMixin, unittest.TestCase):
+class ConfigTestCase(ConfigMockMixin, BaseTestCase):
 
     def test_config_class_is_singleton(self):
         config1 = Config()
