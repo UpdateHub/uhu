@@ -18,7 +18,7 @@ from .exceptions import (
 
 BASE_DIR = os.path.dirname(__file__)
 
-SCHEMAS_DIR = os.path.join(BASE_DIR, 'schemas')
+SCHEMAS_DIR = os.path.join(BASE_DIR, '../metadata')
 
 VOLATILE_PACKAGE_OPTIONS = (
     'version',
