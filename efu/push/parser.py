@@ -5,8 +5,8 @@ import sys
 
 import click
 
-from ..package import Package
-from ..package.exceptions import (
+from ..core import Package
+from ..core.exceptions import (
     InvalidFileError, InvalidPackageFileError,
     PackageFileDoesNotExistError, InvalidMetadataError)
 

@@ -1,7 +1,7 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-from efu.package import exceptions, File, FileChunk
+from efu.core import exceptions, File, FileChunk
 
 from ..base import EFUTestCase
 

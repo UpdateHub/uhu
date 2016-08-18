@@ -3,9 +3,9 @@
 
 import json
 
-from ..package import File
-from ..package.exceptions import InvalidFileError
-from ..package.utils import load_package, create_package_from_metadata
+from ..core import File
+from ..core.exceptions import InvalidFileError
+from ..core.utils import load_package, create_package_from_metadata
 from ..push.exceptions import CommitDoesNotExist
 from ..utils import get_server_url
 from ..request import Request

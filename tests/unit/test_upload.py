@@ -1,7 +1,7 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-from efu.package import File
+from efu.core import File
 from efu.push.upload import Upload, UploadStatus
 
 from ..base import EFUTestCase

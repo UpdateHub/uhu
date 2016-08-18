@@ -6,7 +6,7 @@ import unittest
 
 import click
 
-from efu.package import exceptions, File, Package
+from efu.core import exceptions, File, Package
 
 from ..base import EFUTestCase
 

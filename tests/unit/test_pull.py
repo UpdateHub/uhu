@@ -5,8 +5,8 @@ import hashlib
 import json
 import os
 
-from efu.package import File, Package
-from efu.package.exceptions import PackageFileExistsError
+from efu.core import File, Package
+from efu.core.exceptions import PackageFileExistsError
 from efu.pull.pull import Pull, DownloadObjectStatus
 from efu.push.exceptions import CommitDoesNotExist
 

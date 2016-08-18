@@ -7,7 +7,7 @@ import os
 
 from click.testing import CliRunner
 
-from efu.package.exceptions import PackageFileDoesNotExistError
+from efu.core.exceptions import PackageFileDoesNotExistError
 from efu.pull.parser import pull_command
 from efu.push.exceptions import CommitDoesNotExist
 

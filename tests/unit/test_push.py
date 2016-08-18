@@ -5,7 +5,7 @@ import json
 import os
 
 from efu.push import exceptions
-from efu.package import File, Package
+from efu.core import File, Package
 from efu.push.push import Push, PushExitCode
 
 from ..base import EFUTestCase

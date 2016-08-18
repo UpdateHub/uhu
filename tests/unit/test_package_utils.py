@@ -5,18 +5,18 @@ import json
 import os
 import unittest
 
-from efu.package.exceptions import (
+from efu.core.exceptions import (
     PackageFileExistsError, PackageFileDoesNotExistError,
     ImageDoesNotExistError
 )
-from efu.package.utils import (
+from efu.core.utils import (
     create_package_file, remove_package_file, copy_package_file,
     add_image, remove_image, list_images,
     load_package, write_package,
     create_package_from_metadata, is_metadata_valid,
     yes_or_no
 )
-from efu.package.parser_utils import InstallMode
+from efu.core.parser_utils import InstallMode
 
 
 class UtilsTestCase(unittest.TestCase):

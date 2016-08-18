@@ -4,7 +4,7 @@
 import click
 
 from .config.parser import config_command
-from .package.parser import (
+from .core.parser import (
     use_command, export_command, cleanup_command,
     add_command, remove_command, show_command
 )

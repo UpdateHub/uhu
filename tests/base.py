@@ -10,7 +10,7 @@ import unittest
 from uuid import uuid4
 
 from efu.config.config import Config
-from efu.package import File, Package
+from efu.core import File, Package
 
 from .httpmock.httpd import HTTPMockServer
 

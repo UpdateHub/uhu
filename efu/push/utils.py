@@ -2,7 +2,7 @@
 # This software is released under the MIT License
 
 from ..utils import get_server_url
-from ..package.utils import load_package
+from ..core.utils import load_package
 from ..request import Request
 
 from .exceptions import CommitDoesNotExist

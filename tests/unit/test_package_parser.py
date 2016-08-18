@@ -9,19 +9,19 @@ from unittest.mock import Mock, patch
 import click
 from click.testing import CliRunner
 
-import efu.package.parser_utils
-import efu.package.parser
+import efu.core.parser_utils
+import efu.core.parser
 
-from efu.package import exceptions
-from efu.package.parser import (
+from efu.core import exceptions
+from efu.core.parser import (
     add_command, remove_command, show_command,
     export_command, cleanup_command)
-from efu.package.parser_modes import (
+from efu.core.parser_modes import (
     inject_default_values, validate_dependencies,
     clean_params, interactive_mode, explicit_mode)
-from efu.package.parser_options import INSTALL_MODE, FORMAT_OPTIONS
-from efu.package.parser_utils import click as patched_click
-from efu.package.parser_utils import (
+from efu.core.parser_options import INSTALL_MODE, FORMAT_OPTIONS
+from efu.core.parser_utils import click as patched_click
+from efu.core.parser_utils import (
     InstallMode, InstallModeChoiceType,
     ImageOption, LazyPromptOption,
     get_param_names, image_prompt, NONE_DEFAULT,
@@ -238,7 +238,7 @@ class LazyPromptOptionTestCase(unittest.TestCase):
         observed = option.full_process_value({}, 1)
         self.assertEqual(observed, 1)
 
-    @patch('efu.package.parser_options.click.prompt')
+    @patch('efu.core.parser_options.click.prompt')
     def test_prompt_is_called_correctly(self, prompt):
         option = LazyPromptOption(['--option'], default_lazy=100)
         option.prompt_for_value({})
@@ -246,7 +246,7 @@ class LazyPromptOptionTestCase(unittest.TestCase):
         args, kw = prompt.call_args
         self.assertEqual(kw['default'], 100)
 
-    @patch('efu.package.parser_options.click.confirm')
+    @patch('efu.core.parser_options.click.confirm')
     def test_prompt_also_works_for_boolean_flags(self, confirm):
         option = LazyPromptOption(['--spam/--no-spam'], default_lazy=False)
         option.prompt_for_value({})
@@ -262,7 +262,7 @@ class ImageOptionTestCase(unittest.TestCase):
         option = ImageOption(['--option'], dependencies=[dep])
         self.assertIn('spam', option.dependencies)
 
-    @patch('efu.package.parser_utils.LazyPromptOption.prompt_for_value')
+    @patch('efu.core.parser_utils.LazyPromptOption.prompt_for_value')
     def test_prompt_uses_default_lazy_when_provided(self, mock):
         option = ImageOption(['--option'], default_lazy=128)
         self.assertEqual(option.default_lazy, 128)
@@ -271,7 +271,7 @@ class ImageOptionTestCase(unittest.TestCase):
         option.prompt_for_value(ctx)
         self.assertEqual(option.default_lazy, 128)
 
-    @patch('efu.package.parser_utils.LazyPromptOption.prompt_for_value')
+    @patch('efu.core.parser_utils.LazyPromptOption.prompt_for_value')
     def test_prompt_uses_NONE_DEFAULT_when_option_is_not_required(self, mock):
         option = ImageOption(['--option'])
         self.assertIsNone(option.default_lazy)
@@ -281,7 +281,7 @@ class ImageOptionTestCase(unittest.TestCase):
         option.prompt_for_value(ctx)
         self.assertEqual(option.default_lazy, NONE_DEFAULT)
 
-    @patch('efu.package.parser_utils.LazyPromptOption.prompt_for_value')
+    @patch('efu.core.parser_utils.LazyPromptOption.prompt_for_value')
     def test_prompt_uses_NONE_when_option_is_required(self, mock):
         option = ImageOption(['--option'])
         self.assertIsNone(option.default_lazy)
@@ -534,24 +534,24 @@ class AddCommandTestCase(unittest.TestCase):
         self.runner = CliRunner()
 
     def test_explicit_mode_is_called_if_options_are_provided(self):
-        with patch('efu.package.parser.interactive_mode') as interactive:
-            with patch('efu.package.parser.explicit_mode') as explicit:
+        with patch('efu.core.parser.interactive_mode') as interactive:
+            with patch('efu.core.parser.explicit_mode') as explicit:
                 self.runner.invoke(
                     add_command, [__file__, '-m', 'raw', '-td', 'device'])
                 self.assertTrue(explicit.called)
                 self.assertFalse(interactive.called)
 
     def test_interactive_mode_is_called_if_options_are_provided(self):
-        with patch('efu.package.parser.interactive_mode') as interactive:
-            with patch('efu.package.parser.explicit_mode') as explicit:
+        with patch('efu.core.parser.interactive_mode') as interactive:
+            with patch('efu.core.parser.explicit_mode') as explicit:
                 self.runner.invoke(add_command, [__file__])
                 self.assertTrue(interactive.called)
                 self.assertFalse(explicit.called)
 
     def test_no_mode_is_called_if_package_file_does_not_exist(self):
         del os.environ['EFU_PACKAGE_FILE']
-        with patch('efu.package.parser.interactive_mode') as interactive:
-            with patch('efu.package.parser.explicit_mode') as explicit:
+        with patch('efu.core.parser.interactive_mode') as interactive:
+            with patch('efu.core.parser.explicit_mode') as explicit:
                 self.runner.invoke(
                     add_command, [__file__, '-m', 'raw', '-td', 'device'])
                 self.runner.invoke(add_command, [__file__])

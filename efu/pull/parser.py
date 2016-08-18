@@ -6,7 +6,7 @@ import sys
 import click
 
 from .pull import Pull
-from ..package.exceptions import (
+from ..core.exceptions import (
     PackageFileDoesNotExistError, PackageFileExistsError)
 from ..push.exceptions import CommitDoesNotExist
 
