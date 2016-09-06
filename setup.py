@@ -16,7 +16,7 @@ setup(
         'efu': ['metadata/*.json']
     },
     entry_points={
-        'console_scripts': ['efu=efu.__main__:main']
+        'console_scripts': ['efu=efu.cli:cli']
     },
     install_requires=[
         'click==6.6',
