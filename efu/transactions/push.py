@@ -3,7 +3,7 @@
 
 import json
 
-from ..request import Request
+from ..http.request import Request
 from ..utils import get_server_url
 
 from . import exceptions

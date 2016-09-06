@@ -1,7 +1,7 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-from ..request import Request
+from ..http.request import Request
 from ..utils import get_chunk_size
 
 from .ui import UploadProgressBar, SUCCESS_MSG, FAIL_MSG

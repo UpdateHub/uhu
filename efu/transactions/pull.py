@@ -6,8 +6,8 @@ import json
 from ..core import File
 from ..core.exceptions import InvalidFileError
 from ..core.utils import load_package, create_package_from_metadata
+from ..http.request import Request
 from ..utils import get_server_url
-from ..request import Request
 
 from .exceptions import CommitDoesNotExist
 

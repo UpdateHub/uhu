@@ -7,8 +7,9 @@ from urllib.parse import quote, urlparse, parse_qs
 
 import requests
 
+from ..config import config
+
 from .auth import EFOTAV1Signature
-from .config import config
 
 
 class Request(object):

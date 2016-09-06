@@ -6,8 +6,8 @@ import unittest
 from datetime import datetime, timezone
 from unittest.mock import patch
 
-from efu.auth import EFOTAV1Signature
-from efu.request import Request
+from efu.http.auth import EFOTAV1Signature
+from efu.http.request import Request
 
 from ..base import EFUTestCase
 
@@ -20,7 +20,7 @@ class RequestTestCase(EFUTestCase):
         # 60 seconds of tolerance between expected and observed
         self.assertAlmostEqual(observed, expected, delta=60)
 
-    @patch('efu.request.datetime')
+    @patch('efu.http.request.datetime')
     def test_request_has_minimal_headers(self, mock):
         mock_date = datetime(1970, 1, 1, tzinfo=timezone.utc)
         mock.now.return_value = mock_date
@@ -103,7 +103,7 @@ class RequestTestCase(EFUTestCase):
         observed = req.headers.get('Host')
         self.assertEqual(observed, expected)
 
-    @patch('efu.request.requests.request')
+    @patch('efu.http.request.requests.request')
     def test_can_pass_extra_kwargs_to_requests(self, mock):
         Request('http://localhost', 'GET', stream=True).send()
         observed = list(mock.call_args)[1].get('stream')
@@ -112,7 +112,7 @@ class RequestTestCase(EFUTestCase):
 
 class CanonicalRequestTestCase(unittest.TestCase):
 
-    @patch('efu.request.datetime')
+    @patch('efu.http.request.datetime')
     def test_canonical_request(self, mock):
         date = datetime(1970, 1, 1, tzinfo=timezone.utc)
         mock.now.return_value = date

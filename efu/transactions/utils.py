@@ -1,9 +1,9 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-from ..utils import get_server_url
 from ..core.utils import load_package
-from ..request import Request
+from ..http.request import Request
+from ..utils import get_server_url
 
 from .exceptions import CommitDoesNotExist
 
