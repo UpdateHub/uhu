@@ -3,3 +3,4 @@
 
 from .file import File, FileChunk
 from .package import Package
+from .product import Product
