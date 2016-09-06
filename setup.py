@@ -1,26 +1,17 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
-
-def get_version():
-    from efu import __version__
-    return __version__
+from efu import __version__
 
 
 setup(
     name='easyfota-utils',
     description='Easy Firmware Over The Air command line utility',
     keywords='fota ota firmware update utility',
-    version=get_version(),
-    packages=[
-        'efu',
-        'efu.config',
-        'efu.package',
-        'efu.push',
-        'efu.pull',
-    ],
+    version=__version__,
+    packages=find_packages(exclude=['tests*']),
     package_data={
         'efu.package': ['schemas/*.json']
     },
