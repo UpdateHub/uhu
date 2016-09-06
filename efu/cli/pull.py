@@ -5,10 +5,10 @@ import sys
 
 import click
 
-from .pull import Pull
 from ..core.exceptions import (
     PackageFileDoesNotExistError, PackageFileExistsError)
-from ..push.exceptions import CommitDoesNotExist
+from ..transactions.exceptions import CommitDoesNotExist
+from ..transactions.pull import Pull
 
 
 @click.command(name='pull')

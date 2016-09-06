@@ -7,9 +7,9 @@ import os
 
 from click.testing import CliRunner
 
+from efu.cli.pull import pull_command
 from efu.core.exceptions import PackageFileDoesNotExistError
-from efu.pull.parser import pull_command
-from efu.push.exceptions import CommitDoesNotExist
+from efu.transactions.exceptions import CommitDoesNotExist
 
 from ..base import EFUTestCase, PullMockMixin
 

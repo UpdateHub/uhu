@@ -8,8 +8,8 @@ from .core.parser import (
     use_command, export_command, cleanup_command,
     add_command, remove_command, show_command
 )
-from .pull.parser import pull_command
-from .push.parser import push_command, status_command
+from .cli.pull import pull_command
+from .cli.push import push_command, status_command
 
 
 @click.group()

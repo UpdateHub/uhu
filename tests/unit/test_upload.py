@@ -2,7 +2,7 @@
 # This software is released under the MIT License
 
 from efu.core import File
-from efu.push.upload import Upload, UploadStatus
+from efu.transactions.upload import Upload, UploadStatus
 
 from ..base import EFUTestCase
 

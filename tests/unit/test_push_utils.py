@@ -3,8 +3,8 @@
 
 import json
 
-from efu.push.exceptions import CommitDoesNotExist
-from efu.push.utils import get_commit_status
+from efu.transactions.exceptions import CommitDoesNotExist
+from efu.transactions.utils import get_commit_status
 
 from ..base import EFUTestCase
 

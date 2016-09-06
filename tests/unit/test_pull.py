@@ -7,8 +7,8 @@ import os
 
 from efu.core import File, Package
 from efu.core.exceptions import PackageFileExistsError
-from efu.pull.pull import Pull, DownloadObjectStatus
-from efu.push.exceptions import CommitDoesNotExist
+from efu.transactions.pull import Pull, DownloadObjectStatus
+from efu.transactions.exceptions import CommitDoesNotExist
 
 from ..base import EFUTestCase, PullMockMixin
 
