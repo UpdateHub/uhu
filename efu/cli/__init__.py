@@ -3,9 +3,9 @@
 
 import click
 
-from ..config.parser import config_command
 from ..core.parser import (
     export_command, cleanup_command, add_command, remove_command, show_command)
+from .config import config_cli
 from .product import product_cli
 from .pull import pull_command
 from .push import push_command, status_command
@@ -18,7 +18,7 @@ def cli():
 
 
 # Config commands
-cli.add_command(config_command)
+cli.add_command(config_cli)
 
 # Product commands
 cli.add_command(product_cli)

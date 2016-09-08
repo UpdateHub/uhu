@@ -3,16 +3,16 @@
 
 import click
 
-from . import config
+from ..config import config
 
 
 @click.group(name='config')
-def config_command():
+def config_cli():
     ''' Configures efu utility. '''
     pass
 
 
-@click.command()
+@config_cli.command()
 def init():
     ''' Sets efu required initial configuration. '''
     access_id = input('EasyFOTA Access Key ID: ')
@@ -20,7 +20,7 @@ def init():
     config.set_initial(access_id, access_secret)
 
 
-@click.command(name='set')
+@config_cli.command(name='set')
 @click.argument('entry')
 @click.argument('value')
 @click.option('--section', help='Section to write the configuration')
@@ -31,7 +31,7 @@ def set_(entry, value, section):
     config.set(entry, value, section=section)
 
 
-@click.command()
+@config_cli.command()
 @click.argument('entry')
 @click.option('--section', help='Section to write the configuration')
 def get(entry, section):
@@ -41,8 +41,3 @@ def get(entry, section):
     value = config.get(entry, section=section)
     if value:
         print(value)
-
-
-config_command.add_command(set_)
-config_command.add_command(get)
-config_command.add_command(init)
