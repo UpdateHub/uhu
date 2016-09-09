@@ -36,3 +36,9 @@ def get_local_config_file():
 def get_local_config():
     with open(get_local_config_file()) as fp:
         return json.load(fp, object_pairs_hook=OrderedDict)
+
+
+def yes_or_no(value):
+    if value:
+        return 'yes'
+    return 'no'

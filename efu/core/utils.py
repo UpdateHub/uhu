@@ -9,7 +9,7 @@ from copy import deepcopy
 from jsonschema import Draft4Validator, FormatChecker, RefResolver
 from jsonschema.exceptions import ValidationError
 
-from ..utils import get_package_file
+from ..utils import get_package_file, yes_or_no
 from .exceptions import (
     PackageObjectExistsError, PackageObjectDoesNotExistError,
     ObjectDoesNotExistError
@@ -71,12 +71,6 @@ def remove_image(filename):
     except KeyError:
         raise ObjectDoesNotExistError
     write_package(package)
-
-
-def yes_or_no(value):
-    if value:
-        return 'yes'
-    return 'no'
 
 
 def list_images():

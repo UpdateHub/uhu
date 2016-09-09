@@ -48,6 +48,16 @@ class UtilsTestCase(unittest.TestCase):
         observed = utils.get_package_file()
         self.assertEqual(observed, '.test-efu')
 
+    def test_yes_or_no_returns_yes_if_true(self):
+        expected = 'yes'
+        observed = utils.yes_or_no(True)
+        self.assertEqual(expected, observed)
+
+    def test_yes_or_no_returns_no_if_false(self):
+        expected = 'no'
+        observed = utils.yes_or_no(False)
+        self.assertEqual(expected, observed)
+
 
 class LocalConfigTestCase(ObjectMockMixin, BaseTestCase):
 
