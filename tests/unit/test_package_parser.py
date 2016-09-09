@@ -28,6 +28,8 @@ from efu.core.parser_utils import (
     replace_format, replace_underscores, replace_install_mode
 )
 
+from ..base import FileMockMixin, BaseTestCase
+
 
 class PromptTestCase(unittest.TestCase):
 
@@ -669,13 +671,7 @@ class ShowCommandTestCase(unittest.TestCase):
         self.assertEqual(result.exit_code, 1)
 
 
-class ExportCommandTestCase(unittest.TestCase):
-
-    def remove_file(self, fn):
-        try:
-            os.remove(fn)
-        except FileNotFoundError:
-            pass  # already deleted
+class ExportCommandTestCase(FileMockMixin, BaseTestCase):
 
     def setUp(self):
         self.package_fn = '.efu-test'

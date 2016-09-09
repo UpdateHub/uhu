@@ -64,6 +64,12 @@ class FileMockMixin(BaseMockMixin):
         self.clean_generated_files()
         self.clean_file_ids()
 
+    def remove_file(self, fn):
+        try:
+            os.remove(fn)
+        except:
+            pass  # already deleted
+
     def set_chunk_size(self):
         os.environ['EFU_CHUNK_SIZE'] = str(self.CHUNK_SIZE)
 
@@ -193,12 +199,6 @@ class PushMockMixin(UploadMockMixin):
 
 
 class PullMockMixin(BaseMockMixin):
-
-    def remove_file(self, fn):
-        try:
-            os.remove(fn)
-        except:
-            pass  # already deleted
 
     def set_directories(self):
         self._cwd = os.getcwd()

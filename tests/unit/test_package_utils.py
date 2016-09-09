@@ -18,15 +18,10 @@ from efu.core.utils import (
 )
 from efu.core.parser_utils import InstallMode
 
+from ..base import FileMockMixin, BaseTestCase
 
-class UtilsTestCase(unittest.TestCase):
 
-    def remove_file(self, fn):
-        try:
-            os.remove(fn)
-        except:
-            # file already deleted
-            pass
+class UtilsTestCase(FileMockMixin, BaseTestCase):
 
     def setUp(self):
         self.addCleanup(self.remove_file, '.efu')
