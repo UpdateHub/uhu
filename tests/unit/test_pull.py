@@ -5,8 +5,8 @@ import hashlib
 import json
 import os
 
-from efu.core import File, Package
-from efu.core.exceptions import PackageFileExistsError
+from efu.core import Object, Package
+from efu.core.exceptions import PackageObjectExistsError
 from efu.transactions.pull import Pull, DownloadObjectStatus
 from efu.transactions.exceptions import CommitDoesNotExist
 
@@ -23,7 +23,7 @@ class PullTestCase(PullMockMixin, EFUTestCase):
         self.set_package_var()
         self.full_package = {
             'product': self.product_id,
-            'files': {
+            'objects': {
                 self.image_fn: {
                     'install-mode': 'raw',
                     'target-device': 'device'
@@ -154,9 +154,9 @@ class PullTestCase(PullMockMixin, EFUTestCase):
         with open(self.package_fn, 'w') as fp:
             json.dump(self.full_package, fp)
         pull = Pull(self.commit)
-        with self.assertRaises(PackageFileExistsError):
+        with self.assertRaises(PackageObjectExistsError):
             pull.pull(full=True)
-        with self.assertRaises(PackageFileExistsError):
+        with self.assertRaises(PackageObjectExistsError):
             pull.pull(full=False)
 
     def test_pull_does_not_download_files_if_full_is_false(self):

@@ -10,7 +10,7 @@ import unittest
 from uuid import uuid4
 
 from efu.config.config import Config
-from efu.core import File, Package
+from efu.core import Object, Package
 
 from .httpmock.httpd import HTTPMockServer
 
@@ -49,7 +49,7 @@ class ConfigMockMixin(BaseMockMixin):
         delete_environment_variable(Config._ENV_VAR)
 
 
-class FileMockMixin(BaseMockMixin):
+class ObjectMockMixin(BaseMockMixin):
 
     CHUNK_SIZE = 1
 
@@ -77,7 +77,7 @@ class FileMockMixin(BaseMockMixin):
         delete_environment_variable('EFU_CHUNK_SIZE')
 
     def clean_file_ids(self):
-        File._File__reset_id_generator()
+        Object._Object__reset_id_generator()
 
     def clean_generated_files(self):
         for file in self._files:
@@ -92,13 +92,13 @@ class FileMockMixin(BaseMockMixin):
         return fn
 
 
-class PackageMockMixin(FileMockMixin):
+class PackageMockMixin(ObjectMockMixin):
 
     def create_package_file(self, product_id, files):
         options = {'install-mode': 'raw', 'target-device': 'device'}
         content = json.dumps({
             'product': product_id,
-            'files': {file: options for file in files},
+            'objects': {file: options for file in files},
         }).encode()
         return self.create_file(content=content)
 
@@ -174,8 +174,8 @@ class PushMockMixin(UploadMockMixin):
         pkg = self.create_package_file(self.product_id, self.fns)
         os.environ['EFU_PACKAGE_FILE'] = pkg
         self.package = Package(self.version)
-        self.files = list(self.package.files.values())
-        File._File__reset_id_generator()
+        self.files = list(self.package.objects.values())
+        Object._Object__reset_id_generator()
 
     def clean(self):
         super().clean()

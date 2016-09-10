@@ -8,7 +8,7 @@ import click
 
 from ..utils import get_package_file
 from .exceptions import (
-    PackageFileDoesNotExistError, ImageDoesNotExistError)
+    PackageObjectDoesNotExistError, ObjectDoesNotExistError)
 from .parser_options import ALL_PARAMS
 from .parser_modes import interactive_mode, explicit_mode
 from .parser_utils import (
@@ -46,11 +46,11 @@ def remove_command(filename):
     ''' Removes the filename entry within package file '''
     try:
         remove_image(filename)
-    except PackageFileDoesNotExistError:
+    except PackageObjectDoesNotExistError:
         print('Package file does not exist. '
               'Create one with <efu use> command.')
         sys.exit(1)
-    except ImageDoesNotExistError:
+    except ObjectDoesNotExistError:
         print('{} does not exist within package.'.format(filename))
         sys.exit(2)
 
@@ -60,7 +60,7 @@ def show_command():
     ''' Shows all configured images '''
     try:
         list_images()
-    except PackageFileDoesNotExistError:
+    except PackageObjectDoesNotExistError:
         print('Package file does not exist. '
               'Create one with <efu use> command')
         sys.exit(1)
@@ -71,7 +71,7 @@ def cleanup_command():
     ''' Removes all efu generated files '''
     try:
         remove_package_file()
-    except PackageFileDoesNotExistError:
+    except PackageObjectDoesNotExistError:
         print('Package file already deleted.')
         sys.exit(1)
 
@@ -82,7 +82,7 @@ def export_command(filename):
     ''' Copy package file to the given filename '''
     try:
         copy_package_file(filename)
-    except PackageFileDoesNotExistError:
+    except PackageObjectDoesNotExistError:
         print('Package file does not exist. '
               'Create one with <efu use> command')
         sys.exit(1)

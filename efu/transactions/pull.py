@@ -3,8 +3,8 @@
 
 import json
 
-from ..core import File
-from ..core.exceptions import InvalidFileError
+from ..core import Object
+from ..core.exceptions import InvalidObjectError
 from ..core.utils import load_package, create_package_from_metadata
 from ..http.request import Request
 from ..utils import get_server_url
@@ -63,7 +63,7 @@ class Pull(object):
         '''
         for image in images:
             try:
-                file = File(image['filename'])
+                file = Object(image['filename'])
                 if file.sha256sum != image['sha256sum']:
                     # files with same name with different content.
                     # Must abort pull.
@@ -71,8 +71,8 @@ class Pull(object):
                 else:
                     # file exists and it is identical to the local.
                     # We can pull, but it should not be downloaded.
-                    self.existent_files.append(file.name)
-            except InvalidFileError:
+                    self.existent_files.append(file.filename)
+            except InvalidObjectError:
                 # file does not exist, so we can download it
                 pass
 

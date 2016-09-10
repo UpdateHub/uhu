@@ -28,7 +28,7 @@ from efu.core.parser_utils import (
     replace_format, replace_underscores, replace_install_mode
 )
 
-from ..base import FileMockMixin, BaseTestCase
+from ..base import ObjectMockMixin, BaseTestCase
 
 
 class PromptTestCase(unittest.TestCase):
@@ -671,7 +671,7 @@ class ShowCommandTestCase(unittest.TestCase):
         self.assertEqual(result.exit_code, 1)
 
 
-class ExportCommandTestCase(FileMockMixin, BaseTestCase):
+class ExportCommandTestCase(ObjectMockMixin, BaseTestCase):
 
     def setUp(self):
         self.package_fn = '.efu-test'

@@ -50,7 +50,7 @@ class Push(object):
     def _upload_files(self):
         results = []
         for file_id, meta in self._upload_list.items():
-            file = self._package.files[file_id]
+            file = self._package.objects[file_id]
             result = Upload(file, meta, progress=True).upload()
             results.append(result)
         successful_status = (UploadStatus.SUCCESS, UploadStatus.EXISTS)

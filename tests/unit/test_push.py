@@ -4,7 +4,7 @@
 import json
 import os
 
-from efu.core import File, Package
+from efu.core import Object, Package
 from efu.transactions import exceptions
 from efu.transactions.push import Push, PushExitCode
 
@@ -121,8 +121,8 @@ class PushTestCase(EFUTestCase):
         pkg_fn = self.create_package_file(self.product_id, fns)
         os.environ['EFU_PACKAGE_FILE'] = pkg_fn
         pkg = Package(self.version)
-        files = list(pkg.files.values())
-        File._File__reset_id_generator()
+        files = list(pkg.objects.values())
+        Object._Object__reset_id_generator()
         uploads = self.create_uploads_meta(files[:2])
         uploads.append(self.create_upload_meta(files[-1], file_exists=True))
         self.set_push(self.product_id, uploads=uploads)

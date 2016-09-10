@@ -7,8 +7,8 @@ import click
 
 from ..core import Package
 from ..core.exceptions import (
-    InvalidFileError, InvalidPackageFileError,
-    PackageFileDoesNotExistError, InvalidMetadataError)
+    InvalidObjectError, InvalidPackageObjectError,
+    PackageObjectDoesNotExistError, InvalidMetadataError)
 
 from ..transactions.exceptions import CommitDoesNotExist
 from ..transactions.push import Push
@@ -24,9 +24,9 @@ def push_command(version):
     try:
         package = Package(version)
         sys.exit(Push(package).run())
-    except InvalidFileError:
+    except InvalidObjectError:
         raise click.BadParameter('Invalid file within package')
-    except InvalidPackageFileError:
+    except InvalidPackageObjectError:
         raise click.BadParameter('Invalid package file')
     except InvalidMetadataError:
         raise click.ClickException('Invalid metadata')
@@ -40,7 +40,7 @@ def status_command(commit_id):
     '''
     try:
         print(get_commit_status(commit_id))
-    except PackageFileDoesNotExistError:
+    except PackageObjectDoesNotExistError:
         print('Package file does not exist')
         sys.exit(1)
     except CommitDoesNotExist:

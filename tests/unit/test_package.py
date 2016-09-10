@@ -6,7 +6,7 @@ import unittest
 
 import click
 
-from efu.core import exceptions, File, Package
+from efu.core import exceptions, Object, Package
 
 from ..base import EFUTestCase
 
@@ -15,12 +15,12 @@ class PackageTestCase(EFUTestCase):
 
     def test_raises_invalid_package_file_with_inexistent_file(self):
         os.environ['EFU_PACKAGE_FILE'] = 'inexistent_package_file.json'
-        with self.assertRaises(exceptions.InvalidPackageFileError):
+        with self.assertRaises(exceptions.InvalidPackageObjectError):
             Package(self.version)
 
     def test_raises_invalid_package_file_when_file_is_not_json(self):
         os.environ['EFU_PACKAGE_FILE'] = __file__
-        with self.assertRaises(exceptions.InvalidPackageFileError):
+        with self.assertRaises(exceptions.InvalidPackageObjectError):
             Package(self.version)
 
     def test_can_load_package_file(self):
@@ -32,9 +32,9 @@ class PackageTestCase(EFUTestCase):
 
         self.assertEqual(package.product_id, id_)
         self.assertEqual(package.version, self.version)
-        self.assertEqual(len(package.files), len(files))
-        for file in package.files.values():
-            self.assertIsInstance(file, File)
+        self.assertEqual(len(package.objects), len(files))
+        for file in package.objects.values():
+            self.assertIsInstance(file, Object)
 
     def test_package_as_dict(self):
         files = [self.create_file(bytes(i)) for i in range(3)]

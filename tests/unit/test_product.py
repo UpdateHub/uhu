@@ -7,10 +7,10 @@ import unittest
 from efu.core import Product
 from efu.utils import LOCAL_CONFIG_VAR
 
-from ..base import delete_environment_variable, FileMockMixin
+from ..base import delete_environment_variable, ObjectMockMixin
 
 
-class ProductTestCase(FileMockMixin, unittest.TestCase):
+class ProductTestCase(ObjectMockMixin, unittest.TestCase):
 
     def setUp(self):
         self.local_config_fn = self.create_file(b'')

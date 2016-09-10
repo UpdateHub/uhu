@@ -1,7 +1,7 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-from efu.core import File
+from efu.core import Object
 from efu.transactions.upload import Upload, UploadStatus
 
 from ..base import EFUTestCase
@@ -12,7 +12,7 @@ class UploadTestCase(EFUTestCase):
     def setUp(self):
         super().setUp()
         self.options = {}
-        self.file = File(self.create_file(b'\0'), self.options)
+        self.file = Object(self.create_file(b'\0'), self.options)
 
     def test_does_not_upload_when_file_exists_in_server(self):
         meta = self.create_upload_meta(self.file, file_exists=True)
@@ -25,7 +25,7 @@ class UploadTestCase(EFUTestCase):
         self.assertEqual(result, UploadStatus.SUCCESS)
 
     def test_upload_requests_payload_are_made_correctly(self):
-        file = File(self.create_file(b'1234'), self.options)
+        file = Object(self.create_file(b'1234'), self.options)
         meta = self.create_upload_meta(file)
 
         Upload(file, meta).upload()

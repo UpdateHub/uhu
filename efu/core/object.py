@@ -10,7 +10,7 @@ from ..utils import get_chunk_size
 from . import exceptions
 
 
-class FileChunk(object):
+class Chunk:
 
     def __new__(cls, *args):
         ''' Returns None if data (args[0]) is empty '''
@@ -28,23 +28,23 @@ class FileChunk(object):
         }
 
 
-class File(object):
+class Object:
 
     _id = count()
 
     def __new__(cls, fn, options=None):  # pylint: disable=W0613
         if os.path.isfile(fn):
             return super().__new__(cls)
-        raise exceptions.InvalidFileError(
+        raise exceptions.InvalidObjectError(
             'file {} does not exist'.format(fn))
 
     def __init__(self, fn, options=None):
         self.id = next(self._id)
         self._chunk_number = count()
-        self._file = open(fn, 'br')
-        self._options = options
-        self.name = fn
-        self.size = os.path.getsize(self.name)
+        self._fd = open(fn, 'br')
+        self.options = options
+        self.filename = fn
+        self.size = os.path.getsize(self.filename)
         self.chunks = []
 
         sha256sum = hashlib.sha256()
@@ -64,12 +64,12 @@ class File(object):
     @property
     def metadata(self):
         metadata = {
-            'filename': self.name,
+            'filename': self.filename,
             'sha256sum': self.sha256sum,
             'size': self.size
         }
-        if self._options is not None:
-            metadata.update(self._options)
+        if self.options is not None:
+            metadata.update(self.options)
         return metadata
 
     @property
@@ -81,8 +81,8 @@ class File(object):
         cls._id = count()
 
     def _read(self):
-        data = self._file.read(get_chunk_size())
-        return FileChunk(data, next(self._chunk_number))
+        data = self._fd.read(get_chunk_size())
+        return Chunk(data, next(self._chunk_number))
 
     def __iter__(self):
         return iter(self._read, None)

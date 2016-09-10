@@ -11,8 +11,8 @@ from jsonschema.exceptions import ValidationError
 
 from ..utils import get_package_file
 from .exceptions import (
-    PackageFileExistsError, PackageFileDoesNotExistError,
-    ImageDoesNotExistError
+    PackageObjectExistsError, PackageObjectDoesNotExistError,
+    ObjectDoesNotExistError
 )
 
 
@@ -38,7 +38,7 @@ def load_package():
         with open(package_fn) as fp:
             package = json.load(fp)
     except FileNotFoundError:
-        raise PackageFileDoesNotExistError
+        raise PackageObjectDoesNotExistError
     return package
 
 
@@ -51,7 +51,7 @@ def write_package(data):
 def create_package_file(product):
     package_fn = get_package_file()
     if os.path.exists(package_fn):
-        raise PackageFileExistsError
+        raise PackageObjectExistsError
     package = {'product': product}
     write_package(package)
 
@@ -69,7 +69,7 @@ def remove_image(filename):
     try:
         del package['files'][filename]
     except KeyError:
-        raise ImageDoesNotExistError
+        raise ObjectDoesNotExistError
     write_package(package)
 
 
@@ -150,22 +150,22 @@ def copy_package_file(filename):
     if os.path.exists(package_fn):
         shutil.copyfile(package_fn, filename)
     else:
-        raise PackageFileDoesNotExistError
+        raise PackageObjectDoesNotExistError
 
 
 def remove_package_file():
     try:
         os.remove(get_package_file())
     except FileNotFoundError:
-        raise PackageFileDoesNotExistError
+        raise PackageObjectDoesNotExistError
 
 
 def create_package_from_metadata(metadata):
     try:
         package = load_package()
         if len(package.keys()) > 1:
-            raise PackageFileExistsError
-    except PackageFileDoesNotExistError:
+            raise PackageObjectExistsError
+    except PackageObjectDoesNotExistError:
         # It is not a problem, we are going to create one
         pass
 

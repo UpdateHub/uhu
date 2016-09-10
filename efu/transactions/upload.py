@@ -21,15 +21,15 @@ class UploadStatus(object):
 
 class Upload(object):
 
-    def __init__(self, file, upload_meta, progress=False):
-        self._file = file
+    def __init__(self, obj, upload_meta, progress=False):
+        self._object = obj
         self._already_uploaded = upload_meta['exists']
         self._parts_meta = upload_meta['parts']
 
         self._bar = None
         if progress:
             self._bar = UploadProgressBar(
-                self._file.name, max=self._file.n_chunks)
+                self._object.filename, max=self._object.n_chunks)
 
     def upload(self):
         '''
@@ -41,7 +41,7 @@ class Upload(object):
 
         # Upload file chunks
         status = UploadStatus.SUCCESS
-        with open(self._file.name, 'rb') as fp:
+        with open(self._object.filename, 'rb') as fp:
             parts = iter(lambda: fp.read(get_chunk_size()), b'')
             for part_number, part in enumerate(parts):
                 part_meta = self._parts_meta[str(part_number)]

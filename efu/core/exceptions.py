@@ -6,21 +6,21 @@ class InvalidMetadataError(Exception):
     pass
 
 
-class InvalidPackageFileError(Exception):
+class InvalidPackageObjectError(Exception):
     pass
 
 
-class InvalidFileError(Exception):
+class InvalidObjectError(Exception):
     pass
 
 
-class PackageFileExistsError(Exception):
+class PackageObjectExistsError(Exception):
     pass
 
 
-class PackageFileDoesNotExistError(Exception):
+class PackageObjectDoesNotExistError(Exception):
     pass
 
 
-class ImageDoesNotExistError(Exception):
+class ObjectDoesNotExistError(Exception):
     pass
