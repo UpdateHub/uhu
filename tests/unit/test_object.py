@@ -42,21 +42,6 @@ class ObjectTestCase(ObjectMockMixin, BaseTestCase):
             'target-device': 'device'
         }
 
-    def test_id_generation(self):
-        f1 = Object(self.filename, self.options)
-        f2 = Object(self.filename, self.options)
-        f3 = Object(self.filename, self.options)
-        self.assertEqual(f1.id, 0)
-        self.assertEqual(f2.id, 1)
-        self.assertEqual(f3.id, 2)
-
-    def test_id_generator_reset(self):
-        Object(self.filename, self.options)
-        Object(self.filename, self.options)
-        Object._Object__reset_id_generator()
-        obj = Object(self.filename, self.options)
-        self.assertEqual(obj.id, 0)
-
     def test_object_validation(self):
         with self.assertRaises(exceptions.InvalidObjectError):
             Object('inexistent_file.bin', self.options)
@@ -74,7 +59,7 @@ class ObjectTestCase(ObjectMockMixin, BaseTestCase):
     def test_object_as_dict(self):
         obj = Object(self.filename, self.options)
         expected = {
-            'id': 0,
+            'id': self.filename,
             'sha256sum': self.spam_sha256sum,
             'parts': [
                 Chunk(b's', 0).as_dict(),

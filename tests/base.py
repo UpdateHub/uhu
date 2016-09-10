@@ -62,7 +62,6 @@ class ObjectMockMixin(BaseMockMixin):
         super().clean()
         self.clean_chunk_size()
         self.clean_generated_files()
-        self.clean_file_ids()
 
     def remove_file(self, fn):
         try:
@@ -75,9 +74,6 @@ class ObjectMockMixin(BaseMockMixin):
 
     def clean_chunk_size(self):
         delete_environment_variable('EFU_CHUNK_SIZE')
-
-    def clean_file_ids(self):
-        Object._Object__reset_id_generator()
 
     def clean_generated_files(self):
         for file in self._files:
@@ -154,7 +150,7 @@ class UploadMockMixin(PackageMockMixin, HTTPServerMockMixin, ConfigMockMixin):
         }
         parts = {str(part): part_obj for part in range(file.n_chunks)}
         file_obj = {
-            'object_id': file.id,
+            'object_id': file.filename,
             'exists': file_exists,
             'parts': parts,
         }
@@ -175,7 +171,6 @@ class PushMockMixin(UploadMockMixin):
         os.environ['EFU_PACKAGE_FILE'] = pkg
         self.package = Package(self.version)
         self.files = list(self.package.objects.values())
-        Object._Object__reset_id_generator()
 
     def clean(self):
         super().clean()

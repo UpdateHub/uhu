@@ -30,8 +30,6 @@ class Chunk:
 
 class Object:
 
-    _id = count()
-
     def __new__(cls, fn, options=None):  # pylint: disable=W0613
         if os.path.isfile(fn):
             return super().__new__(cls)
@@ -39,7 +37,6 @@ class Object:
             'file {} does not exist'.format(fn))
 
     def __init__(self, fn, options=None):
-        self.id = next(self._id)
         self._chunk_number = count()
         self._fd = open(fn, 'br')
         self.options = options
@@ -55,7 +52,7 @@ class Object:
 
     def as_dict(self):
         return {
-            'id': self.id,
+            'id': self.filename,
             'sha256sum': self.sha256sum,
             'parts': [chunk.as_dict() for chunk in self.chunks],
             'metadata': self.metadata
@@ -75,10 +72,6 @@ class Object:
     @property
     def n_chunks(self):
         return len(self.chunks)
-
-    @classmethod
-    def __reset_id_generator(cls):
-        cls._id = count()
 
     def _read(self):
         data = self._fd.read(get_chunk_size())

@@ -19,7 +19,7 @@ class Package(object):
         self.objects = {}
         for fn, options in self._package.get('objects').items():
             obj = Object(fn, options)
-            self.objects[obj.id] = obj
+            self.objects[obj.filename] = obj
 
     def _validate_package(self, fn):
         try:

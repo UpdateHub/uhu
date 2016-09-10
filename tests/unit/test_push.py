@@ -122,7 +122,6 @@ class PushTestCase(EFUTestCase):
         os.environ['EFU_PACKAGE_FILE'] = pkg_fn
         pkg = Package(self.version)
         files = list(pkg.objects.values())
-        Object._Object__reset_id_generator()
         uploads = self.create_uploads_meta(files[:2])
         uploads.append(self.create_upload_meta(files[-1], file_exists=True))
         self.set_push(self.product_id, uploads=uploads)

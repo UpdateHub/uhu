@@ -79,15 +79,3 @@ class PushOutputTestCase(EFUTestCase):
         expected = self.get_fixture_output('file_part_fail')
         observed = self.get_cmd_output()
         self.assertEqual(expected, observed)
-
-    def test_mixed_output(self):
-        f1, f2, f3 = self.files
-        u1 = self.create_upload_meta(f1)
-        u2 = self.create_upload_meta(f2, success=False)
-        u3 = self.create_upload_meta(f3, file_exists=True)
-        uploads = [u1, u2, u3]
-        self.set_push(self.product_id, uploads=uploads)
-
-        expected = self.get_fixture_output('mixed')
-        observed = self.get_cmd_output()
-        self.assertEqual(expected, observed)
