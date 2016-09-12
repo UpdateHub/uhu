@@ -35,7 +35,7 @@ class Push(object):
         request = Request(
             self._start_push_url,
             method='POST',
-            payload=json.dumps(self._package.as_dict()),
+            payload=json.dumps(self._package.serialize()),
             json=True,
         )
         response = request.send()

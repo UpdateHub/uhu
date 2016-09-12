@@ -139,6 +139,7 @@ class UploadMockMixin(PackageMockMixin, HTTPServerMockMixin, ConfigMockMixin):
 
     def create_upload_meta(self, file, file_exists=False,
                            part_exists=False, success=True):
+        file.load()
         if success:
             url = self.generic_url(success=True)
         else:

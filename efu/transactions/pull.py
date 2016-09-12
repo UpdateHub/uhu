@@ -4,7 +4,6 @@
 import json
 
 from ..core import Object
-from ..core.exceptions import InvalidObjectError
 from ..core.utils import load_package, create_package_from_metadata
 from ..http.request import Request
 from ..utils import get_server_url
@@ -54,25 +53,26 @@ class Pull(object):
         else:
             return DownloadObjectStatus.ERROR
 
-    def check_local_files(self, images):
+    def check_local_files(self, pkg_objects):
         '''
         Verifies if local files will not be overwritten by commit files.
 
         Also, it populates self.existent_files with files that must
         not be downloaded.
         '''
-        for image in images:
+        for pkg_obj in pkg_objects:
             try:
-                file = Object(image['filename'])
-                if file.sha256sum != image['sha256sum']:
+                obj = Object(pkg_obj['filename'])
+                obj.load()
+                if obj.sha256sum != pkg_obj['sha256sum']:
                     # files with same name with different content.
                     # Must abort pull.
                     raise FileExistsError
                 else:
                     # file exists and it is identical to the local.
                     # We can pull, but it should not be downloaded.
-                    self.existent_files.append(file.filename)
-            except InvalidObjectError:
+                    self.existent_files.append(obj.filename)
+            except FileNotFoundError:
                 # file does not exist, so we can download it
                 pass
 

@@ -35,19 +35,23 @@ class Package(object):
             )
         return package
 
-    def as_dict(self):
+    def serialize(self):
         return {
             'version': self.version,
-            'objects': [obj.as_dict() for obj in self.objects.values()],
+            'objects': [obj.serialize() for obj in self.objects.values()],
             'metadata': self.metadata
         }
 
     @property
     def metadata(self):
+        objects = []
+        for obj in self.objects.values():
+            obj.load()
+            objects.append(obj.metadata)
         metadata = {
             'product': self.product_id,
             'version': self.version,
-            'images': [obj.metadata for obj in self.objects.values()]
+            'images': objects
         }
         if is_metadata_valid(metadata):
             return metadata

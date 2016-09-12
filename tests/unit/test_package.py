@@ -36,11 +36,11 @@ class PackageTestCase(EFUTestCase):
         for file in package.objects.values():
             self.assertIsInstance(file, Object)
 
-    def test_package_as_dict(self):
+    def test_package_serialized(self):
         files = [self.create_file(bytes(i)) for i in range(3)]
         os.environ['EFU_PACKAGE_FILE'] = self.create_package_file(
             product_id=self.product_id, files=files)
-        observed = Package(self.version).as_dict()
+        observed = Package(self.version).serialize()
         self.assertEqual(observed['version'], self.version)
         self.assertEqual(len(observed['objects']), len(files))
         for file in observed['objects']:

@@ -7,8 +7,6 @@ from itertools import count
 
 from ..utils import get_chunk_size
 
-from . import exceptions
-
 
 class Chunk:
 
@@ -21,7 +19,7 @@ class Chunk:
         self.number = number
         self.sha256sum = hashlib.sha256(self.data).hexdigest()
 
-    def as_dict(self):
+    def serialize(self):
         return {
             'sha256sum': self.sha256sum,
             'number': self.number,
@@ -30,31 +28,34 @@ class Chunk:
 
 class Object:
 
-    def __new__(cls, fn, options=None):  # pylint: disable=W0613
-        if os.path.isfile(fn):
-            return super().__new__(cls)
-        raise exceptions.InvalidObjectError(
-            'file {} does not exist'.format(fn))
-
     def __init__(self, fn, options=None):
-        self._chunk_number = count()
         self._fd = open(fn, 'br')
+        self._chunk_number = count()
+        self._loaded = False
         self.options = options
         self.filename = fn
+        self.size = None
+        self.chunks = None
+        self.sha256sum = None
+
+    def load(self):
+        if self._loaded:
+            return
+        sha256sum = hashlib.sha256()
         self.size = os.path.getsize(self.filename)
         self.chunks = []
-
-        sha256sum = hashlib.sha256()
         for chunk in self:
             self.chunks.append(chunk)
             sha256sum.update(chunk.data)
         self.sha256sum = sha256sum.hexdigest()
+        self._loaded = True
 
-    def as_dict(self):
+    def serialize(self):
+        self.load()
         return {
             'id': self.filename,
             'sha256sum': self.sha256sum,
-            'parts': [chunk.as_dict() for chunk in self.chunks],
+            'parts': [chunk.serialize() for chunk in self.chunks],
             'metadata': self.metadata
         }
 
@@ -71,7 +72,8 @@ class Object:
 
     @property
     def n_chunks(self):
-        return len(self.chunks)
+        if self.chunks is not None:
+            return len(self.chunks)
 
     def _read(self):
         data = self._fd.read(get_chunk_size())
