@@ -6,7 +6,8 @@ import unittest
 
 from jsonschema.exceptions import ValidationError
 
-from efu.metadata.metadata import ObjectMetadata, validate
+from efu.core import Object
+from efu.metadata.metadata import ObjectMetadata, PackageMetadata, validate
 
 from ..base import ObjectMockMixin, BaseTestCase
 
@@ -113,4 +114,67 @@ class ObjectMetadataTestCase(unittest.TestCase):
         }
         metadata = ObjectMetadata(
             self.filename, self.sha256sum, self.size, options)
+        self.assertFalse(metadata.is_valid())
+
+
+class PackageMetadataTestCase(ObjectMockMixin, BaseTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.fn = self.create_file(b'spam')
+        self.sha256sum = '4e388ab32b10dc8dbc7e28144f552830adc74787c1e2c0824032078a79f227fb'  # nopep8
+        self.version = '2.0'
+        self.options = {
+            'install-mode': 'raw',
+            'filename': self.fn,
+            'target-device': '/dev/sda1',
+            'truncate': False,
+            'count': 1024,
+            'seek': 512,
+            'skip': 256,
+            'chunk-size': 128
+        }
+        self.objects = [Object(self.fn, self.options)]
+        self.product = 'cfe2be1c64b0387500853de0f48303e3de7b1c6f1508dc719eeafa0d41c36722'  # nopep8
+
+    def test_metadata_serialized(self):
+        expected = {
+            'product': self.product,
+            'version': self.version,
+            'images': [
+                {
+                    'install-mode': 'raw',
+                    'filename': self.fn,
+                    'size': 4,
+                    'sha256sum': self.sha256sum,
+                    'target-device': '/dev/sda1',
+                    'truncate': False,
+                    'count': 1024,
+                    'seek': 512,
+                    'skip': 256,
+                    'chunk-size': 128
+                }
+            ]
+        }
+        metadata = PackageMetadata(self.product, self.version, self.objects)
+        observed = metadata.serialize()
+        self.assertEqual(observed, expected)
+
+    def test_metadata_is_valid_returns_True_when_valid(self):
+        metadata = PackageMetadata(self.product, self.version, self.objects)
+        self.assertTrue(metadata.is_valid())
+
+    def test_metadata_is_valid_returns_False_when_invalid(self):
+        self.product = 1
+        self.version = None
+        metadata = PackageMetadata(self.product, self.version, self.objects)
+        self.assertFalse(metadata.is_valid())
+
+    def test_metadata_is_valid_returns_False_object_is_invalid(self):
+        self.options = {
+            'install-mode': 'bad-option',
+            'filename': self.fn,
+        }
+        self.objects = [Object(self.fn, self.options)]
+        metadata = PackageMetadata(self.product, self.version, self.objects)
         self.assertFalse(metadata.is_valid())

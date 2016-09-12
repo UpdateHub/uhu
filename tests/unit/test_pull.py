@@ -37,7 +37,7 @@ class PullTestCase(PullMockMixin, EFUTestCase):
             fp.write(self.image_content)
 
         # fixtures
-        self.metadata = Package(self.version).metadata
+        self.metadata = Package(self.version).metadata.serialize()
         self.image_metadata = self.metadata['images'][0]
 
         # create clean package file

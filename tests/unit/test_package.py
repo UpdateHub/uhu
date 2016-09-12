@@ -51,7 +51,7 @@ class PackageTestCase(EFUTestCase):
         files = [self.create_file(bytes(i)) for i in range(3)]
         os.environ['EFU_PACKAGE_FILE'] = self.create_package_file(
             product_id=self.product_id, files=files)
-        observed = Package(self.version).metadata
+        observed = Package(self.version).metadata.serialize()
 
         self.assertEqual(observed['product'], self.product_id)
         self.assertEqual(observed['version'], self.version)

@@ -53,3 +53,29 @@ class ObjectMetadata:
             return self._options[attr.replace('_', '-')]
         except KeyError:
             raise AttributeError('{} is not a metadata option'.format(attr))
+
+
+class PackageMetadata:
+
+    def __init__(self, product, version, objects):
+        self.product = product
+        self.version = version
+        self.objects = []
+        for obj in objects:
+            obj.load()
+            self.objects.append(obj.metadata.serialize())
+
+    def serialize(self):
+        return {
+            'product': self.product,
+            'version': self.version,
+            'images': self.objects,
+        }
+
+    def is_valid(self):
+        schema = 'metadata.json'
+        try:
+            validate(schema, self.serialize())
+            return True
+        except ValidationError:
+            return False

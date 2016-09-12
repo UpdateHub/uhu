@@ -3,10 +3,11 @@
 
 import json
 
+from ..metadata import PackageMetadata
 from ..utils import get_package_file
+
 from . import exceptions
 from .object import Object
-from .utils import is_metadata_valid
 
 
 class Package(object):
@@ -20,6 +21,8 @@ class Package(object):
         for fn, options in self._package.get('objects').items():
             obj = Object(fn, options)
             self.objects[obj.filename] = obj
+        self.metadata = PackageMetadata(
+            self.product_id, self.version, self.objects.values())
 
     def _validate_package(self, fn):
         try:
@@ -39,20 +42,5 @@ class Package(object):
         return {
             'version': self.version,
             'objects': [obj.serialize() for obj in self.objects.values()],
-            'metadata': self.metadata
+            'metadata': self.metadata.serialize()
         }
-
-    @property
-    def metadata(self):
-        objects = []
-        for obj in self.objects.values():
-            obj.load()
-            objects.append(obj.metadata.serialize())
-        metadata = {
-            'product': self.product_id,
-            'version': self.version,
-            'images': objects
-        }
-        if is_metadata_valid(metadata):
-            return metadata
-        raise exceptions.InvalidMetadataError

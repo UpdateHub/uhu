@@ -10,11 +10,9 @@ from efu.core.exceptions import (
     ObjectDoesNotExistError
 )
 from efu.core.utils import (
-    create_package_file, remove_package_file, copy_package_file,
-    add_image, remove_image, list_images,
-    load_package, write_package,
-    create_package_from_metadata, is_metadata_valid,
-    yes_or_no
+    create_package_file, create_package_from_metadata,
+    copy_package_file, load_package, remove_package_file, write_package,
+    add_image, remove_image, list_images, yes_or_no
 )
 from efu.core.parser_utils import InstallMode
 
@@ -235,15 +233,6 @@ class UtilsTestCase(ObjectMockMixin, BaseTestCase):
             metadata = json.load(fp)
         with self.assertRaises(PackageObjectExistsError):
             create_package_from_metadata(metadata)
-
-    def test_is_valid_metadata_returns_TRUE_if_valid_document(self):
-        with open('tests/unit/fixtures/metadata.json') as fp:
-            metadata = json.load(fp)
-        self.assertTrue(is_metadata_valid(metadata))
-
-    def test_is_valid_metadata_returns_FALSE_if_invalid_document(self):
-        metadata = {}
-        self.assertFalse(is_metadata_valid(metadata))
 
     def test_yes_or_no_returns_yes_if_TRUE(self):
         expected = 'yes'
