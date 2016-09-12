@@ -91,15 +91,11 @@ class ObjectTestCase(ObjectMockMixin, BaseTestCase):
     def test_object_metadata(self):
         obj = Object(self.filename, self.options)
         obj.load()
-        expected = {
-            'filename': obj.filename,
-            'sha256sum': self.content_sha256sum,
-            'size': 4,
-            'install-mode': 'raw',
-            'target-device': 'device',
-        }
-        observed = obj.metadata
-        self.assertEqual(observed, expected)
+        self.assertEqual(obj.metadata.size, 4)
+        self.assertEqual(obj.metadata.filename, obj.filename)
+        self.assertEqual(obj.metadata.sha256sum, obj.sha256sum)
+        self.assertEqual(obj.metadata.install_mode, 'raw')
+        self.assertEqual(obj.metadata.target_device, 'device')
 
     def test_serialized_object(self):
         obj = Object(self.filename, self.options)

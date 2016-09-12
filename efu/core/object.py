@@ -5,6 +5,7 @@ import hashlib
 import os
 from itertools import count
 
+from ..metadata import ObjectMetadata
 from ..utils import get_chunk_size
 
 
@@ -37,6 +38,7 @@ class Object:
         self.size = None
         self.chunks = None
         self.sha256sum = None
+        self.metadata = None
 
     def load(self):
         if self._loaded:
@@ -48,6 +50,8 @@ class Object:
             self.chunks.append(chunk)
             sha256sum.update(chunk.data)
         self.sha256sum = sha256sum.hexdigest()
+        self.metadata = ObjectMetadata(
+            self.filename, self.sha256sum, self.size, self.options)
         self._loaded = True
 
     def serialize(self):
@@ -56,19 +60,8 @@ class Object:
             'id': self.filename,
             'sha256sum': self.sha256sum,
             'parts': [chunk.serialize() for chunk in self.chunks],
-            'metadata': self.metadata
+            'metadata': self.metadata.serialize()
         }
-
-    @property
-    def metadata(self):
-        metadata = {
-            'filename': self.filename,
-            'sha256sum': self.sha256sum,
-            'size': self.size
-        }
-        if self.options is not None:
-            metadata.update(self.options)
-        return metadata
 
     @property
     def n_chunks(self):

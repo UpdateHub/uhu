@@ -47,7 +47,7 @@ class Package(object):
         objects = []
         for obj in self.objects.values():
             obj.load()
-            objects.append(obj.metadata)
+            objects.append(obj.metadata.serialize())
         metadata = {
             'product': self.product_id,
             'version': self.version,

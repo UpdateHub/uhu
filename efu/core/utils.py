@@ -9,16 +9,13 @@ from copy import deepcopy
 from jsonschema import Draft4Validator, FormatChecker, RefResolver
 from jsonschema.exceptions import ValidationError
 
+from ..metadata import SCHEMAS_DIR
 from ..utils import get_package_file, yes_or_no
 from .exceptions import (
     PackageObjectExistsError, PackageObjectDoesNotExistError,
     ObjectDoesNotExistError
 )
 
-
-BASE_DIR = os.path.dirname(__file__)
-
-SCHEMAS_DIR = os.path.join(BASE_DIR, '../metadata')
 
 VOLATILE_PACKAGE_OPTIONS = (
     'version',
