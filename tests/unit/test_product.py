@@ -20,7 +20,7 @@ class ProductTestCase(ObjectMockMixin, unittest.TestCase):
 
     def test_can_load_a_product(self):
         with open(self.local_config_fn, 'w') as fp:
-            fp.write('{"product": {"uid": 42}}')
+            fp.write('{"product": 42}')
         expected = 42
         product = Product()
         self.assertEqual(product.uid, expected)
@@ -41,6 +41,12 @@ class ProductTestCase(ObjectMockMixin, unittest.TestCase):
 
     def test_cannot_overwrite_an_already_set_product(self):
         with open(self.local_config_fn, 'w') as fp:
-            fp.write('{"product": {"uid": 42}}')
+            fp.write('{"product": 42}')
         with self.assertRaises(FileExistsError):
             Product.use(101)
+
+    def test_can_overwrite_a_product_if_force(self):
+        with open(self.local_config_fn, 'w') as fp:
+            fp.write('{"product": 42}')
+        product = Product.use(101, force=True)
+        self.assertEqual(product.uid, 101)

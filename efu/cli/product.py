@@ -9,15 +9,14 @@ from ..core.product import Product
 @click.group(name='product')
 def product_cli():
     ''' Product related commands '''
-    pass
 
 
-@product_cli.command()
+@product_cli.command(name='use')
 @click.argument('uid')
-def use_command(uid):
+@click.option('--force', '-f', is_flag=True)
+def use_command(uid, force):
     ''' Sets the product '''
-    print('here')
     try:
-        Product.use(uid)
+        Product.use(uid, force=force)
     except FileExistsError as err:
         raise click.ClickException(err)

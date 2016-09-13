@@ -26,7 +26,7 @@ class Product(unittest.TestCase):
         self.runner.invoke(use_command, args=['42'])
         with open(self.config_fn) as fp:
             config = json.load(fp)
-        self.assertEqual(config['product']['uid'], '42')
+        self.assertEqual(config['product'], '42')
 
     def test_use_command_returns_0_when_successful(self):
         result = self.runner.invoke(use_command, args=['42'])
@@ -36,3 +36,8 @@ class Product(unittest.TestCase):
         open(self.config_fn, 'w').close()
         result = self.runner.invoke(use_command, args=['42'])
         self.assertEqual(result.exit_code, 1)
+
+    def test_use_command_returns_0_when_forcing(self):
+        open(self.config_fn, 'w').close()
+        result = self.runner.invoke(use_command, args=['42', '--force'])
+        self.assertEqual(result.exit_code, 0)
