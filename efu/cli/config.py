@@ -11,8 +11,7 @@ from ..config import config
 
 @click.group(name='config')
 def config_cli():
-    ''' Configures efu utility. '''
-    pass
+    ''' Configures efu utility '''
 
 
 @config_cli.command()
