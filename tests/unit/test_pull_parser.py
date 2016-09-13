@@ -70,8 +70,8 @@ class PullCommandTestCase(PullMockMixin, EFUTestCase):
         result = self.runner.invoke(pull_command, args=[self.commit])
         self.assertEqual(result.exit_code, 3)
 
-    def test_pull_command_returns_4_if_file_exists_and_diverges(self):
+    def test_pull_command_returns_3_if_file_exists_and_diverges(self):
         with open(self.image_fn, 'w') as fp:
             fp.write('different')
         result = self.runner.invoke(pull_command, args=[self.commit, '--full'])
-        self.assertEqual(result.exit_code, 4)
+        self.assertEqual(result.exit_code, 3)

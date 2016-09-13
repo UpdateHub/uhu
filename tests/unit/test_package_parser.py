@@ -12,7 +12,6 @@ from click.testing import CliRunner
 import efu.core.parser_utils
 import efu.core.parser
 
-from efu.core import exceptions
 from efu.core.parser import (
     add_command, remove_command, show_command,
     export_command, cleanup_command)

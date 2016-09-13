@@ -7,10 +7,6 @@ import shutil
 from copy import deepcopy
 
 from ..utils import get_package_file, yes_or_no
-from .exceptions import (
-    PackageObjectExistsError, PackageObjectDoesNotExistError,
-    ObjectDoesNotExistError
-)
 
 
 VOLATILE_PACKAGE_OPTIONS = (
@@ -27,11 +23,8 @@ DEVICE_OPTIONS = ['truncate', 'seek', 'filesystem']
 
 def load_package():
     package_fn = get_package_file()
-    try:
-        with open(package_fn) as fp:
-            package = json.load(fp)
-    except FileNotFoundError:
-        raise PackageObjectDoesNotExistError
+    with open(package_fn) as fp:
+        package = json.load(fp)
     return package
 
 
@@ -44,7 +37,7 @@ def write_package(data):
 def create_package_file(product):
     package_fn = get_package_file()
     if os.path.exists(package_fn):
-        raise PackageObjectExistsError
+        raise FileExistsError('Package file cannot be overwritten')
     package = {'product': product}
     write_package(package)
 
@@ -59,10 +52,7 @@ def add_image(filename, options):
 
 def remove_image(filename):
     package = load_package()
-    try:
-        del package['files'][filename]
-    except KeyError:
-        raise ObjectDoesNotExistError
+    del package['files'][filename]
     write_package(package)
 
 
@@ -134,25 +124,19 @@ def list_images():
 
 def copy_package_file(filename):
     package_fn = get_package_file()
-    if os.path.exists(package_fn):
-        shutil.copyfile(package_fn, filename)
-    else:
-        raise PackageObjectDoesNotExistError
+    shutil.copyfile(package_fn, filename)
 
 
 def remove_package_file():
-    try:
-        os.remove(get_package_file())
-    except FileNotFoundError:
-        raise PackageObjectDoesNotExistError
+    os.remove(get_package_file())
 
 
 def create_package_from_metadata(metadata):
     try:
         package = load_package()
         if len(package.keys()) > 1:
-            raise PackageObjectExistsError
-    except PackageObjectDoesNotExistError:
+            raise FileExistsError('Package file cannot be overwritten')
+    except FileNotFoundError:
         # It is not a problem, we are going to create one
         pass
 

@@ -6,7 +6,6 @@ import json
 import os
 
 from efu.core import Object, Package
-from efu.core.exceptions import PackageObjectExistsError
 from efu.transactions.pull import Pull, DownloadObjectStatus
 from efu.transactions.exceptions import CommitDoesNotExist
 
@@ -154,9 +153,9 @@ class PullTestCase(PullMockMixin, EFUTestCase):
         with open(self.package_fn, 'w') as fp:
             json.dump(self.full_package, fp)
         pull = Pull(self.commit)
-        with self.assertRaises(PackageObjectExistsError):
+        with self.assertRaises(FileExistsError):
             pull.pull(full=True)
-        with self.assertRaises(PackageObjectExistsError):
+        with self.assertRaises(FileExistsError):
             pull.pull(full=False)
 
     def test_pull_does_not_download_files_if_full_is_false(self):

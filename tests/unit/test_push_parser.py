@@ -6,7 +6,6 @@ import os
 
 from click.testing import CliRunner
 
-from efu.transactions import exceptions
 from efu.cli.push import status_command
 
 from ..base import EFUTestCase

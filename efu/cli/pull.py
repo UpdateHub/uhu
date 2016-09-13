@@ -5,8 +5,6 @@ import sys
 
 import click
 
-from ..core.exceptions import (
-    PackageObjectDoesNotExistError, PackageObjectExistsError)
 from ..transactions.exceptions import CommitDoesNotExist
 from ..transactions.pull import Pull
 
@@ -23,7 +21,7 @@ def pull_command(commit_id, full):
     '''
     try:
         Pull(commit_id).pull(full)
-    except PackageObjectDoesNotExistError:
+    except FileNotFoundError:
         print('Aborted!')
         print('Package file does not exist. Create one with <efu use> command')
         sys.exit(1)
@@ -31,13 +29,8 @@ def pull_command(commit_id, full):
         print('Aborted!')
         print('Commit {} does not exist'.format(commit_id))
         sys.exit(2)
-    except PackageObjectExistsError:
+    except FileExistsError:
         print('Aborted!')
         print('You have a local package that '
               'would be overwritten by this action.')
-        print('If you want to proceed, run <efu cleanup> and <efu use>.')
         sys.exit(3)
-    except FileExistsError:
-        print('Aborted!')
-        print('You have local files that would be overwritten by this action.')
-        sys.exit(4)
