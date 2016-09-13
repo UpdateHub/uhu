@@ -29,7 +29,7 @@ class Push(object):
     @property
     def _start_push_url(self):
         return get_server_url(
-            '/products/{}/commits'.format(self._package.product_id))
+            '/products/{}/commits'.format(self._package.product))
 
     def _start_push(self):
         request = Request(

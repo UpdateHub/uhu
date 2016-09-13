@@ -6,37 +6,27 @@ import json
 from ..metadata import PackageMetadata
 from ..utils import get_package_file
 
-from . import exceptions
-from .object import Object
+from . import Object
 
 
-class Package(object):
+class Package:
 
     def __init__(self, version):
-        self.file = get_package_file()
-        self._package = self._validate_package(self.file)
-        self.product_id = self._package.get('product')
+        self.filename = get_package_file()
+
+        with open(self.filename) as fp:
+            self._package = json.load(fp)
+
+        self.product = self._package.get('product')
         self.version = version
+
         self.objects = {}
         for fn, options in self._package.get('objects').items():
             obj = Object(fn, options)
             self.objects[obj.filename] = obj
-        self.metadata = PackageMetadata(
-            self.product_id, self.version, self.objects.values())
 
-    def _validate_package(self, fn):
-        try:
-            with open(fn) as fp:
-                package = json.load(fp)
-        except FileNotFoundError:
-            raise exceptions.InvalidPackageObjectError(
-                '{} file does not exist'.format(fn)
-            )
-        except ValueError:
-            raise exceptions.InvalidPackageObjectError(
-                '{} is not a valid JSON file'.format(fn)
-            )
-        return package
+        self.metadata = PackageMetadata(
+            self.product, self.version, self.objects.values())
 
     def serialize(self):
         return {
