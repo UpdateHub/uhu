@@ -1,8 +1,11 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+import sys
+
 import click
 
+from ..utils import remove_local_config
 from ..config import config
 
 
@@ -41,3 +44,13 @@ def get(entry, section):
     value = config.get(entry, section=section)
     if value:
         print(value)
+
+
+@click.command('cleanup')
+def cleanup_command():
+    ''' Removes efu local config file '''
+    try:
+        remove_local_config()
+    except FileNotFoundError:
+        print('Package file already deleted.')
+        sys.exit(1)

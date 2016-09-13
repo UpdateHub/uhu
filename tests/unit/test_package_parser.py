@@ -13,8 +13,7 @@ import efu.core.parser_utils
 import efu.core.parser
 
 from efu.core.parser import (
-    add_command, remove_command, show_command,
-    export_command, cleanup_command)
+    add_command, remove_command, show_command, export_command)
 from efu.core.parser_modes import (
     inject_default_values, validate_dependencies,
     clean_params, interactive_mode, explicit_mode)
@@ -610,31 +609,6 @@ class RemoveCommandTestCase(unittest.TestCase):
     def test_rm_command_returns_2_if_image_does_not_exist(self):
         result = self.runner.invoke(remove_command, args=['not-exists.py'])
         self.assertEqual(result.exit_code, 2)
-
-
-class CleanupCommandTestCase(unittest.TestCase):
-
-    def setUp(self):
-        os.environ[LOCAL_CONFIG_VAR] = '.efu-test'
-        self.runner = CliRunner()
-        self.addCleanup(os.environ.pop, LOCAL_CONFIG_VAR)
-
-    def test_can_cleanup_efu_files(self):
-        with open('.efu-test', 'w') as fp:
-            pass
-        self.assertTrue(os.path.exists('.efu-test'))
-        self.runner.invoke(cleanup_command)
-        self.assertFalse(os.path.exists('.efu-test'))
-
-    def test_cleanup_command_returns_0_if_successful(self):
-        with open('.efu-test', 'w') as fp:
-            pass
-        result = self.runner.invoke(cleanup_command)
-        self.assertEqual(result.exit_code, 0)
-
-    def test_cleanup_command_returns_1_if_package_is_already_deleted(self):
-        result = self.runner.invoke(cleanup_command)
-        self.assertEqual(result.exit_code, 1)
 
 
 class ShowCommandTestCase(unittest.TestCase):

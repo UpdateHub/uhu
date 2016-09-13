@@ -33,6 +33,10 @@ def get_local_config():
         return json.load(fp, object_pairs_hook=OrderedDict)
 
 
+def remove_local_config():
+    os.remove(get_local_config_file())
+
+
 def yes_or_no(value):
     if value:
         return 'yes'

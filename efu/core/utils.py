@@ -127,10 +127,6 @@ def copy_package_file(filename):
     shutil.copyfile(package_fn, filename)
 
 
-def remove_package_file():
-    os.remove(get_local_config_file())
-
-
 def create_package_from_metadata(metadata):
     try:
         package = load_package()

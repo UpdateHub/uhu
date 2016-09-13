@@ -3,7 +3,7 @@
 
 import click
 
-from .config import config_cli
+from .config import config_cli, cleanup_command
 from .package import package_cli
 from .product import product_cli
 
@@ -14,6 +14,10 @@ def cli():
     pass
 
 
+# General commands
+cli.add_command(cleanup_command)
+
+# Subcommands
 cli.add_command(config_cli)
 cli.add_command(package_cli)
 cli.add_command(product_cli)

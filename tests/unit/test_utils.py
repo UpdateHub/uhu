@@ -72,3 +72,14 @@ class LocalConfigTestCase(ObjectMockMixin, BaseTestCase):
             fp.write('{"test": 42}')
         config = utils.get_local_config()
         self.assertEqual(config['test'], 42)
+
+    def test_can_remove_package_file(self):
+        open(self.config_fn, 'w').close()
+        self.assertTrue(os.path.exists(self.config_fn))
+        utils.remove_local_config()
+        self.assertFalse(os.path.exists(self.config_fn))
+
+    def test_remove_package_file_raises_error_when_file_already_deleted(self):
+        self.assertFalse(os.path.exists(self.config_fn))
+        with self.assertRaises(FileNotFoundError):
+            utils.remove_local_config()

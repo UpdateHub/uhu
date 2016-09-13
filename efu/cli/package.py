@@ -4,7 +4,7 @@
 import click
 
 from ..core.parser import (
-    export_command, cleanup_command, add_command, remove_command, show_command)
+    export_command, add_command, remove_command, show_command)
 
 from .pull import pull_command
 from .push import push_command, status_command
@@ -19,7 +19,6 @@ def package_cli():
 # Package commands
 package_cli.add_command(show_command)
 package_cli.add_command(export_command)
-package_cli.add_command(cleanup_command)
 
 # Image commands
 package_cli.add_command(add_command)

@@ -12,9 +12,7 @@ from .parser_options import ALL_PARAMS
 from .parser_modes import interactive_mode, explicit_mode
 from .parser_utils import (
     replace_format, replace_install_mode, replace_underscores)
-from .utils import (
-    copy_package_file, remove_package_file, add_image, remove_image,
-    list_images)
+from .utils import copy_package_file, add_image, remove_image, list_images
 
 
 @click.command('add')
@@ -62,16 +60,6 @@ def show_command():
     except FileNotFoundError:
         print('Package file does not exist. '
               'Create one with <efu use> command')
-        sys.exit(1)
-
-
-@click.command('cleanup')
-def cleanup_command():
-    ''' Removes all efu generated files '''
-    try:
-        remove_package_file()
-    except FileNotFoundError:
-        print('Package file already deleted.')
         sys.exit(1)
 
 

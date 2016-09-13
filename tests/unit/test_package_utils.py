@@ -7,9 +7,8 @@ import unittest
 
 from efu.core.utils import (
     create_package_file, create_package_from_metadata,
-    copy_package_file, load_package, remove_package_file, write_package,
-    add_image, remove_image, list_images, yes_or_no
-)
+    copy_package_file, load_package, write_package,
+    add_image, remove_image, list_images, yes_or_no)
 from efu.core.parser_utils import InstallMode
 
 from ..base import ObjectMockMixin, BaseTestCase
@@ -111,18 +110,6 @@ class UtilsTestCase(ObjectMockMixin, BaseTestCase):
         create_package_file(product='1234X')
         with self.assertRaises(KeyError):
             remove_image('spam.py')
-
-    def test_can_remove_package_file(self):
-        with open('.efu', 'w') as fp:
-            pass
-        self.assertTrue(os.path.exists('.efu'))
-        remove_package_file()
-        self.assertFalse(os.path.exists('.efu'))
-
-    def test_remove_package_file_raises_error_when_file_already_deleted(self):
-        self.assertFalse(os.path.exists('.efu'))
-        with self.assertRaises(FileNotFoundError):
-            remove_package_file()
 
     def test_list_images_returns_NONE_if_successful(self):
         package = {
