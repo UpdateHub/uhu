@@ -6,7 +6,7 @@ import sys
 
 import click
 
-from ..utils import get_package_file
+from ..utils import get_local_config_file
 
 from .parser_options import ALL_PARAMS
 from .parser_modes import interactive_mode, explicit_mode
@@ -21,7 +21,7 @@ from .utils import (
 @click.pass_context
 def add_command(ctx, filename, **params):
     ''' Adds an entry in the package file for the given artifact '''
-    if not os.path.exists(get_package_file()):
+    if not os.path.exists(get_local_config_file()):
         raise click.ClickException(
             'Package file does not exist. Create one with <efu use> command')
     install_mode = ctx.install_mode

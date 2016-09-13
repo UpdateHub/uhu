@@ -4,7 +4,7 @@
 import json
 
 from ..metadata import PackageMetadata
-from ..utils import get_package_file
+from ..utils import get_local_config_file
 
 from . import Object
 
@@ -12,7 +12,7 @@ from . import Object
 class Package:
 
     def __init__(self, version):
-        self.filename = get_package_file()
+        self.filename = get_local_config_file()
 
         with open(self.filename) as fp:
             self._package = json.load(fp)

@@ -11,6 +11,7 @@ from uuid import uuid4
 
 from efu.config.config import Config
 from efu.core import Object, Package
+from efu.utils import LOCAL_CONFIG_VAR
 
 from .httpmock.httpd import HTTPMockServer
 
@@ -169,13 +170,13 @@ class PushMockMixin(UploadMockMixin):
         self.version = '2.0'
         self.fns = [self.create_file(b'123') for i in range(3)]
         pkg = self.create_package_file(self.product_id, self.fns)
-        os.environ['EFU_PACKAGE_FILE'] = pkg
+        os.environ[LOCAL_CONFIG_VAR] = pkg
         self.package = Package(self.version)
         self.files = list(self.package.objects.values())
 
     def clean(self):
         super().clean()
-        delete_environment_variable('EFU_PACKAGE_FILE')
+        delete_environment_variable(LOCAL_CONFIG_VAR)
 
     def finish_push_url(self, success=True):
         return self.generic_url(
@@ -205,8 +206,8 @@ class PullMockMixin(BaseMockMixin):
 
     def set_package_var(self):
         self.package_fn = os.path.join(self.dir, '.efu')
-        os.environ['EFU_PACKAGE_FILE'] = self.package_fn
-        self.addCleanup(os.environ.pop, 'EFU_PACKAGE_FILE')
+        os.environ[LOCAL_CONFIG_VAR] = self.package_fn
+        self.addCleanup(os.environ.pop, LOCAL_CONFIG_VAR)
 
     def set_file_image(self):
         self.image_fn = 'image.bin'

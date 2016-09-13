@@ -7,6 +7,7 @@ import os
 from click.testing import CliRunner
 
 from efu.cli.push import status_command
+from efu.utils import LOCAL_CONFIG_VAR
 
 from ..base import EFUTestCase
 
@@ -27,7 +28,7 @@ class StatusCommandTestCase(EFUTestCase):
         self.assertEqual(result.exit_code, 0)
 
     def test_status_command_returns_1_if_package_doesnt_exist(self):
-        os.environ['EFU_PACKAGE_FILE'] = 'not_exists'
+        os.environ[LOCAL_CONFIG_VAR] = 'not_exists'
         result = self.runner.invoke(status_command, args=['1234'])
         self.assertEqual(result.exit_code, 1)
 

@@ -6,7 +6,7 @@ import os
 import shutil
 from copy import deepcopy
 
-from ..utils import get_package_file, yes_or_no
+from ..utils import get_local_config_file, yes_or_no
 
 
 VOLATILE_PACKAGE_OPTIONS = (
@@ -22,20 +22,20 @@ DEVICE_OPTIONS = ['truncate', 'seek', 'filesystem']
 
 
 def load_package():
-    package_fn = get_package_file()
+    package_fn = get_local_config_file()
     with open(package_fn) as fp:
         package = json.load(fp)
     return package
 
 
 def write_package(data):
-    package_fn = get_package_file()
+    package_fn = get_local_config_file()
     with open(package_fn, 'w') as fp:
         json.dump(data, fp)
 
 
 def create_package_file(product):
-    package_fn = get_package_file()
+    package_fn = get_local_config_file()
     if os.path.exists(package_fn):
         raise FileExistsError('Package file cannot be overwritten')
     package = {'product': product}
@@ -123,12 +123,12 @@ def list_images():
 
 
 def copy_package_file(filename):
-    package_fn = get_package_file()
+    package_fn = get_local_config_file()
     shutil.copyfile(package_fn, filename)
 
 
 def remove_package_file():
-    os.remove(get_package_file())
+    os.remove(get_local_config_file())
 
 
 def create_package_from_metadata(metadata):
@@ -159,6 +159,6 @@ def create_package_from_metadata(metadata):
                 pass  # option not present
 
     package['files'] = images
-    with open(get_package_file(), 'w') as fp:
+    with open(get_local_config_file(), 'w') as fp:
         json.dump(package, fp)
     return package

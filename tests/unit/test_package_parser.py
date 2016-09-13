@@ -26,6 +26,7 @@ from efu.core.parser_utils import (
     get_param_names, image_prompt, NONE_DEFAULT,
     replace_format, replace_underscores, replace_install_mode
 )
+from efu.utils import LOCAL_CONFIG_VAR
 
 from ..base import ObjectMockMixin, BaseTestCase
 
@@ -531,7 +532,7 @@ class AddCommandTestCase(unittest.TestCase):
         with open('.efu-test', 'w'):
             pass
         self.addCleanup(os.remove, '.efu-test')
-        os.environ['EFU_PACKAGE_FILE'] = '.efu-test'
+        os.environ[LOCAL_CONFIG_VAR] = '.efu-test'
         self.runner = CliRunner()
 
     def test_explicit_mode_is_called_if_options_are_provided(self):
@@ -550,7 +551,7 @@ class AddCommandTestCase(unittest.TestCase):
                 self.assertFalse(explicit.called)
 
     def test_no_mode_is_called_if_package_file_does_not_exist(self):
-        del os.environ['EFU_PACKAGE_FILE']
+        del os.environ[LOCAL_CONFIG_VAR]
         with patch('efu.core.parser.interactive_mode') as interactive:
             with patch('efu.core.parser.explicit_mode') as explicit:
                 self.runner.invoke(
@@ -564,7 +565,7 @@ class RemoveCommandTestCase(unittest.TestCase):
 
     def remove_package_file_env_var(self):
         try:
-            del os.environ['EFU_PACKAGE_FILE']
+            del os.environ[LOCAL_CONFIG_VAR]
         except KeyError:
             # already deleted
             pass
@@ -582,7 +583,7 @@ class RemoveCommandTestCase(unittest.TestCase):
             'product': '1234R',
             'files': {'setup.py': {}}
         }
-        os.environ['EFU_PACKAGE_FILE'] = self.package_fn
+        os.environ[LOCAL_CONFIG_VAR] = self.package_fn
         self.addCleanup(self.remove_package_file_env_var)
 
         with open(self.package_fn, 'w') as fp:
@@ -602,7 +603,7 @@ class RemoveCommandTestCase(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
 
     def test_rm_command_returns_1_if_package_does_not_exist(self):
-        os.environ['EFU_PACKAGE_FILE'] = '.not-exists'
+        os.environ[LOCAL_CONFIG_VAR] = '.not-exists'
         result = self.runner.invoke(remove_command, args=['setup.py'])
         self.assertEqual(result.exit_code, 1)
 
@@ -614,9 +615,9 @@ class RemoveCommandTestCase(unittest.TestCase):
 class CleanupCommandTestCase(unittest.TestCase):
 
     def setUp(self):
-        os.environ['EFU_PACKAGE_FILE'] = '.efu-test'
+        os.environ[LOCAL_CONFIG_VAR] = '.efu-test'
         self.runner = CliRunner()
-        self.addCleanup(os.environ.pop, 'EFU_PACKAGE_FILE')
+        self.addCleanup(os.environ.pop, LOCAL_CONFIG_VAR)
 
     def test_can_cleanup_efu_files(self):
         with open('.efu-test', 'w') as fp:
@@ -645,9 +646,9 @@ class ShowCommandTestCase(unittest.TestCase):
             pass  # already deleted
 
     def setUp(self):
-        os.environ['EFU_PACKAGE_FILE'] = '.efu-test'
+        os.environ[LOCAL_CONFIG_VAR] = '.efu-test'
         self.runner = CliRunner()
-        self.addCleanup(os.environ.pop, 'EFU_PACKAGE_FILE')
+        self.addCleanup(os.environ.pop, LOCAL_CONFIG_VAR)
         self.addCleanup(self.remove_package_file)
 
     def test_show_command_returns_0_if_successful(self):
@@ -675,9 +676,9 @@ class ExportCommandTestCase(ObjectMockMixin, BaseTestCase):
     def setUp(self):
         self.package_fn = '.efu-test'
         self.exported_package_fn = 'efu-exported'
-        os.environ['EFU_PACKAGE_FILE'] = self.package_fn
+        os.environ[LOCAL_CONFIG_VAR] = self.package_fn
         self.runner = CliRunner()
-        self.addCleanup(os.environ.pop, 'EFU_PACKAGE_FILE')
+        self.addCleanup(os.environ.pop, LOCAL_CONFIG_VAR)
 
         self.addCleanup(self.remove_file, self.package_fn)
         self.addCleanup(self.remove_file, self.exported_package_fn)
