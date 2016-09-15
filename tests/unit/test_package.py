@@ -3,6 +3,7 @@
 
 import json
 import os
+import shutil
 import unittest
 
 import click
@@ -113,3 +114,16 @@ class PackageTestCase(PackageMockMixin, BaseTestCase):
         with open(dest_fn) as fp:
             dumped_package = json.load(fp)
         self.assertEqual(dumped_package, expected)
+
+    def test_package_as_string(self):
+        cwd = os.getcwd()
+        os.chdir('tests/unit/fixtures')
+        self.addCleanup(os.chdir, cwd)
+
+        pkg_file = self.create_file(b'')
+        shutil.copyfile('local_config.json', pkg_file)
+        with open('local_config.txt') as fp:
+            expected = fp.read()
+        package = Package.from_file(pkg_file)
+        observed = str(package)
+        self.assertEqual(observed, expected)

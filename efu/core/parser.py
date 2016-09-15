@@ -12,7 +12,7 @@ from .parser_options import ALL_PARAMS
 from .parser_modes import interactive_mode, explicit_mode
 from .parser_utils import (
     replace_format, replace_install_mode, replace_underscores)
-from .utils import add_image, remove_image, list_images
+from .utils import add_image, remove_image
 
 
 @click.command('add')
@@ -50,14 +50,3 @@ def remove_command(filename):
     except KeyError:
         print('{} does not exist within package.'.format(filename))
         sys.exit(2)
-
-
-@click.command('show')
-def show_command():
-    ''' Shows all configured images '''
-    try:
-        list_images()
-    except FileNotFoundError:
-        print('Package file does not exist. '
-              'Create one with <efu use> command')
-        sys.exit(1)

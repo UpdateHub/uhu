@@ -7,8 +7,7 @@ import unittest
 
 from efu.core.utils import (
     create_package_file, create_package_from_metadata,
-    load_package, write_package, add_image, remove_image,
-    list_images)
+    load_package, write_package, add_image, remove_image)
 from efu.core.parser_utils import InstallMode
 
 from ..base import ObjectMockMixin, BaseTestCase
@@ -110,25 +109,6 @@ class UtilsTestCase(ObjectMockMixin, BaseTestCase):
         create_package_file(product='1234X')
         with self.assertRaises(KeyError):
             remove_image('spam.py')
-
-    def test_list_images_returns_NONE_if_successful(self):
-        package = {
-            'product': '1',
-            'objects': {
-                'spam.py': {
-                    'install-mode': 'raw',
-                    'target-device': 'device',
-                }
-            }
-        }
-        with open('.efu', 'w') as fp:
-            json.dump(package, fp)
-        observed = list_images()
-        self.assertIsNone(observed)
-
-    def test_list_images_raises_error_if_package_does_not_exist(self):
-        with self.assertRaises(FileNotFoundError):
-            list_images()
 
     def test_can_create_package_file_from_metadata(self):
         expected = {

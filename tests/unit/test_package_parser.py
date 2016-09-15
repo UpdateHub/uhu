@@ -12,8 +12,8 @@ from click.testing import CliRunner
 import efu.core.parser_utils
 import efu.core.parser
 
-from efu.cli.package import export_command
-from efu.core.parser import add_command, remove_command, show_command
+from efu.cli.package import export_command, show_command
+from efu.core.parser import add_command, remove_command
 from efu.core.parser_modes import (
     inject_default_values, validate_dependencies,
     clean_params, interactive_mode, explicit_mode)
@@ -611,25 +611,20 @@ class RemoveCommandTestCase(unittest.TestCase):
         self.assertEqual(result.exit_code, 2)
 
 
-class ShowCommandTestCase(unittest.TestCase):
-
-    def remove_package_file(self):
-        try:
-            os.remove('.efu-test')
-        except FileNotFoundError:
-            pass  # already deleted
+class ShowCommandTestCase(PackageMockMixin, BaseTestCase):
 
     def setUp(self):
-        os.environ[LOCAL_CONFIG_VAR] = '.efu-test'
+        self.pkg_file = '.efu-test'
+        os.environ[LOCAL_CONFIG_VAR] = self.pkg_file
         self.runner = CliRunner()
         self.addCleanup(os.environ.pop, LOCAL_CONFIG_VAR)
-        self.addCleanup(self.remove_package_file)
+        self.addCleanup(self.remove_file, self.pkg_file)
 
     def test_show_command_returns_0_if_successful(self):
         package = {
             'product': '1234',
             'objects': {
-                'spam.py': {
+                __file__: {
                     'install-mode': 'raw',
                     'target-device': 'device',
                 }

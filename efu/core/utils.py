@@ -5,7 +5,7 @@ import json
 import os
 from copy import deepcopy
 
-from ..utils import get_local_config_file, yes_or_no
+from ..utils import get_local_config_file
 
 
 VOLATILE_PACKAGE_OPTIONS = (
@@ -16,8 +16,6 @@ VOLATILE_IMAGE_OPTIONS = (
     'size',
     'sha256sum',
 )
-
-DEVICE_OPTIONS = ['truncate', 'seek', 'filesystem']
 
 
 def load_package():
@@ -53,72 +51,6 @@ def remove_image(filename):
     package = load_package()
     del package['objects'][filename]
     write_package(package)
-
-
-def list_images():
-    ''' Prints current package content '''
-    package = load_package()
-    objects = package.get('objects')
-    print('Product: {}'.format(package['product']))
-    print()
-    print('Images:')
-    for file, options in objects.items():
-        print()
-        print('  {} [install mode: {}]'.format(file, options['install-mode']))
-        print()
-        # compressed option
-        compressed = options.get('compressed')
-        if compressed is not None:
-            line = '      Compressed file:   {}'.format(yes_or_no(compressed))
-            if compressed:
-                line += ' [uncompressed size: {}B]'.format(
-                    options.get('required-uncompressed-size'))
-            print(line)
-        # device option
-        device = options.get('target-device')
-        if device is not None:
-            line = '      Target device:     {}'.format(device)
-            device_options = {option: options.get(option)
-                              for option in DEVICE_OPTIONS}
-            if any(device_options.values()):
-                truncate = device_options['truncate']
-                if truncate is not None:
-                    device_options['truncate'] = yes_or_no(truncate)
-                device_options = ['{}: {}'.format(k, v)
-                                  for k, v in device_options.items()
-                                  if v is not None]
-                line += ' [{}]'.format(', '.join(device_options))
-            print(line)
-        # format option
-        format_ = options.get('format?')
-        if format_ is not None:
-            line = '      Format device:     {}'.format(
-                yes_or_no(format_))
-            format_options = options.get('format-options')
-            if format_options:
-                line += '[options: "{}"]'.format(format_options)
-            print(line)
-        # mount options
-        mount = options.get('mount-options')
-        if mount is not None:
-            print('      Mount options:     "{}"'.format(mount))
-        # target path option
-        path = options.get('target-path')
-        if path is not None:
-            print('      Target path:       {}'.format(path))
-        # chunk size option
-        chunk = options.get('chunk-size')
-        if chunk is not None:
-            print('      Chunk size:        {}'.format(chunk))
-        # skip option
-        skip = options.get('skip')
-        if skip is not None:
-            print('      Skip from source:  {}'.format(skip))
-        # count option
-        count = options.get('count')
-        if count is not None:
-            print('      Count:             {}'.format(count))
-    print()
 
 
 def create_package_from_metadata(metadata):
