@@ -91,10 +91,15 @@ class ObjectMockMixin(BaseMockMixin):
 
 class PackageMockMixin(ObjectMockMixin):
 
-    def create_package_file(self, product_id, files):
+    def __init__(self, *args, **kw):
+        super().__init__(*args, **kw)
+        self.version = '2.0'
+        self.product = '0' * 64
+
+    def create_package_file(self, product, files):
         options = {'install-mode': 'raw', 'target-device': 'device'}
         content = json.dumps({
-            'product': product_id,
+            'product': product,
             'objects': {file: options for file in files},
         }).encode()
         return self.create_file(content=content)
@@ -135,6 +140,16 @@ class HTTPServerMockMixin(BaseMockMixin):
         self.httpd.register_response(path, 'POST', status_code=code, body=body)
         return self.httpd.url(path)
 
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.start_server()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        cls.stop_server()
+
 
 class UploadMockMixin(PackageMockMixin, HTTPServerMockMixin, ConfigMockMixin):
 
@@ -166,10 +181,8 @@ class PushMockMixin(UploadMockMixin):
 
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
-        self.product_id = '0' * 64
-        self.version = '2.0'
         self.fns = [self.create_file(b'123') for i in range(3)]
-        pkg = self.create_package_file(self.product_id, self.fns)
+        pkg = self.create_package_file(self.product, self.fns)
         os.environ[LOCAL_CONFIG_VAR] = pkg
         self.package = Package(self.version)
         self.files = list(self.package.objects.values())
@@ -182,10 +195,10 @@ class PushMockMixin(UploadMockMixin):
         return self.generic_url(
             success, body=json.dumps({'commit_id': 1}))
 
-    def set_push(self, product_id, start_success=True,
+    def set_push(self, product, start_success=True,
                  finish_success=True, uploads=None):
         self.httpd.register_response(
-            '/products/{}/commits'.format(product_id),
+            '/products/{}/commits'.format(product),
             method='POST',
             body=json.dumps({
                 'uploads': [] if not uploads else uploads,
@@ -195,7 +208,7 @@ class PushMockMixin(UploadMockMixin):
         )
 
 
-class PullMockMixin(BaseMockMixin):
+class PullMockMixin(HTTPServerMockMixin, PackageMockMixin):
 
     def set_directories(self):
         self._cwd = os.getcwd()
@@ -223,21 +236,10 @@ class PullMockMixin(BaseMockMixin):
     def set_urls(self):
         # url to download metadata
         self.httpd.register_response(
-            '/products/{}/commits/{}'.format(self.product_id, self.commit),
+            '/products/{}/commits/{}'.format(self.product, self.commit),
             'GET', body=json.dumps(self.metadata), status_code=200)
         # url to download image
         self.httpd.register_response(
             '/products/{}/objects/{}'.format(
-                self.product_id, self.image_sha256sum),
+                self.product, self.image_sha256sum),
             'GET', body=self.image_content, status_code=200)
-
-
-class EFUTestCase(PushMockMixin, BaseTestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        cls.start_server()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.stop_server()

@@ -9,10 +9,10 @@ from click.testing import CliRunner
 from efu.cli.push import status_command
 from efu.utils import LOCAL_CONFIG_VAR
 
-from ..base import EFUTestCase
+from ..base import PushMockMixin, BaseTestCase
 
 
-class StatusCommandTestCase(EFUTestCase):
+class StatusCommandTestCase(PushMockMixin, BaseTestCase):
 
     def setUp(self):
         super().setUp()
@@ -20,7 +20,7 @@ class StatusCommandTestCase(EFUTestCase):
 
     def test_status_command_returns_0_if_successful(self):
         self.httpd.register_response(
-            '/products/{}/commits/1234/status'.format(self.product_id),
+            '/products/{}/commits/1234/status'.format(self.product),
             status_code=200,
             body=json.dumps({'status': 'finished'})
         )
@@ -34,7 +34,7 @@ class StatusCommandTestCase(EFUTestCase):
 
     def test_status_command_returns_2_if_commit_doesnt_exist(self):
         self.httpd.register_response(
-            '/products/{}/commits/1234/status'.format(self.product_id),
+            '/products/{}/commits/1234/status'.format(self.product),
             status_code=404,
         )
         result = self.runner.invoke(status_command, args=['1234'])

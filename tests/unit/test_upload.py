@@ -4,10 +4,10 @@
 from efu.core import Object
 from efu.transactions.upload import Upload, UploadStatus
 
-from ..base import EFUTestCase
+from ..base import UploadMockMixin, BaseTestCase
 
 
-class UploadTestCase(EFUTestCase):
+class UploadTestCase(UploadMockMixin, BaseTestCase):
 
     def setUp(self):
         super().setUp()

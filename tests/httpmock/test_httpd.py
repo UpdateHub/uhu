@@ -6,16 +6,12 @@ from unittest.mock import patch
 
 import requests
 
-from ..base import EFUTestCase
+from ..base import HTTPServerMockMixin, BaseTestCase
 
 from . import httpd
 
 
-class HTTPServerTestCase(EFUTestCase):
-
-    def setUp(self):
-        super().setUp()
-        self.httpd.clear_responses()
+class HTTPServerTestCase(HTTPServerMockMixin, BaseTestCase):
 
     @patch('tests.httpmock.httpd.sleep')
     def test_does_not_simulate_application_by_default(self, sleep):

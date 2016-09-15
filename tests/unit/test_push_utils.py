@@ -6,15 +6,15 @@ import json
 from efu.transactions.exceptions import CommitDoesNotExist
 from efu.transactions.utils import get_commit_status
 
-from ..base import EFUTestCase
+from ..base import PushMockMixin, BaseTestCase
 
 
-class PushUtilsTestCase(EFUTestCase):
+class PushUtilsTestCase(PushMockMixin, BaseTestCase):
 
     def test_can_get_a_commit_status(self):
         expected = 'finished'
         self.httpd.register_response(
-            '/products/{}/commits/1234/status'.format(self.product_id),
+            '/products/{}/commits/1234/status'.format(self.product),
             status_code=200,
             body=json.dumps({'status': expected})
         )
@@ -23,7 +23,7 @@ class PushUtilsTestCase(EFUTestCase):
 
     def test_get_commit_status_raises_error_if_commit_doesnt_exist(self):
         self.httpd.register_response(
-            '/products/{}/commits/1234/status'.format(self.product_id),
+            '/products/{}/commits/1234/status'.format(self.product),
             status_code=404,
         )
         with self.assertRaises(CommitDoesNotExist):

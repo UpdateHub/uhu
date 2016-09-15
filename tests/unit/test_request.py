@@ -9,10 +9,10 @@ from unittest.mock import patch
 from efu.http.auth import EFOTAV1Signature
 from efu.http.request import Request
 
-from ..base import EFUTestCase
+from ..base import HTTPServerMockMixin, BaseTestCase
 
 
-class RequestTestCase(EFUTestCase):
+class RequestTestCase(HTTPServerMockMixin, BaseTestCase):
 
     def test_request_date_is_in_utc(self):
         expected = datetime.now(timezone.utc).timestamp()
@@ -177,7 +177,7 @@ timestamp:123456.1234'''
         self.assertEqual(observed, expected)
 
 
-class SignedRequestTestCase(EFUTestCase):
+class SignedRequestTestCase(HTTPServerMockMixin, BaseTestCase):
 
     def test_signed_request_has_the_authorization_header(self):
         request = Request('https://127.0.0.1/upload', 'POST')

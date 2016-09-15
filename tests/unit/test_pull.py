@@ -9,10 +9,10 @@ from efu.core import Object, Package
 from efu.transactions.pull import Pull, DownloadObjectStatus
 from efu.transactions.exceptions import CommitDoesNotExist
 
-from ..base import EFUTestCase, PullMockMixin
+from ..base import PullMockMixin, BaseTestCase
 
 
-class PullTestCase(PullMockMixin, EFUTestCase):
+class PullTestCase(PullMockMixin, BaseTestCase):
 
     def setUp(self):
         super().setUp()
@@ -21,7 +21,7 @@ class PullTestCase(PullMockMixin, EFUTestCase):
         self.set_commit()
         self.set_package_var()
         self.full_package = {
-            'product': self.product_id,
+            'product': self.product,
             'objects': {
                 self.image_fn: {
                     'install-mode': 'raw',
@@ -41,7 +41,7 @@ class PullTestCase(PullMockMixin, EFUTestCase):
 
         # create clean package file
         with open(self.package_fn, 'w') as fp:
-            json.dump({'product': self.product_id}, fp)
+            json.dump({'product': self.product}, fp)
 
         self.set_urls()
 
@@ -61,7 +61,7 @@ class PullTestCase(PullMockMixin, EFUTestCase):
 
     def test_get_metadata_raises_error_when_metadata_does_not_exist(self):
         self.httpd.register_response(
-            '/products/{}/commits/1'.format(self.product_id, self.commit),
+            '/products/{}/commits/1'.format(self.product, self.commit),
             'GET', status_code=404)
         pull = Pull(1)
         with self.assertRaises(CommitDoesNotExist):
@@ -106,7 +106,7 @@ class PullTestCase(PullMockMixin, EFUTestCase):
     def test_get_object_returns_ERROR_when_server_fails(self):
         os.remove(self.image_fn)
         path = '/products/{}/objects/{}'.format(
-            self.product_id, self.image_sha256sum)
+            self.product, self.image_sha256sum)
         self.httpd.register_response(
             path, 'GET', body=self.image_content, status_code=500)
         pull = Pull(self.commit)
@@ -136,7 +136,7 @@ class PullTestCase(PullMockMixin, EFUTestCase):
     def test_pull_with_download_error(self):
         os.remove(self.image_fn)
         path = '/products/{}/objects/{}'.format(
-            self.product_id, self.image_sha256sum)
+            self.product, self.image_sha256sum)
         self.httpd.register_response(
             path, 'GET', body=self.image_content, status_code=500)
         expected = [DownloadObjectStatus.ERROR]

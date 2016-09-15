@@ -9,10 +9,11 @@ import click
 from efu.core import Object, Package
 from efu.utils import LOCAL_CONFIG_VAR
 
-from ..base import EFUTestCase
+from ..base import (
+    PackageMockMixin, BaseTestCase, delete_environment_variable)
 
 
-class PackageTestCase(EFUTestCase):
+class PackageTestCase(PackageMockMixin, BaseTestCase):
 
     def test_raises_invalid_package_file_with_inexistent_file(self):
         os.environ[LOCAL_CONFIG_VAR] = 'inexistent_package_file.json'
@@ -28,7 +29,7 @@ class PackageTestCase(EFUTestCase):
         files = [self.create_file(b'0') for _ in range(15)]
         id_ = 1234
         os.environ[LOCAL_CONFIG_VAR] = self.create_package_file(
-            product_id=id_, files=files)
+            product=id_, files=files)
         package = Package(self.version)
 
         self.assertEqual(package.product, id_)
@@ -40,7 +41,7 @@ class PackageTestCase(EFUTestCase):
     def test_package_serialized(self):
         files = [self.create_file(bytes(i)) for i in range(3)]
         os.environ[LOCAL_CONFIG_VAR] = self.create_package_file(
-            product_id=self.product_id, files=files)
+            product=self.product, files=files)
         observed = Package(self.version).serialize()
         self.assertEqual(observed['version'], self.version)
         self.assertEqual(len(observed['objects']), len(files))
@@ -51,10 +52,10 @@ class PackageTestCase(EFUTestCase):
     def test_package_metadata(self):
         files = [self.create_file(bytes(i)) for i in range(3)]
         os.environ[LOCAL_CONFIG_VAR] = self.create_package_file(
-            product_id=self.product_id, files=files)
+            product=self.product, files=files)
         observed = Package(self.version).metadata.serialize()
 
-        self.assertEqual(observed['product'], self.product_id)
+        self.assertEqual(observed['product'], self.product)
         self.assertEqual(observed['version'], self.version)
         self.assertEqual(len(observed['images']), len(files))
 
