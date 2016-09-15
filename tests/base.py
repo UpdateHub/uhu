@@ -96,11 +96,12 @@ class PackageMockMixin(ObjectMockMixin):
         self.version = '2.0'
         self.product = '0' * 64
 
-    def create_package_file(self, product, files):
+    def create_package_file(self, version, objects, product):
         options = {'install-mode': 'raw', 'target-device': 'device'}
         content = json.dumps({
             'product': product,
-            'objects': {file: options for file in files},
+            'version': version,
+            'objects': {obj: options for obj in objects},
         }).encode()
         return self.create_file(content=content)
 
@@ -182,9 +183,10 @@ class PushMockMixin(UploadMockMixin):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
         self.fns = [self.create_file(b'123') for i in range(3)]
-        pkg = self.create_package_file(self.product, self.fns)
-        os.environ[LOCAL_CONFIG_VAR] = pkg
-        self.package = Package(self.version)
+        pkg_file = self.create_package_file(
+            self.version, self.fns, self.product)
+        os.environ[LOCAL_CONFIG_VAR] = pkg_file
+        self.package = Package.from_file(pkg_file)
         self.files = list(self.package.objects.values())
 
     def clean(self):
@@ -218,8 +220,8 @@ class PullMockMixin(HTTPServerMockMixin, PackageMockMixin):
         self.addCleanup(shutil.rmtree, self.dir)
 
     def set_package_var(self):
-        self.package_fn = os.path.join(self.dir, '.efu')
-        os.environ[LOCAL_CONFIG_VAR] = self.package_fn
+        self.pkg_file = os.path.join(self.dir, '.efu')
+        os.environ[LOCAL_CONFIG_VAR] = self.pkg_file
         self.addCleanup(os.environ.pop, LOCAL_CONFIG_VAR)
 
     def set_file_image(self):

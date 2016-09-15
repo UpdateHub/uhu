@@ -4,27 +4,36 @@
 import json
 
 from ..metadata import PackageMetadata
-from ..utils import get_local_config_file
 
 from . import Object
 
 
 class Package:
 
-    def __init__(self, version):
-        self.filename = get_local_config_file()
-
-        with open(self.filename) as fp:
-            self._package = json.load(fp)
-
-        self.product = self._package.get('product')
+    def __init__(self, version=None, objects=None, product=None):
         self.version = version
+        self.objects = objects if objects is not None else {}
+        self.product = product
+        self.metadata = None
 
-        self.objects = {}
-        for fn, options in self._package.get('objects').items():
-            obj = Object(fn, options)
-            self.objects[obj.filename] = obj
+    @classmethod
+    def from_file(cls, fn):
+        with open(fn) as fp:
+            package = json.load(fp)
 
+        file_objects = package.get('objects')
+        product = package.get('product')
+        version = package.get('version')
+        objects = {}
+        if file_objects is not None:
+            for fn, options in file_objects.items():
+                obj = Object(fn, options)
+                objects[obj.filename] = obj
+        package = Package(version=version, objects=objects, product=product)
+        package.load_metadata()
+        return package
+
+    def load_metadata(self):
         self.metadata = PackageMetadata(
             self.product, self.version, self.objects.values())
 

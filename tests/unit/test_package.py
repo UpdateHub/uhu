@@ -16,48 +16,48 @@ from ..base import (
 class PackageTestCase(PackageMockMixin, BaseTestCase):
 
     def test_raises_invalid_package_file_with_inexistent_file(self):
-        os.environ[LOCAL_CONFIG_VAR] = 'inexistent_package_file.json'
         with self.assertRaises(FileNotFoundError):
-            Package(self.version)
+            Package.from_file('inexistent_package_file.json')
 
-    def test_raises_invalid_package_file_when_file_is_not_json(self):
-        os.environ[LOCAL_CONFIG_VAR] = __file__
+    def test_raises_error_when_file_is_not_json(self):
         with self.assertRaises(ValueError):
-            Package(self.version)
+            Package().from_file(__file__)
 
     def test_can_load_package_file(self):
-        files = [self.create_file(b'0') for _ in range(15)]
-        id_ = 1234
-        os.environ[LOCAL_CONFIG_VAR] = self.create_package_file(
-            product=id_, files=files)
-        package = Package(self.version)
+        objects = [self.create_file(b'0') for _ in range(15)]
+        pkg_file = self.create_package_file(
+            version=self.version, product=self.product, objects=objects)
+        package = Package.from_file(pkg_file)
 
-        self.assertEqual(package.product, id_)
+        self.assertEqual(package.product, self.product)
         self.assertEqual(package.version, self.version)
-        self.assertEqual(len(package.objects), len(files))
-        for file in package.objects.values():
-            self.assertIsInstance(file, Object)
+        self.assertEqual(len(package.objects), len(objects))
+        for obj in package.objects.values():
+            self.assertIsInstance(obj, Object)
 
     def test_package_serialized(self):
-        files = [self.create_file(bytes(i)) for i in range(3)]
-        os.environ[LOCAL_CONFIG_VAR] = self.create_package_file(
-            product=self.product, files=files)
-        observed = Package(self.version).serialize()
+        objects = [self.create_file(bytes(i)) for i in range(3)]
+        pkg_file = self.create_package_file(
+            product=self.product, objects=objects, version=self.version)
+        package = Package.from_file(pkg_file)
+        observed = package.serialize()
+
         self.assertEqual(observed['version'], self.version)
-        self.assertEqual(len(observed['objects']), len(files))
+        self.assertEqual(len(observed['objects']), len(objects))
         for file in observed['objects']:
             self.assertIsNotNone(file['id'])
             self.assertIsNotNone(file['sha256sum'])
 
     def test_package_metadata(self):
-        files = [self.create_file(bytes(i)) for i in range(3)]
-        os.environ[LOCAL_CONFIG_VAR] = self.create_package_file(
-            product=self.product, files=files)
-        observed = Package(self.version).metadata.serialize()
+        objects = [self.create_file(bytes(i)) for i in range(3)]
+        pkg_file = self.create_package_file(
+            product=self.product, objects=objects, version=self.version)
+        package = Package.from_file(pkg_file)
+        observed = package.metadata.serialize()
 
         self.assertEqual(observed['product'], self.product)
         self.assertEqual(observed['version'], self.version)
-        self.assertEqual(len(observed['images']), len(files))
+        self.assertEqual(len(observed['images']), len(objects))
 
         for file in observed['images']:
             self.assertIsNotNone(file['sha256sum'])

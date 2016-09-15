@@ -6,10 +6,10 @@ import sys
 import click
 
 from ..core import Package
-
 from ..transactions.exceptions import CommitDoesNotExist
 from ..transactions.push import Push
 from ..transactions.utils import get_commit_status
+from ..utils import get_local_config_file
 
 
 @click.command(name='push')
@@ -18,7 +18,9 @@ def push_command(version):
     '''
     Pushes a package file to server with the given version.
     '''
-    package = Package(version)
+    pkg_file = get_local_config_file()
+    package = Package.from_file(pkg_file)
+    package.version = version
     sys.exit(Push(package).run())
 
 

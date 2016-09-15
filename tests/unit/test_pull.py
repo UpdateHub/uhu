@@ -29,18 +29,18 @@ class PullTestCase(PullMockMixin, BaseTestCase):
                 }
             }
         }
-        with open(self.package_fn, 'w') as fp:
+        with open(self.pkg_file, 'w') as fp:
             json.dump(self.full_package, fp)
 
         with open(self.image_fn, 'bw') as fp:
             fp.write(self.image_content)
 
         # fixtures
-        self.metadata = Package(self.version).metadata.serialize()
+        self.metadata = Package.from_file(self.pkg_file).metadata.serialize()
         self.image_metadata = self.metadata['images'][0]
 
         # create clean package file
-        with open(self.package_fn, 'w') as fp:
+        with open(self.pkg_file, 'w') as fp:
             json.dump({'product': self.product}, fp)
 
         self.set_urls()
@@ -150,7 +150,7 @@ class PullTestCase(PullMockMixin, BaseTestCase):
             Pull(self.commit).pull(full=True)
 
     def test_pull_raises_error_if_package_file_exists(self):
-        with open(self.package_fn, 'w') as fp:
+        with open(self.pkg_file, 'w') as fp:
             json.dump(self.full_package, fp)
         pull = Pull(self.commit)
         with self.assertRaises(FileExistsError):

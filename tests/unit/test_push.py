@@ -117,10 +117,10 @@ class PushTestCase(PushMockMixin, BaseTestCase):
             push._upload_files()
 
     def test_upload_files_requests_are_made_correctly(self):
-        fns = [self.create_file(b'000') for i in range(3)]
-        pkg_fn = self.create_package_file(self.product, fns)
-        os.environ['EFU_PACKAGE_FILE'] = pkg_fn
-        pkg = Package(self.version)
+        objects = [self.create_file(b'000') for i in range(3)]
+        pkg_file = self.create_package_file(
+            version=self.version, objects=objects, product=self.product)
+        pkg = Package.from_file(pkg_file)
         files = list(pkg.objects.values())
         uploads = self.create_uploads_meta(files[:2])
         uploads.append(self.create_upload_meta(files[-1], file_exists=True))
