@@ -2,7 +2,6 @@
 # This software is released under the MIT License
 
 import json
-import os
 from copy import deepcopy
 
 from ..utils import get_local_config_file
@@ -29,14 +28,6 @@ def write_package(data):
     package_fn = get_local_config_file()
     with open(package_fn, 'w') as fp:
         json.dump(data, fp)
-
-
-def create_package_file(product):
-    package_fn = get_local_config_file()
-    if os.path.exists(package_fn):
-        raise FileExistsError('Package file cannot be overwritten')
-    package = {'product': product}
-    write_package(package)
 
 
 def add_image(filename, options):
