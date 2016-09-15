@@ -12,8 +12,8 @@ from click.testing import CliRunner
 import efu.core.parser_utils
 import efu.core.parser
 
-from efu.cli.package import export_command, show_command
-from efu.core.parser import add_command, remove_command
+from efu.cli.package import export_command, show_command, remove_object_command
+from efu.core.parser import add_command
 from efu.core.parser_modes import (
     inject_default_values, validate_dependencies,
     clean_params, interactive_mode, explicit_mode)
@@ -560,55 +560,36 @@ class AddCommandTestCase(unittest.TestCase):
                 self.assertFalse(interactive.called)
 
 
-class RemoveCommandTestCase(unittest.TestCase):
-
-    def remove_package_file_env_var(self):
-        try:
-            del os.environ[LOCAL_CONFIG_VAR]
-        except KeyError:
-            # already deleted
-            pass
-
-    def remove_package_file(self):
-        try:
-            os.remove(self.package_fn)
-        except FileNotFoundError:
-            # already deleted
-            pass
+class RemoveObjectCommandTestCase(PackageMockMixin, BaseTestCase):
 
     def setUp(self):
-        self.package_fn = '.efu-test'
+        super().setUp()
+        self.pkg_file = '.efu-test'
         data = {
             'product': '1234R',
             'objects': {'setup.py': {}}
         }
-        os.environ[LOCAL_CONFIG_VAR] = self.package_fn
-        self.addCleanup(self.remove_package_file_env_var)
-
-        with open(self.package_fn, 'w') as fp:
+        os.environ[LOCAL_CONFIG_VAR] = self.pkg_file
+        self.addCleanup(delete_environment_variable, LOCAL_CONFIG_VAR)
+        with open(self.pkg_file, 'w') as fp:
             json.dump(data, fp)
-        self.addCleanup(self.remove_package_file)
-
+        self.addCleanup(self.remove_file, self.pkg_file)
         self.runner = CliRunner()
 
-    def test_can_remove_image_with_rm_command(self):
-        self.runner.invoke(remove_command, args=['setup.py'])
-        with open(self.package_fn) as fp:
+    def test_can_remove_image_with_remove_command(self):
+        self.runner.invoke(remove_object_command, args=['setup.py'])
+        with open(self.pkg_file) as fp:
             package = json.load(fp)
         self.assertIsNone(package['objects'].get('setup.py'))
 
     def test_rm_command_returns_0_if_successful(self):
-        result = self.runner.invoke(remove_command, args=['setup.py'])
+        result = self.runner.invoke(remove_object_command, args=['setup.py'])
         self.assertEqual(result.exit_code, 0)
 
     def test_rm_command_returns_1_if_package_does_not_exist(self):
         os.environ[LOCAL_CONFIG_VAR] = '.not-exists'
-        result = self.runner.invoke(remove_command, args=['setup.py'])
+        result = self.runner.invoke(remove_object_command, args=['setup.py'])
         self.assertEqual(result.exit_code, 1)
-
-    def test_rm_command_returns_2_if_image_does_not_exist(self):
-        result = self.runner.invoke(remove_command, args=['not-exists.py'])
-        self.assertEqual(result.exit_code, 2)
 
 
 class ShowCommandTestCase(PackageMockMixin, BaseTestCase):

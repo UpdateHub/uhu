@@ -38,12 +38,6 @@ def add_image(filename, options):
     write_package(package)
 
 
-def remove_image(filename):
-    package = load_package()
-    del package['objects'][filename]
-    write_package(package)
-
-
 def create_package_from_metadata(metadata):
     try:
         package = load_package()

@@ -7,8 +7,8 @@ import unittest
 
 from efu.utils import LOCAL_CONFIG_VAR
 from efu.core.utils import (
-    create_package_from_metadata, load_package, write_package, add_image,
-    remove_image)
+    create_package_from_metadata, load_package, write_package, add_image)
+
 from efu.core.parser_utils import InstallMode
 
 from ..base import PackageMockMixin, BaseTestCase, delete_environment_variable
@@ -82,27 +82,6 @@ class UtilsTestCase(PackageMockMixin, BaseTestCase):
         self.assertEqual(len(objects), 1)
         self.assertEqual(objects['spam.py']['install-mode'], 'raw')
         self.assertEqual(objects['spam.py']['target-device'], 'device-b')
-
-    def test_can_remove_an_image(self):
-        self.create_package_file(self.version, [], self.product)
-        options = {'install_mode': 'raw', 'target-device': 'device-a'}
-
-        add_image(filename='spam.py', options=options)
-        with open(self.pkg_file) as fp:
-            package = json.load(fp)
-        self.assertIsNotNone(package['objects']['spam.py'])
-        self.assertEqual(len(package['objects']), 1)
-
-        remove_image('spam.py')
-        with open(self.pkg_file) as fp:
-            package = json.load(fp)
-        self.assertIsNone(package['objects'].get('spam.py'))
-        self.assertEqual(len(package['objects']), 0)
-
-    def test_remove_image_raises_error_when_image_does_not_exist(self):
-        self.create_package_file(self.version, [], self.product)
-        with self.assertRaises(KeyError):
-            remove_image('spam.py')
 
     def test_can_create_package_file_from_metadata(self):
         os.remove(self.pkg_file)

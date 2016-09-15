@@ -127,3 +127,28 @@ class PackageTestCase(PackageMockMixin, BaseTestCase):
         package = Package.from_file(pkg_file)
         observed = str(package)
         self.assertEqual(observed, expected)
+
+    def test_can_remove_object(self):
+        objects = [self.create_file(bytes(i)) for i in range(3)]
+        obj = objects[0]
+        pkg_file = self.create_package_file(
+            product=self.product, objects=objects, version=self.version)
+        package = Package.from_file(pkg_file)
+
+        self.assertIsNotNone(package.objects.get(obj))
+        self.assertEqual(len(package.objects), 3)
+
+        package.remove_object(obj)
+
+        self.assertIsNone(package.objects.get(obj))
+        self.assertEqual(len(package.objects), 2)
+
+    def test_remove_object_does_nothing_if_object_doesnt_exist(self):
+        objects = [self.create_file(bytes(i)) for i in range(3)]
+        pkg_file = self.create_package_file(
+            product=self.product, objects=objects, version=self.version)
+        package = Package.from_file(pkg_file)
+
+        self.assertEqual(len(package.objects), 3)
+        package.remove_object('no-exists')
+        self.assertEqual(len(package.objects), 3)

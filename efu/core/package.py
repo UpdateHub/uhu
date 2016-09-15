@@ -59,6 +59,12 @@ class Package:
         with open(fn, 'w') as fp:
             json.dump(pkg, fp)
 
+    def remove_object(self, fn):
+        try:
+            del self.objects[fn]
+        except KeyError:
+            pass  # alredy deleted
+
     def __str__(self):
         s = []
         s.append('Product: {}'.format(self.product))
