@@ -24,13 +24,15 @@ def validate(schema_fn, obj):
 
 class ObjectMetadata:
 
+    VOLATILE_OPTIONS = ('size', 'sha256sum')
+
     def __init__(self, fn, sha256sum, size, options):
         self.filename = fn
         self.sha256sum = sha256sum
         self.size = size
         self._options = options if options is not None else {}
 
-    def serialize(self):
+    def serialize(self, full=True):
         obj = {
             'filename': self.filename,
             'sha256sum': self.sha256sum,
@@ -38,6 +40,12 @@ class ObjectMetadata:
         }
         if self._options is not None:
             obj.update(self._options)
+        if not full:
+            for option in self.VOLATILE_OPTIONS:
+                try:
+                    del obj[option]
+                except KeyError:
+                    pass  # already deleted
         return obj
 
     def is_valid(self):

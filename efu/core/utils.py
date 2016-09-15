@@ -3,7 +3,6 @@
 
 import json
 import os
-import shutil
 from copy import deepcopy
 
 from ..utils import get_local_config_file, yes_or_no
@@ -44,26 +43,26 @@ def create_package_file(product):
 
 def add_image(filename, options):
     package = load_package()
-    files = package.get('files', {})
-    files[filename] = options
-    package['files'] = files
+    objects = package.get('objects', {})
+    objects[filename] = options
+    package['objects'] = objects
     write_package(package)
 
 
 def remove_image(filename):
     package = load_package()
-    del package['files'][filename]
+    del package['objects'][filename]
     write_package(package)
 
 
 def list_images():
     ''' Prints current package content '''
     package = load_package()
-    files = package.get('files')
+    objects = package.get('objects')
     print('Product: {}'.format(package['product']))
     print()
     print('Images:')
-    for file, options in files.items():
+    for file, options in objects.items():
         print()
         print('  {} [install mode: {}]'.format(file, options['install-mode']))
         print()
@@ -122,11 +121,6 @@ def list_images():
     print()
 
 
-def copy_package_file(filename):
-    package_fn = get_local_config_file()
-    shutil.copyfile(package_fn, filename)
-
-
 def create_package_from_metadata(metadata):
     try:
         package = load_package()
@@ -154,7 +148,7 @@ def create_package_from_metadata(metadata):
             except KeyError:
                 pass  # option not present
 
-    package['files'] = images
+    package['objects'] = images
     with open(get_local_config_file(), 'w') as fp:
         json.dump(package, fp)
     return package

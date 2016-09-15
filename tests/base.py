@@ -95,13 +95,16 @@ class PackageMockMixin(ObjectMockMixin):
         super().__init__(*args, **kw)
         self.version = '2.0'
         self.product = '0' * 64
+        self.object_options = {
+            'install-mode': 'raw',
+            'target-device': 'device'
+        }
 
     def create_package_file(self, version, objects, product):
-        options = {'install-mode': 'raw', 'target-device': 'device'}
         content = json.dumps({
             'product': product,
             'version': version,
-            'objects': {obj: options for obj in objects},
+            'objects': {obj: self.object_options for obj in objects},
         }).encode()
         return self.create_file(content=content)
 

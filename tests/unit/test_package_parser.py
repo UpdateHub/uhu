@@ -12,8 +12,8 @@ from click.testing import CliRunner
 import efu.core.parser_utils
 import efu.core.parser
 
-from efu.core.parser import (
-    add_command, remove_command, show_command, export_command)
+from efu.cli.package import export_command
+from efu.core.parser import add_command, remove_command, show_command
 from efu.core.parser_modes import (
     inject_default_values, validate_dependencies,
     clean_params, interactive_mode, explicit_mode)
@@ -27,7 +27,7 @@ from efu.core.parser_utils import (
 )
 from efu.utils import LOCAL_CONFIG_VAR
 
-from ..base import ObjectMockMixin, BaseTestCase
+from ..base import PackageMockMixin, BaseTestCase, delete_environment_variable
 
 
 class PromptTestCase(unittest.TestCase):
@@ -580,7 +580,7 @@ class RemoveCommandTestCase(unittest.TestCase):
         self.package_fn = '.efu-test'
         data = {
             'product': '1234R',
-            'files': {'setup.py': {}}
+            'objects': {'setup.py': {}}
         }
         os.environ[LOCAL_CONFIG_VAR] = self.package_fn
         self.addCleanup(self.remove_package_file_env_var)
@@ -595,7 +595,7 @@ class RemoveCommandTestCase(unittest.TestCase):
         self.runner.invoke(remove_command, args=['setup.py'])
         with open(self.package_fn) as fp:
             package = json.load(fp)
-        self.assertIsNone(package['files'].get('setup.py'))
+        self.assertIsNone(package['objects'].get('setup.py'))
 
     def test_rm_command_returns_0_if_successful(self):
         result = self.runner.invoke(remove_command, args=['setup.py'])
@@ -628,7 +628,7 @@ class ShowCommandTestCase(unittest.TestCase):
     def test_show_command_returns_0_if_successful(self):
         package = {
             'product': '1234',
-            'files': {
+            'objects': {
                 'spam.py': {
                     'install-mode': 'raw',
                     'target-device': 'device',
@@ -645,48 +645,47 @@ class ShowCommandTestCase(unittest.TestCase):
         self.assertEqual(result.exit_code, 1)
 
 
-class ExportCommandTestCase(ObjectMockMixin, BaseTestCase):
+class ExportCommandTestCase(PackageMockMixin, BaseTestCase):
 
     def setUp(self):
-        self.package_fn = '.efu-test'
-        self.exported_package_fn = 'efu-exported'
-        os.environ[LOCAL_CONFIG_VAR] = self.package_fn
-        self.runner = CliRunner()
-        self.addCleanup(os.environ.pop, LOCAL_CONFIG_VAR)
+        super().setUp()
+        self.pkg_file = self.create_package_file(
+            self.version, [__file__], self.product)
 
-        self.addCleanup(self.remove_file, self.package_fn)
-        self.addCleanup(self.remove_file, self.exported_package_fn)
-        self.package = {
-            'product': '1234',
-            'files': {
-                'spam.py': {
+        self.exported_pkg_file = '/tmp/efu-dump'
+        self.addCleanup(self.remove_file, self.exported_pkg_file)
+
+        os.environ[LOCAL_CONFIG_VAR] = self.pkg_file
+        self.addCleanup(delete_environment_variable, LOCAL_CONFIG_VAR)
+        self.runner = CliRunner()
+
+    def test_can_export_package_file(self):
+        expected = {
+            'product': self.product,
+            'version': None,
+            'objects': {
+                __file__: {
+                    'filename': __file__,
                     'install-mode': 'raw',
                     'target-device': 'device',
                 }
             }
         }
-
-    def create_package(self):
-        with open(self.package_fn, 'w') as fp:
-            json.dump(self.package, fp)
-
-    def test_can_export_package_file(self):
-        self.create_package()
-        self.assertFalse(os.path.exists(self.exported_package_fn))
-        self.runner.invoke(export_command, args=[self.exported_package_fn])
-        self.assertTrue(os.path.exists(self.exported_package_fn))
-
-        with open(self.exported_package_fn) as fp:
+        self.assertFalse(os.path.exists(self.exported_pkg_file))
+        self.runner.invoke(export_command, args=[self.exported_pkg_file])
+        self.assertTrue(os.path.exists(self.exported_pkg_file))
+        with open(self.exported_pkg_file) as fp:
             exported_package = json.load(fp)
-        self.assertEqual(exported_package, self.package)
+        self.assertEqual(exported_package, expected)
 
     def test_export_package_command_returns_0_if_successful(self):
-        self.create_package()
         result = self.runner.invoke(
-            export_command, args=[self.exported_package_fn])
+            export_command, args=[self.exported_pkg_file])
         self.assertEqual(result.exit_code, 0)
 
     def test_export_command_returns_1_if_package_does_not_exist(self):
+        os.environ[LOCAL_CONFIG_VAR] = 'dont-exist'
         result = self.runner.invoke(
-            export_command, args=[self.exported_package_fn])
+            export_command, args=[self.exported_pkg_file])
+        self.assertFalse(os.path.exists(self.exported_pkg_file))
         self.assertEqual(result.exit_code, 1)

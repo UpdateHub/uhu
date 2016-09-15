@@ -7,8 +7,8 @@ import unittest
 
 from efu.core.utils import (
     create_package_file, create_package_from_metadata,
-    copy_package_file, load_package, write_package,
-    add_image, remove_image, list_images, yes_or_no)
+    load_package, write_package, add_image, remove_image,
+    list_images, yes_or_no)
 from efu.core.parser_utils import InstallMode
 
 from ..base import ObjectMockMixin, BaseTestCase
@@ -61,12 +61,12 @@ class UtilsTestCase(ObjectMockMixin, BaseTestCase):
 
         with open('.efu') as fp:
             data = json.load(fp)
-        files = data.get('files')
+        objects = data.get('objects')
 
-        self.assertIsNotNone(files)
-        self.assertEqual(len(files), 1)
-        self.assertEqual(files['spam.py']['install-mode'], 'raw')
-        self.assertEqual(files['spam.py']['target-device'], 'device')
+        self.assertIsNotNone(objects)
+        self.assertEqual(len(objects), 1)
+        self.assertEqual(objects['spam.py']['install-mode'], 'raw')
+        self.assertEqual(objects['spam.py']['target-device'], 'device')
 
     def test_can_update_a_image(self):
         create_package_file(product='1234X')
@@ -84,11 +84,11 @@ class UtilsTestCase(ObjectMockMixin, BaseTestCase):
 
         with open('.efu') as fp:
             data = json.load(fp)
-        files = data.get('files')
+        objects = data.get('objects')
 
-        self.assertEqual(len(files), 1)
-        self.assertEqual(files['spam.py']['install-mode'], 'raw')
-        self.assertEqual(files['spam.py']['target-device'], 'device-b')
+        self.assertEqual(len(objects), 1)
+        self.assertEqual(objects['spam.py']['install-mode'], 'raw')
+        self.assertEqual(objects['spam.py']['target-device'], 'device-b')
 
     def test_can_remove_an_image(self):
         create_package_file(product='1234X')
@@ -97,14 +97,14 @@ class UtilsTestCase(ObjectMockMixin, BaseTestCase):
         add_image(filename='spam.py', options=options)
         with open('.efu') as fp:
             package = json.load(fp)
-        self.assertIsNotNone(package['files']['spam.py'])
-        self.assertEqual(len(package['files']), 1)
+        self.assertIsNotNone(package['objects']['spam.py'])
+        self.assertEqual(len(package['objects']), 1)
 
         remove_image('spam.py')
         with open('.efu') as fp:
             package = json.load(fp)
-        self.assertIsNone(package['files'].get('spam.py'))
-        self.assertEqual(len(package['files']), 0)
+        self.assertIsNone(package['objects'].get('spam.py'))
+        self.assertEqual(len(package['objects']), 0)
 
     def test_remove_image_raises_error_when_image_does_not_exist(self):
         create_package_file(product='1234X')
@@ -114,7 +114,7 @@ class UtilsTestCase(ObjectMockMixin, BaseTestCase):
     def test_list_images_returns_NONE_if_successful(self):
         package = {
             'product': '1',
-            'files': {
+            'objects': {
                 'spam.py': {
                     'install-mode': 'raw',
                     'target-device': 'device',
@@ -130,35 +130,10 @@ class UtilsTestCase(ObjectMockMixin, BaseTestCase):
         with self.assertRaises(FileNotFoundError):
             list_images()
 
-    def test_can_export_package_file(self):
-        self.addCleanup(self.remove_file, 'exported')
-        expected = {
-            'product': '1',
-            'files': {
-                'spam.py': {
-                    'install-mode': 'raw',
-                    'target-device': 'device',
-                }
-            }
-        }
-        with open('.efu', 'w') as fp:
-            json.dump(expected, fp)
-
-        copy_package_file('exported')
-
-        with open('exported') as fp:
-            observed = json.load(fp)
-        self.assertEqual(observed, expected)
-
-    def test_copy_package_file_raises_error_if_package_doesnt_exist(self):
-        with self.assertRaises(FileNotFoundError):
-            copy_package_file('exported')
-        self.assertFalse(os.path.exists('exported'))
-
     def test_can_create_package_file_from_metadata(self):
         expected = {
             'product': 'cfe2be1c64b0387500853de0f48303e3de7b1c6f1508dc719eeafa0d41c36722',  # nopep8
-            'files': [
+            'objects': [
                 {
                     'install-mode': 'copy',
                     'filename': 'etc/passwd',

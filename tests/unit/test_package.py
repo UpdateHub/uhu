@@ -1,6 +1,7 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+import json
 import os
 import unittest
 
@@ -63,3 +64,52 @@ class PackageTestCase(PackageMockMixin, BaseTestCase):
             self.assertIsNotNone(file['sha256sum'])
             self.assertIsNotNone(file['filename'])
             self.assertIsNotNone(file['size'])
+
+    def test_can_dump_a_package(self):
+        expected = {
+            'product': self.product,
+            'version': None,
+            'objects': {
+                __file__: {
+                    'filename': __file__,
+                    'install-mode': 'raw',
+                    'target-device': 'device',
+                }
+            }
+        }
+        dest_fn = '/tmp/efu-dumped'
+        self.addCleanup(self.remove_file, dest_fn)
+        pkg_file = self.create_package_file(
+            self.version, [__file__], self.product)
+        package = Package.from_file(pkg_file)
+
+        self.assertFalse(os.path.exists(dest_fn))
+        package.dump(dest_fn)
+        self.assertTrue(os.path.exists(dest_fn))
+
+        with open(dest_fn) as fp:
+            dumped_package = json.load(fp)
+        self.assertEqual(dumped_package, expected)
+
+    def test_can_dump_a_package_with_version(self):
+        expected = {
+            'product': self.product,
+            'version': self.version,
+            'objects': {
+                __file__: {
+                    'filename': __file__,
+                    'install-mode': 'raw',
+                    'target-device': 'device',
+                }
+            }
+        }
+        dest_fn = '/tmp/efu-dumped'
+        self.addCleanup(self.remove_file, dest_fn)
+        pkg_file = self.create_package_file(
+            self.version, [__file__], self.product)
+        package = Package.from_file(pkg_file)
+        package.dump(dest_fn, full=True)
+        self.assertTrue(os.path.exists(dest_fn))
+        with open(dest_fn) as fp:
+            dumped_package = json.load(fp)
+        self.assertEqual(dumped_package, expected)

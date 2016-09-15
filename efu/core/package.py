@@ -43,3 +43,14 @@ class Package:
             'objects': [obj.serialize() for obj in self.objects.values()],
             'metadata': self.metadata.serialize()
         }
+
+    def dump(self, fn, full=False):
+        objects = {obj.filename: obj.metadata.serialize(full=False)
+                   for obj in self.objects.values()}
+        pkg = {
+            'product': self.product,
+            'objects': objects,
+            'version': self.version if full else None
+        }
+        with open(fn, 'w') as fp:
+            json.dump(pkg, fp)
