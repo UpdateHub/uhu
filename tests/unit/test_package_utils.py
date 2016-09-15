@@ -8,7 +8,7 @@ import unittest
 from efu.core.utils import (
     create_package_file, create_package_from_metadata,
     load_package, write_package, add_image, remove_image,
-    list_images, yes_or_no)
+    list_images)
 from efu.core.parser_utils import InstallMode
 
 from ..base import ObjectMockMixin, BaseTestCase
@@ -191,13 +191,3 @@ class UtilsTestCase(ObjectMockMixin, BaseTestCase):
             metadata = json.load(fp)
         with self.assertRaises(FileExistsError):
             create_package_from_metadata(metadata)
-
-    def test_yes_or_no_returns_yes_if_TRUE(self):
-        expected = 'yes'
-        observed = yes_or_no(True)
-        self.assertEqual(observed, expected)
-
-    def test_yes_or_no_returns_no_if_FALSE(self):
-        expected = 'no'
-        observed = yes_or_no(False)
-        self.assertEqual(observed, expected)
