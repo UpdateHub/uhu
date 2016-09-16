@@ -73,7 +73,7 @@ class PackageTestCase(PackageMockMixin, BaseTestCase):
             'objects': {
                 __file__: {
                     'filename': __file__,
-                    'install-mode': 'raw',
+                    'mode': 'raw',
                     'target-device': 'device',
                 }
             }
@@ -99,7 +99,7 @@ class PackageTestCase(PackageMockMixin, BaseTestCase):
             'objects': {
                 __file__: {
                     'filename': __file__,
-                    'install-mode': 'raw',
+                    'mode': 'raw',
                     'target-device': 'device',
                 }
             }

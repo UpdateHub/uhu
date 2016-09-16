@@ -89,7 +89,7 @@ class UtilsTestCase(PackageMockMixin, BaseTestCase):
             'product': 'cfe2be1c64b0387500853de0f48303e3de7b1c6f1508dc719eeafa0d41c36722',  # nopep8
             'objects': [
                 {
-                    'install-mode': 'copy',
+                    'mode': 'copy',
                     'filename': 'etc/passwd',
                     'filesystem': 'btrfs',
                     'target-device': '/dev/sda',
@@ -99,14 +99,14 @@ class UtilsTestCase(PackageMockMixin, BaseTestCase):
                     'mount-options': '-b'
                 },
                 {
-                    'install-mode': 'tarball',
+                    'mode': 'tarball',
                     'filename': 'etc/hostname',
                     'filesystem': 'ext4',
                     'target-device': '/dev/sda',
                     'target-path': '/etc/hostname'
                 },
                 {
-                    'install-mode': 'raw',
+                    'mode': 'raw',
                     'filename': 'boot',
                     'target-device': '/dev/sda1',
                     'truncate': False,

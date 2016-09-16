@@ -606,7 +606,7 @@ class ShowCommandTestCase(PackageMockMixin, BaseTestCase):
             'product': '1234',
             'objects': {
                 __file__: {
-                    'install-mode': 'raw',
+                    'mode': 'raw',
                     'target-device': 'device',
                 }
             }
@@ -642,7 +642,7 @@ class ExportCommandTestCase(PackageMockMixin, BaseTestCase):
             'objects': {
                 __file__: {
                     'filename': __file__,
-                    'install-mode': 'raw',
+                    'mode': 'raw',
                     'target-device': 'device',
                 }
             }

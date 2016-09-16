@@ -73,8 +73,8 @@ class Package:
         for fn in sorted(self.objects):
             obj = self.objects[fn]
             s.append('')
-            s.append('  {} [install mode: {}]'.format(
-                fn, obj.metadata.install_mode))
+            s.append('  {} [mode: {}]'.format(
+                fn, obj.metadata.mode))
             s.append('')
             # compressed option
             compressed = obj.options.get('compressed')

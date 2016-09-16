@@ -96,7 +96,7 @@ class PackageMockMixin(ObjectMockMixin):
         self.version = '2.0'
         self.product = '0' * 64
         self.object_options = {
-            'install-mode': 'raw',
+            'mode': 'raw',
             'target-device': 'device'
         }
 

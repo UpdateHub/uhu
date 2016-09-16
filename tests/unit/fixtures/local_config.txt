@@ -2,21 +2,21 @@ Product: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
 
 Objects:
 
-  files/pkg.json [install mode: raw]
+  files/pkg.json [mode: raw]
 
       Target device:     /dev/sda/
       Chunk size:        1234
       Skip from source:  0
       Count:             -1
 
-  files/setup.py [install mode: raw]
+  files/setup.py [mode: raw]
 
       Target device:     /dev/sda/ [seek: 5, truncate: yes]
       Chunk size:        10000
       Skip from source:  19
       Count:             3
 
-  files/tox.ini [install mode: copy]
+  files/tox.ini [mode: copy]
 
       Compressed file:   yes [uncompressed size: 345B]
       Target device:     /dev/sda3 [filesystem: ext4]

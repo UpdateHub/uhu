@@ -59,7 +59,7 @@ class PushTestCase(PushMockMixin, BaseTestCase):
             self.assertIsNotNone(image['sha256sum'])
             self.assertIsNotNone(image['filename'])
             self.assertIsNotNone(image['size'])
-            self.assertIsNotNone(image['install-mode'])
+            self.assertIsNotNone(image['mode'])
             self.assertIsNotNone(image['target-device'])
 
     def test_start_push_updates_finish_push_url(self):
