@@ -10,7 +10,8 @@ from click.testing import CliRunner
 
 import efu.cli.package
 from efu.cli.package import (
-    add_object_command, export_command, remove_object_command, show_command)
+    add_object_command, export_command, remove_object_command,
+    show_command, new_version_command)
 from efu.utils import LOCAL_CONFIG_VAR
 from efu.core import Package
 
@@ -267,4 +268,32 @@ class ExportCommandTestCase(PackageMockMixin, BaseTestCase):
         result = self.runner.invoke(
             export_command, args=[self.exported_pkg_file])
         self.assertFalse(os.path.exists(self.exported_pkg_file))
+        self.assertEqual(result.exit_code, 1)
+
+
+class NewVersionCommandTestCase(PackageMockMixin, BaseTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.runner = CliRunner()
+        self.pkg_file = self.create_package_file(None, [], self.product)
+        os.environ[LOCAL_CONFIG_VAR] = self.pkg_file
+
+    def test_can_set_package_version(self):
+        package = Package.from_file(self.pkg_file)
+        self.assertIsNone(package.version)
+        result = self.runner.invoke(
+            new_version_command, args=[self.version])
+        package = Package.from_file(self.pkg_file)
+        self.assertEqual(package.version, self.version)
+
+    def test_new_package_version_comands_returns_0_if_successful(self):
+        result = self.runner.invoke(
+            new_version_command, args=[self.version])
+        self.assertEqual(result.exit_code, 0)
+
+    def test_new_package_version_comands_returns_1_without_package_file(self):
+        os.environ[LOCAL_CONFIG_VAR] = 'dont-exist'
+        result = self.runner.invoke(
+            new_version_command, args=[self.version])
         self.assertEqual(result.exit_code, 1)

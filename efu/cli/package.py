@@ -18,6 +18,20 @@ def package_cli():
     ''' Package related commands '''
 
 
+@package_cli.command('new')
+@click.argument('version')
+def new_version_command(version):
+    try:
+        pkg_file = get_local_config_file()
+        package = Package.from_file(pkg_file)
+        package.version = version
+        package.dump(pkg_file, full=True)
+    except FileNotFoundError:
+        print('Package file does not exist. '
+              'Create one with <efu use> command')
+        sys.exit(1)
+
+
 @package_cli.command('show')
 def show_command():
     ''' Shows all configured images '''
