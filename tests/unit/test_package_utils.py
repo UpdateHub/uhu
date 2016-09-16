@@ -7,9 +7,7 @@ import unittest
 
 from efu.utils import LOCAL_CONFIG_VAR
 from efu.core.utils import (
-    create_package_from_metadata, load_package, write_package, add_image)
-
-from efu.core.parser_utils import InstallMode
+    create_package_from_metadata, load_package, write_package)
 
 from ..base import PackageMockMixin, BaseTestCase, delete_environment_variable
 
@@ -38,50 +36,6 @@ class UtilsTestCase(PackageMockMixin, BaseTestCase):
         with open(self.pkg_file) as fp:
             package = json.load(fp)
         self.assertEqual(package.get('product'), '1234')
-
-    def test_add_image_raises_error_if_package_file_does_not_exist(self):
-        os.environ[LOCAL_CONFIG_VAR] = 'no-exists'
-        with self.assertRaises(FileNotFoundError):
-            add_image('file.py', {})
-
-    def test_can_add_image_within_package_file(self):
-        self.create_package_file(self.version, [], self.product)
-        options = {
-            'install-mode': 'raw',
-            'target-device': 'device'
-        }
-        add_image(filename='spam.py', options=options)
-
-        with open(self.pkg_file) as fp:
-            data = json.load(fp)
-        objects = data.get('objects')
-
-        self.assertIsNotNone(objects)
-        self.assertEqual(len(objects), 1)
-        self.assertEqual(objects['spam.py']['install-mode'], 'raw')
-        self.assertEqual(objects['spam.py']['target-device'], 'device')
-
-    def test_can_update_a_image(self):
-        self.create_package_file(self.version, [], self.product)
-        options = {
-            'install-mode': 'raw',
-            'target-device': 'device-a'
-        }
-        add_image(filename='spam.py', options=options)
-
-        options = {
-            'install-mode': 'raw',
-            'target-device': 'device-b'
-        }
-        add_image(filename='spam.py', options=options)
-
-        with open(self.pkg_file) as fp:
-            data = json.load(fp)
-        objects = data.get('objects')
-
-        self.assertEqual(len(objects), 1)
-        self.assertEqual(objects['spam.py']['install-mode'], 'raw')
-        self.assertEqual(objects['spam.py']['target-device'], 'device-b')
 
     def test_can_create_package_file_from_metadata(self):
         os.remove(self.pkg_file)

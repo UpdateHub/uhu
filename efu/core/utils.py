@@ -30,14 +30,6 @@ def write_package(data):
         json.dump(data, fp)
 
 
-def add_image(filename, options):
-    package = load_package()
-    objects = package.get('objects', {})
-    objects[filename] = options
-    package['objects'] = objects
-    write_package(package)
-
-
 def create_package_from_metadata(metadata):
     try:
         package = load_package()

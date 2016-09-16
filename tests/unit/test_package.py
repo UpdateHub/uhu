@@ -128,6 +128,26 @@ class PackageTestCase(PackageMockMixin, BaseTestCase):
         observed = str(package)
         self.assertEqual(observed, expected)
 
+    def test_can_add_an_object(self):
+        objects = [self.create_file(bytes(i)) for i in range(3)]
+        pkg_file = self.create_package_file(
+            product=self.product, objects=objects, version=self.version)
+        package = Package.from_file(pkg_file)
+        obj_fn = self.create_file(b'')
+        options = {
+            'filename': obj_fn,
+            'mode': 'raw',
+            'target-device': '/dev/sda'
+        }
+        self.assertEqual(len(package.objects), 3)
+        package.add_object(obj_fn, options)
+        self.assertEqual(len(package.objects), 4)
+        obj = package.objects.get(obj_fn)
+        self.assertIsInstance(obj, Object)
+        self.assertEqual(obj.filename, obj_fn)
+        self.assertEqual(obj.metadata.mode, 'raw')
+        self.assertEqual(obj.metadata.target_device, '/dev/sda')
+
     def test_can_remove_object(self):
         objects = [self.create_file(bytes(i)) for i in range(3)]
         obj = objects[0]

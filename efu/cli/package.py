@@ -6,9 +6,9 @@ import sys
 import click
 
 from ..core import Package
-from ..core.parser import add_command
 from ..utils import get_local_config_file
 
+from ._object import ObjectOptions, MODES
 from .pull import pull_command
 from .push import push_command, status_command
 
@@ -58,8 +58,32 @@ def export_command(filename):
         sys.exit(1)
 
 
-# Image commands
-package_cli.add_command(add_command)
+@package_cli.command('add')
+@click.argument('filename', type=click.Path(exists=True))
+@click.option(
+    '--mode', '-m', type=click.Choice(MODES),
+    help='How the object will be installed', required=True)
+def add_object_command(filename, mode, **options):
+    ''' Adds an entry in the package file for the given artifact '''
+    try:
+        pkg_file = get_local_config_file()
+        package = Package.from_file(pkg_file)
+        metadata = ObjectOptions(filename, mode, options).as_metadata()
+        package.add_object(filename, metadata)
+        package.dump(pkg_file)
+    except FileNotFoundError:
+        print('Package file does not exist. '
+              'Create one with <efu use> command')
+        sys.exit(1)
+    except ValueError as err:
+        print(err)
+        sys.exit(2)
+
+
+# Adds all object options
+for option in ObjectOptions.click_options:
+    add_object_command.params.append(option)
+
 
 # Transaction commands
 package_cli.add_command(pull_command)

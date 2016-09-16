@@ -59,6 +59,11 @@ class Package:
         with open(fn, 'w') as fp:
             json.dump(pkg, fp)
 
+    def add_object(self, fn, options):
+        obj = Object(fn, options)
+        obj.load()
+        self.objects[fn] = obj
+
     def remove_object(self, fn):
         try:
             del self.objects[fn]
