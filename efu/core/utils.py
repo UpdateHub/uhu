@@ -40,7 +40,7 @@ def create_package_from_metadata(metadata):
         pass
 
     package = deepcopy(metadata)
-    images = package.pop('images', [])
+    images = package.pop('objects', [])
 
     # Removes all volatile options within metadata
     for package_option in VOLATILE_PACKAGE_OPTIONS:

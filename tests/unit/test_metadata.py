@@ -50,23 +50,23 @@ class ObjectMetadataTestCase(unittest.TestCase):
 
     def test_can_get_metadata_option_by_attr(self):
         options = {
-            'install-mode': 'raw',
+            'mode': 'raw',
             'seek': 0,
         }
         metadata = ObjectMetadata(
             self.filename, self.sha256sum, self.size, options)
-        self.assertEqual(metadata.install_mode, 'raw')
+        self.assertEqual(metadata.mode, 'raw')
         self.assertEqual(metadata.seek, 0)
 
     def test_getattr_raises_error_if_no_option_is_found(self):
         metadata = ObjectMetadata(
             self.filename, self.sha256sum, self.size, None)
         with self.assertRaises(AttributeError):
-            metadata.install_mode
+            metadata.mode
 
     def test_object_metadata_serialized(self):
         options = {
-            'install-mode': 'raw',
+            'mode': 'raw',
             'target-device': 'device',
         }
         metadata = ObjectMetadata(
@@ -75,7 +75,7 @@ class ObjectMetadataTestCase(unittest.TestCase):
             'filename': self.filename,
             'sha256sum': self.sha256sum,
             'size': 4,
-            'install-mode': 'raw',
+            'mode': 'raw',
             'target-device': 'device',
         }
         observed = metadata.serialize()
@@ -83,7 +83,7 @@ class ObjectMetadataTestCase(unittest.TestCase):
 
     def test_object_metadata_is_valid_returns_True_when_valid(self):
         options = {
-            'install-mode': 'raw',
+            'mode': 'raw',
             'target-device': 'device',
         }
         metadata = ObjectMetadata(
@@ -92,14 +92,14 @@ class ObjectMetadataTestCase(unittest.TestCase):
 
     def test_object_metadata_is_invalid_with_invalid_metadata(self):
         options = {
-            'install-mode': 'raw',
+            'mode': 'raw',
             'seek': 'base-value (should be a number)',
         }
         metadata = ObjectMetadata(
             self.filename, self.sha256sum, self.size, options)
         self.assertFalse(metadata.is_valid())
 
-    def test_object_metadata_is_invalid_when_install_mode_is_missing(self):
+    def test_object_metadata_is_invalid_when_mode_is_missing(self):
         options = {
             'target-device': 'device',
         }
@@ -107,9 +107,9 @@ class ObjectMetadataTestCase(unittest.TestCase):
             self.filename, self.sha256sum, self.size, options)
         self.assertFalse(metadata.is_valid())
 
-    def test_object_metadata_is_invalid_with_invalid_install_mode(self):
+    def test_object_metadata_is_invalid_with_invalid_mode(self):
         options = {
-            'install-mode': 'bad-raw',
+            'mode': 'bad-raw',
             'target-device': 'device',
         }
         metadata = ObjectMetadata(
@@ -125,7 +125,7 @@ class PackageMetadataTestCase(ObjectMockMixin, BaseTestCase):
         self.sha256sum = '4e388ab32b10dc8dbc7e28144f552830adc74787c1e2c0824032078a79f227fb'  # nopep8
         self.version = '2.0'
         self.options = {
-            'install-mode': 'raw',
+            'mode': 'raw',
             'filename': self.fn,
             'target-device': '/dev/sda1',
             'truncate': False,
@@ -141,9 +141,9 @@ class PackageMetadataTestCase(ObjectMockMixin, BaseTestCase):
         expected = {
             'product': self.product,
             'version': self.version,
-            'images': [
+            'objects': [
                 {
-                    'install-mode': 'raw',
+                    'mode': 'raw',
                     'filename': self.fn,
                     'size': 4,
                     'sha256sum': self.sha256sum,
@@ -172,7 +172,7 @@ class PackageMetadataTestCase(ObjectMockMixin, BaseTestCase):
 
     def test_metadata_is_valid_returns_False_object_is_invalid(self):
         self.options = {
-            'install-mode': 'bad-option',
+            'mode': 'bad-option',
             'filename': self.fn,
         }
         self.objects = [Object(self.fn, self.options)]

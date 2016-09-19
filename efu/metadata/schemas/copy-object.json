@@ -1,8 +1,8 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
 
-    "title": "Tarball Image",
-    "description": "Image specifications for TARBALL install mode",
+    "title": "Copy Image",
+    "description": "Image specifications for COPY install mode",
 
     "type": "object",
 
@@ -21,11 +21,11 @@
             "descsription": "SHA256 sum of the image data",
             "$ref": "definitions.json#/sha256sum"
         },
-        "install-mode": {
+        "mode": {
             "description": "Represents the install mode for the image data",
             "type": "string",
             "enum": [
-                "tarball"
+                "copy"
             ]
         },
         "target-device": {
@@ -51,7 +51,7 @@
             "type": "string"
         },
         "target-path": {
-            "description": "Target path on which the image must be installed to (e.g., /vmlinuz). This is relative to the mount point. Field present when install-mode equals to copy or tarball",
+            "description": "Target path on which the image must be installed to (e.g., /vmlinuz). This is relative to the mount point. Field present when mode equals to copy or tarball",
             "type": "string"
         },
         "format?": {
@@ -72,7 +72,7 @@
     "required": [
         "filename",
         "filesystem",
-        "install-mode",
+        "mode",
         "sha256sum",
         "size",
         "target-device",

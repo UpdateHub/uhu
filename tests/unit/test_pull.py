@@ -24,7 +24,7 @@ class PullTestCase(PullMockMixin, BaseTestCase):
             'product': self.product,
             'objects': {
                 self.image_fn: {
-                    'install-mode': 'raw',
+                    'mode': 'raw',
                     'target-device': 'device'
                 }
             }
@@ -37,7 +37,7 @@ class PullTestCase(PullMockMixin, BaseTestCase):
 
         # fixtures
         self.metadata = Package.from_file(self.pkg_file).metadata.serialize()
-        self.image_metadata = self.metadata['images'][0]
+        self.image_metadata = self.metadata['objects'][0]
 
         # create clean package file
         with open(self.pkg_file, 'w') as fp:
@@ -69,13 +69,13 @@ class PullTestCase(PullMockMixin, BaseTestCase):
 
     def test_check_local_files_returns_NONE_when_identical_file_exists(self):
         pull = Pull(self.commit)
-        observed = pull.check_local_files(self.metadata['images'])
+        observed = pull.check_local_files(self.metadata['objects'])
         self.assertIsNone(observed)
 
     def test_check_local_files_returns_NONE_when_file_does_not_exists(self):
         os.remove(self.image_fn)
         pull = Pull(self.commit)
-        observed = pull.check_local_files(self.metadata['images'])
+        observed = pull.check_local_files(self.metadata['objects'])
         self.assertIsNone(observed)
 
     def test_check_local_files_raises_error_when_existent_file_diverges(self):
@@ -83,7 +83,7 @@ class PullTestCase(PullMockMixin, BaseTestCase):
             fp.write('overwrited')
         pull = Pull(self.commit)
         with self.assertRaises(FileExistsError):
-            pull.check_local_files(self.metadata['images'])
+            pull.check_local_files(self.metadata['objects'])
 
     def test_get_object_returns_EXISTS_when_file_exists(self):
         pull = Pull(self.commit)

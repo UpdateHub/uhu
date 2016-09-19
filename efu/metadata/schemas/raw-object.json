@@ -21,7 +21,7 @@
             "descsription": "SHA256 sum of the image data",
             "$ref": "definitions.json#/sha256sum"
         },
-        "install-mode": {
+        "mode": {
             "description": "Represents the install mode for the image data",
             "type": "string",
             "enum": [
@@ -79,7 +79,7 @@
 
     "required": [
         "filename",
-        "install-mode",
+        "mode",
         "sha256sum",
         "size",
         "target-device"

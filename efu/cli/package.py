@@ -34,7 +34,7 @@ def new_version_command(version):
 
 @package_cli.command('show')
 def show_command():
-    ''' Shows all configured images '''
+    ''' Shows all configured objects '''
     try:
         pkg_file = get_local_config_file()
         print(Package.from_file(pkg_file))

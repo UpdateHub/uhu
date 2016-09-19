@@ -49,7 +49,7 @@ class ObjectMetadata:
         return obj
 
     def is_valid(self):
-        schema = '{}-image.json'.format(self._options.get('install-mode'))
+        schema = '{}-object.json'.format(self._options.get('mode'))
         try:
             validate(schema, self.serialize())
             return True
@@ -77,7 +77,7 @@ class PackageMetadata:
         return {
             'product': self.product,
             'version': self.version,
-            'images': self.objects,
+            'objects': self.objects,
         }
 
     def is_valid(self):

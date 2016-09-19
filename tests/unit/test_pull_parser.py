@@ -28,10 +28,10 @@ class PullCommandTestCase(PullMockMixin, BaseTestCase):
         self.metadata = {
             'product': self.product,
             'version': self.version,
-            'images': [
+            'objects': [
                 {
                     'filename': self.image_fn,
-                    'install-mode': 'raw',
+                    'mode': 'raw',
                     'size': 4,
                     'sha256sum': self.image_sha256sum
                 }

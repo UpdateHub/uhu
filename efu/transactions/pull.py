@@ -80,7 +80,7 @@ class Pull(object):
         metadata = self.get_metadata()
         create_package_from_metadata(metadata)
         if full:
-            images = metadata.get('images')
+            images = metadata.get('objects')
             if images is not None:
                 self.check_local_files(images)
                 return [self._get_object(image) for image in images]

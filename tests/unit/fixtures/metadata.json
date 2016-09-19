@@ -1,7 +1,7 @@
 {
     "product": "cfe2be1c64b0387500853de0f48303e3de7b1c6f1508dc719eeafa0d41c36722",
     "version": "2.0",
-    "images": [
+    "objects": [
         {
             "mode": "copy",
             "filename": "etc/passwd",

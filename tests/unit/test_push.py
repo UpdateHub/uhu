@@ -55,7 +55,7 @@ class PushTestCase(PushMockMixin, BaseTestCase):
         self.assertIsNotNone(metadata)
         self.assertEqual(metadata['version'], self.version)
         self.assertEqual(metadata['product'], self.product)
-        for image in metadata['images']:
+        for image in metadata['objects']:
             self.assertIsNotNone(image['sha256sum'])
             self.assertIsNotNone(image['filename'])
             self.assertIsNotNone(image['size'])

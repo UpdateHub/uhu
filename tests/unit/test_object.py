@@ -42,7 +42,7 @@ class ObjectTestCase(ObjectMockMixin, BaseTestCase):
         self.content_sha256sum = '4e388ab32b10dc8dbc7e28144f552830adc74787c1e2c0824032078a79f227fb'  # nopep8
         self.filename = self.create_file(self.content)
         self.options = {
-            'install-mode': 'raw',
+            'mode': 'raw',
             'target-device': 'device'
         }
 
@@ -94,7 +94,7 @@ class ObjectTestCase(ObjectMockMixin, BaseTestCase):
         self.assertEqual(obj.metadata.size, 4)
         self.assertEqual(obj.metadata.filename, obj.filename)
         self.assertEqual(obj.metadata.sha256sum, obj.sha256sum)
-        self.assertEqual(obj.metadata.install_mode, 'raw')
+        self.assertEqual(obj.metadata.mode, 'raw')
         self.assertEqual(obj.metadata.target_device, 'device')
 
     def test_serialized_object(self):
@@ -112,7 +112,7 @@ class ObjectTestCase(ObjectMockMixin, BaseTestCase):
                 'filename': obj.filename,
                 'sha256sum': self.content_sha256sum,
                 'size': 4,
-                'install-mode': 'raw',
+                'mode': 'raw',
                 'target-device': 'device',
             }
         }

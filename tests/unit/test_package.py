@@ -60,9 +60,9 @@ class PackageTestCase(PackageMockMixin, BaseTestCase):
 
         self.assertEqual(observed['product'], self.product)
         self.assertEqual(observed['version'], self.version)
-        self.assertEqual(len(observed['images']), len(objects))
+        self.assertEqual(len(observed['objects']), len(objects))
 
-        for file in observed['images']:
+        for file in observed['objects']:
             self.assertIsNotNone(file['sha256sum'])
             self.assertIsNotNone(file['filename'])
             self.assertIsNotNone(file['size'])

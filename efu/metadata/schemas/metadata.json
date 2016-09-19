@@ -27,13 +27,13 @@
         "post-update-hook": {
             "$ref": "post-update-hook.json"
         },
-        "images": {
+        "objects": {
             "type": "array",
             "items": {
                 "anyOf": [
-                    {"$ref": "raw-image.json"},
-                    {"$ref": "copy-image.json"},
-                    {"$ref": "tarball-image.json"}
+                    {"$ref": "raw-object.json"},
+                    {"$ref": "copy-object.json"},
+                    {"$ref": "tarball-object.json"}
                 ]
             },
             "minItems": 1
@@ -46,7 +46,7 @@
     },
 
     "required": [
-        "images",
+        "objects",
         "product",
         "version"
     ],
