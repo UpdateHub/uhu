@@ -29,20 +29,25 @@ class Chunk:
 
 class Object:
 
-    def __init__(self, fn, options=None):
-        self._fd = open(fn, 'br')
-        self._chunk_number = count()
-        self._loaded = False
-        self.options = options
+    def __init__(self, fn, options=None, load=True):
         self.filename = fn
+        self.options = options
         self.size = None
         self.chunks = None
         self.sha256sum = None
         self.metadata = None
 
+        self._fd = None
+        self._chunk_number = count()
+        self._loaded = False
+
+        if load:
+            self.load()
+
     def load(self):
         if self._loaded:
             return
+        self._fd = open(self.filename, 'br')
         sha256sum = hashlib.sha256()
         self.size = os.path.getsize(self.filename)
         self.chunks = []
