@@ -12,7 +12,8 @@ from efu.core import Object, Package
 from efu.utils import LOCAL_CONFIG_VAR
 
 from ..base import (
-    PackageMockMixin, BaseTestCase, delete_environment_variable)
+    PackageMockMixin, BaseTestCase, HTTPServerMockMixin,
+    delete_environment_variable)
 
 
 class PackageTestCase(PackageMockMixin, BaseTestCase):
@@ -172,3 +173,23 @@ class PackageTestCase(PackageMockMixin, BaseTestCase):
         self.assertEqual(len(package.objects), 3)
         package.remove_object('no-exists')
         self.assertEqual(len(package.objects), 3)
+
+
+class PackageStatusTestCase(
+        PackageMockMixin, HTTPServerMockMixin, BaseTestCase):
+
+    def test_can_get_a_package_status(self):
+        path = '/products/{}/packages/{}/status'.format(
+            self.product, self.package_id)
+        expected = 'finished'
+        self.httpd.register_response(
+            path, status_code=200, body=json.dumps({'status': expected}))
+        observed = Package.get_status(self.product, self.package_id)
+        self.assertEqual(observed, expected)
+
+    def test_get_package_status_raises_error_if_package_doesnt_exist(self):
+        path = '/products/{}/packages/{}/status'.format(
+            self.product, self.package_id)
+        self.httpd.register_response(path, status_code=404)
+        with self.assertRaises(ValueError):
+            Package.get_status(self.product, self.package_id)

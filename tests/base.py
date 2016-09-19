@@ -95,6 +95,7 @@ class PackageMockMixin(ObjectMockMixin):
         super().__init__(*args, **kw)
         self.version = '2.0'
         self.product = '0' * 64
+        self.package_id = '1234'
         self.object_options = {
             'mode': 'raw',
             'target-device': 'device'

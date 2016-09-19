@@ -6,9 +6,7 @@ import sys
 import click
 
 from ..core import Package
-from ..transactions.exceptions import CommitDoesNotExist
 from ..transactions.push import Push
-from ..transactions.utils import get_commit_status
 from ..utils import get_local_config_file
 
 
@@ -22,19 +20,3 @@ def push_command(version):
     package = Package.from_file(pkg_file)
     package.version = version
     sys.exit(Push(package).run())
-
-
-@click.command(name='status')
-@click.argument('commit_id')
-def status_command(commit_id):
-    '''
-    Prints the status of the given commit
-    '''
-    try:
-        print(get_commit_status(commit_id))
-    except FileNotFoundError:
-        print('Package file does not exist')
-        sys.exit(1)
-    except CommitDoesNotExist:
-        print('Commit {} does not exist'.format(commit_id))
-        sys.exit(2)

@@ -10,7 +10,7 @@ from ..utils import get_local_config_file
 
 from ._object import ObjectOptions, MODES
 from .pull import pull_command
-from .push import push_command, status_command
+from .push import push_command
 
 
 @click.group(name='package')
@@ -99,7 +99,25 @@ for option in ObjectOptions.click_options:
     add_object_command.params.append(option)
 
 
+@package_cli.command(name='status')
+@click.argument('package_id')
+def status_command(package_id):
+    '''
+    Prints the status of the given package
+    '''
+    try:
+        pkg_file = get_local_config_file()
+        package = Package.from_file(pkg_file)
+        status = Package.get_status(package.product, package_id)
+        print(status)
+    except FileNotFoundError:
+        print('Package file does not exist')
+        sys.exit(1)
+    except ValueError as err:
+        print(err)
+        sys.exit(2)
+
+
 # Transaction commands
 package_cli.add_command(pull_command)
 package_cli.add_command(push_command)
-package_cli.add_command(status_command)

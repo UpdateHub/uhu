@@ -3,8 +3,9 @@
 
 import json
 
+from ..http.request import Request
 from ..metadata import PackageMetadata
-from ..utils import yes_or_no
+from ..utils import get_server_url, yes_or_no
 
 from . import Object
 
@@ -69,6 +70,15 @@ class Package:
             del self.objects[fn]
         except KeyError:
             pass  # alredy deleted
+
+    @classmethod
+    def get_status(cls, product, package_id):
+        path = '/products/{product}/packages/{package}/status'
+        url = get_server_url(path.format(product=product, package=package_id))
+        response = Request(url, 'GET', json=True).send()
+        if response.status_code == 200:
+            return response.json().get('status')
+        raise ValueError('Status not found')
 
     def __str__(self):
         s = []

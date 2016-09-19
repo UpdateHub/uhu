@@ -10,12 +10,14 @@ from click.testing import CliRunner
 
 import efu.cli.package
 from efu.cli.package import (
-    add_object_command, export_command, remove_object_command,
+    add_object_command, export_command, remove_object_command, status_command,
     show_command, new_version_command)
 from efu.utils import LOCAL_CONFIG_VAR
 from efu.core import Package
 
-from ..base import PackageMockMixin, BaseTestCase, delete_environment_variable
+from ..base import (
+    PackageMockMixin, BaseTestCase, HTTPServerMockMixin,
+    delete_environment_variable)
 
 
 class AddObjectCommandTestCase(PackageMockMixin, BaseTestCase):
@@ -297,3 +299,34 @@ class NewVersionCommandTestCase(PackageMockMixin, BaseTestCase):
         result = self.runner.invoke(
             new_version_command, args=[self.version])
         self.assertEqual(result.exit_code, 1)
+
+
+class StatusCommandTestCase(
+        PackageMockMixin, HTTPServerMockMixin, BaseTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.pkg_file = self.create_package_file(None, [], self.product)
+        os.environ[LOCAL_CONFIG_VAR] = self.pkg_file
+        self.runner = CliRunner()
+
+    def test_status_command_returns_0_if_successful(self):
+        path = '/products/{}/packages/{}/status'.format(
+            self.product, self.package_id)
+        self.httpd.register_response(
+            path, status_code=200, body=json.dumps({'status': 'finished'}))
+        result = self.runner.invoke(status_command, args=[self.package_id],
+                                    catch_exceptions=False)
+        self.assertEqual(result.exit_code, 0)
+
+    def test_status_command_returns_1_if_package_doesnt_exist(self):
+        os.environ[LOCAL_CONFIG_VAR] = 'not_exists'
+        result = self.runner.invoke(status_command, args=[self.package_id])
+        self.assertEqual(result.exit_code, 1)
+
+    def test_status_command_returns_2_if_status_doesnt_exist(self):
+        path = '/products/{}/packages/{}/status'.format(
+            self.product, self.package_id)
+        self.httpd.register_response(path, status_code=404)
+        result = self.runner.invoke(status_command, args=[self.package_id])
+        self.assertEqual(result.exit_code, 2)
