@@ -1,14 +1,9 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-import json
-
-from ..core import Object
-from ..core.utils import load_package, create_package_from_metadata
+from ..core import Object, Package
 from ..http.request import Request
-from ..utils import get_server_url
-
-from .exceptions import CommitDoesNotExist
+from ..utils import get_server_url, get_local_config_file
 
 
 class DownloadObjectStatus:
@@ -19,34 +14,31 @@ class DownloadObjectStatus:
 
 class Pull(object):
 
-    def __init__(self, commit_id):
-        self.package = load_package()
-        self.commit_id = commit_id
-        self.commit_file = 'efu-commit-{}.json'.format(self.commit_id)
+    def __init__(self, product, package_id):
+        self.product = product
+        self.package_id = package_id
         self.existent_files = []
 
     def get_metadata(self):
-        path = '/products/{product}/commits/{commit}'.format(
-            product=self.package['product'], commit=self.commit_id)
+        path = '/products/{product}/packages/{package}'.format(
+            product=self.product, package=self.package_id)
         url = get_server_url(path)
         response = Request(url, 'GET').send()
         if response.ok:
             metadata = response.json()
-            with open(self.commit_file, 'w') as fp:
-                json.dump(metadata, fp)
             return metadata
-        raise CommitDoesNotExist
+        raise ValueError('Package not found')
 
-    def _get_object(self, image):
-        if image['filename'] in self.existent_files:
+    def _get_object(self, obj):
+        if obj['filename'] in self.existent_files:
             return DownloadObjectStatus.EXISTS
 
         download_path = '/products/{product}/objects/{obj}'.format(
-            product=self.package['product'], obj=image['sha256sum'])
+            product=self.product, obj=obj['sha256sum'])
         url = get_server_url(download_path)
         response = Request(url, 'GET', stream=True).send()
         if response.ok:
-            with open(image['filename'], 'wb') as fp:
+            with open(obj['filename'], 'wb') as fp:
                 for chunk in response.iter_content():
                     fp.write(chunk)
             return DownloadObjectStatus.SUCCESS
@@ -78,9 +70,12 @@ class Pull(object):
 
     def pull(self, full=True):
         metadata = self.get_metadata()
-        create_package_from_metadata(metadata)
+        package = Package.from_metadata(metadata)
+        package.dump(get_local_config_file())
         if full:
-            images = metadata.get('objects')
-            if images is not None:
-                self.check_local_files(images)
-                return [self._get_object(image) for image in images]
+            objects = metadata.get('objects')
+            if objects is not None:
+                self.check_local_files(objects)
+                for obj in objects:
+                    self._get_object(obj)
+        return package

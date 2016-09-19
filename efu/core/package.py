@@ -4,7 +4,7 @@
 import json
 
 from ..http.request import Request
-from ..metadata import PackageMetadata
+from ..metadata import ObjectMetadata, PackageMetadata
 from ..utils import get_server_url, yes_or_no
 
 from . import Object
@@ -37,6 +37,19 @@ class Package:
         package = Package(version=version, objects=objects, product=product)
         package.load_metadata()
         return package
+
+    @classmethod
+    def from_metadata(cls, metadata):
+        objects = {}
+        for metadata_obj in metadata['objects']:
+            options = {k: v for k, v in metadata_obj.items()
+                       if k not in ObjectMetadata.VOLATILE_OPTIONS}
+            obj = Object(metadata_obj['filename'], options, load=False)
+            obj.metadata = ObjectMetadata(
+                metadata_obj['filename'], metadata_obj['sha256sum'],
+                metadata_obj['size'], options)
+            objects[obj.filename] = obj
+        return Package(objects=objects, product=metadata['product'])
 
     def load_metadata(self):
         self.metadata = PackageMetadata(

@@ -8,7 +8,6 @@ import os
 from click.testing import CliRunner
 
 from efu.cli.pull import pull_command
-from efu.transactions.exceptions import CommitDoesNotExist
 
 from ..base import PullMockMixin, BaseTestCase
 
@@ -19,8 +18,8 @@ class PullCommandTestCase(PullMockMixin, BaseTestCase):
         super().setUp()
         self.set_directories()
         self.set_package_var()
-        self.set_file_image()
-        self.set_commit()
+        self.set_object()
+        self.set_package_id()
 
         with open(self.pkg_file, 'w') as fp:
             json.dump({'product': self.product}, fp)
@@ -30,10 +29,10 @@ class PullCommandTestCase(PullMockMixin, BaseTestCase):
             'version': self.version,
             'objects': [
                 {
-                    'filename': self.image_fn,
+                    'filename': self.obj_fn,
                     'mode': 'raw',
                     'size': 4,
-                    'sha256sum': self.image_sha256sum
+                    'sha256sum': self.obj_sha256sum
                 }
             ]
         }
@@ -41,37 +40,46 @@ class PullCommandTestCase(PullMockMixin, BaseTestCase):
         self.runner = CliRunner()
 
     def test_pull_command_full_returns_0_if_successful(self):
-        result = self.runner.invoke(pull_command, args=[self.commit, '--full'])
+        result = self.runner.invoke(
+            pull_command, args=[self.package_id, '--full'])
         self.assertEqual(result.exit_code, 0)
 
     def test_pull_command_metadata_returns_0_if_successful(self):
         result = self.runner.invoke(
-            pull_command, args=[self.commit, '--metadata'])
+            pull_command, args=[self.package_id, '--metadata'])
         self.assertEqual(result.exit_code, 0)
 
     def test_pull_command_full_returns_0_if_file_exists(self):
-        with open(self.image_fn, 'wb') as fp:
-            fp.write(self.image_content)
-        result = self.runner.invoke(pull_command, args=[self.commit, '--full'])
+        with open(self.obj_fn, 'wb') as fp:
+            fp.write(self.obj_content)
+        result = self.runner.invoke(
+            pull_command, args=[self.package_id, '--full'])
         self.assertEqual(result.exit_code, 0)
 
     def test_pull_command_returns_1_if_package_does_not_exist(self):
         os.remove(self.pkg_file)
-        result = self.runner.invoke(pull_command, args=[self.commit])
+        result = self.runner.invoke(pull_command, args=[self.package_id])
         self.assertEqual(result.exit_code, 1)
 
-    def test_pull_command_returns_2_if_commit_does_not_exist(self):
-        result = self.runner.invoke(pull_command, args=['not-exist'])
+    def test_pull_command_returns_2_if_product_not_set(self):
+        with open(self.pkg_file, 'w') as fp:
+            json.dump({}, fp)
+        result = self.runner.invoke(pull_command, args=[self.package_id])
         self.assertEqual(result.exit_code, 2)
 
     def test_pull_command_returns_3_if_package_exists(self):
         with open(self.pkg_file, 'w') as fp:
             json.dump({'product': self.product, 'version': '2.0'}, fp)
-        result = self.runner.invoke(pull_command, args=[self.commit])
+        result = self.runner.invoke(pull_command, args=[self.package_id])
         self.assertEqual(result.exit_code, 3)
 
-    def test_pull_command_returns_3_if_file_exists_and_diverges(self):
-        with open(self.image_fn, 'w') as fp:
+    def test_pull_command_returns_4_if_package_id_does_not_exist(self):
+        result = self.runner.invoke(pull_command, args=['not-exist'])
+        self.assertEqual(result.exit_code, 4)
+
+    def test_pull_command_returns_5_if_file_exists_and_diverges(self):
+        with open(self.obj_fn, 'w') as fp:
             fp.write('different')
-        result = self.runner.invoke(pull_command, args=[self.commit, '--full'])
-        self.assertEqual(result.exit_code, 3)
+        result = self.runner.invoke(
+            pull_command, args=[self.package_id, '--full'])
+        self.assertEqual(result.exit_code, 5)

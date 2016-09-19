@@ -174,6 +174,17 @@ class PackageTestCase(PackageMockMixin, BaseTestCase):
         package.remove_object('no-exists')
         self.assertEqual(len(package.objects), 3)
 
+    def test_can_create_package_file_from_metadata(self):
+        cwd = os.getcwd()
+        os.chdir('tests/unit/fixtures')
+        self.addCleanup(os.chdir, cwd)
+        with open('metadata.json') as fp:
+            metadata = json.load(fp)
+        package = Package.from_metadata(metadata)
+        self.assertIsNone(package.version)
+        self.assertEqual(package.product, metadata['product'])
+        self.assertEqual(len(package.objects), len(metadata['objects']))
+
 
 class PackageStatusTestCase(
         PackageMockMixin, HTTPServerMockMixin, BaseTestCase):

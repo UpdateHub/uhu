@@ -228,24 +228,22 @@ class PullMockMixin(HTTPServerMockMixin, PackageMockMixin):
         os.environ[LOCAL_CONFIG_VAR] = self.pkg_file
         self.addCleanup(os.environ.pop, LOCAL_CONFIG_VAR)
 
-    def set_file_image(self):
-        self.image_fn = 'image.bin'
-        self.image_content = b'123456789'
-        self.image_sha256sum = hashlib.sha256(self.image_content).hexdigest()
-        self.addCleanup(self.remove_file, self.image_fn)
+    def set_object(self):
+        self.obj_fn = 'image.bin'
+        self.obj_content = b'123456789'
+        self.obj_sha256sum = hashlib.sha256(self.obj_content).hexdigest()
+        self.addCleanup(self.remove_file, self.obj_fn)
 
-    def set_commit(self):
-        self.commit = '4321'
-        self.commit_file = 'efu-commit-{}.json'.format(self.commit)
-        self.addCleanup(self.remove_file, self.commit_file)
+    def set_package_id(self):
+        self.package_id = '4321'
 
     def set_urls(self):
         # url to download metadata
         self.httpd.register_response(
-            '/products/{}/commits/{}'.format(self.product, self.commit),
+            '/products/{}/packages/{}'.format(self.product, self.package_id),
             'GET', body=json.dumps(self.metadata), status_code=200)
         # url to download image
         self.httpd.register_response(
             '/products/{}/objects/{}'.format(
-                self.product, self.image_sha256sum),
-            'GET', body=self.image_content, status_code=200)
+                self.product, self.obj_sha256sum),
+            'GET', body=self.obj_content, status_code=200)
