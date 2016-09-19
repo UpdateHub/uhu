@@ -10,8 +10,8 @@ from click.testing import CliRunner
 
 import efu.cli.package
 from efu.cli.package import (
-    add_object_command, export_command, remove_object_command, status_command,
-    show_command, new_version_command)
+    add_object_command, edit_object_command, export_command,
+    new_version_command, remove_object_command, status_command, show_command)
 from efu.utils import LOCAL_CONFIG_VAR
 from efu.core import Package
 
@@ -164,6 +164,54 @@ class AddObjectCommandTestCase(PackageMockMixin, BaseTestCase):
         for cmd in cmds:
             result = self.runner.invoke(add_object_command, cmd)
             self.assertEqual(result.exit_code, 2)
+
+
+class EditObjectCommandTestCase(PackageMockMixin, BaseTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.runner = CliRunner()
+        self.pkg_file = '.efu-test'
+        self.obj_file = 'setup.py'
+        self.addCleanup(self.remove_file, self.pkg_file)
+
+        os.environ[LOCAL_CONFIG_VAR] = self.pkg_file
+        self.addCleanup(delete_environment_variable, LOCAL_CONFIG_VAR)
+
+        data = {
+            'product': '1234R',
+            'objects': {
+                self.obj_file: {
+                    'target-device': '/dev/sda'
+                }
+            }
+        }
+        with open(self.pkg_file, 'w') as fp:
+            json.dump(data, fp)
+
+    def test_can_edit_object_with_edit_object_command(self):
+        args = [self.obj_file, 'target-device', '/dev/sdb']
+        self.runner.invoke(edit_object_command, args=args)
+        with open(self.pkg_file) as fp:
+            pkg = json.load(fp)
+        obj = pkg['objects'][self.obj_file]
+        self.assertEqual(obj['target-device'], '/dev/sdb')
+
+    def test_edit_command_returns_0_if_successful(self):
+        args = [self.obj_file, 'target-device', '/dev/sdb']
+        result = self.runner.invoke(edit_object_command, args=args)
+        self.assertEqual(result.exit_code, 0)
+
+    def test_edit_command_returns_1_if_package_does_not_exist(self):
+        os.environ[LOCAL_CONFIG_VAR] = '.not-exists'
+        args = [self.obj_file, 'target-device', '/dev/sdb']
+        result = self.runner.invoke(edit_object_command, args=args)
+        self.assertEqual(result.exit_code, 1)
+
+    def test_edit_command_returns_2_if_object_does_not_exist(self):
+        args = ['not-exists', 'target-device', '/dev/sdb']
+        result = self.runner.invoke(edit_object_command, args=args)
+        self.assertEqual(result.exit_code, 2)
 
 
 class RemoveObjectCommandTestCase(PackageMockMixin, BaseTestCase):

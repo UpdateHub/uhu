@@ -99,6 +99,26 @@ for option in ObjectOptions.click_options:
     add_object_command.params.append(option)
 
 
+@package_cli.command(name='edit')
+@click.argument('obj')
+@click.argument('key')
+@click.argument('value')
+def edit_object_command(obj, key, value):
+    ''' Edits an object property within package '''
+    try:
+        pkg_file = get_local_config_file()
+        package = Package.from_file(pkg_file)
+        package.edit_object(obj, key, value)
+        package.dump(pkg_file)
+    except FileNotFoundError:
+        print('Package file does not exist. '
+              'Create one with <efu use> command')
+        sys.exit(1)
+    except KeyError as err:
+        print(err)
+        sys.exit(2)
+
+
 @package_cli.command(name='status')
 @click.argument('package_id')
 def status_command(package_id):

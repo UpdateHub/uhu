@@ -78,6 +78,10 @@ class Package:
         obj.load()
         self.objects[fn] = obj
 
+    def edit_object(self, fn, option, value):
+        obj = self.objects[fn]
+        obj.options[option] = value
+
     def remove_object(self, fn):
         try:
             del self.objects[fn]

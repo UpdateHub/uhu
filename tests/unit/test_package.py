@@ -149,6 +149,16 @@ class PackageTestCase(PackageMockMixin, BaseTestCase):
         self.assertEqual(obj.metadata.mode, 'raw')
         self.assertEqual(obj.metadata.target_device, '/dev/sda')
 
+    def test_can_edit_object(self):
+        obj = self.create_file(b'123')
+        pkg_file = self.create_package_file(
+            product=self.product, objects=[obj], version=self.version)
+        package = Package.from_file(pkg_file)
+        pkg_obj = package.objects[obj]
+        self.assertEqual(pkg_obj.options['target-device'], 'device')
+        package.edit_object(obj, 'target-device', '/dev/sdb')
+        self.assertEqual(pkg_obj.options['target-device'], '/dev/sdb')
+
     def test_can_remove_object(self):
         objects = [self.create_file(bytes(i)) for i in range(3)]
         obj = objects[0]
