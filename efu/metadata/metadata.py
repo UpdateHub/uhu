@@ -8,7 +8,7 @@ from jsonschema import Draft4Validator, FormatChecker, RefResolver
 from jsonschema.exceptions import ValidationError
 
 
-SCHEMAS_DIR = os.path.dirname(__file__)
+SCHEMAS_DIR = os.path.join(os.path.dirname(__file__), 'schemas')
 
 
 def validate(schema_fn, obj):
