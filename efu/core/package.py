@@ -100,8 +100,11 @@ class Package:
     def __str__(self):
         s = []
         s.append('Product: {}'.format(self.product))
-        s.append('')
-        s.append('Objects:')
+        s.append('Version: {}'.format(self.version))
+        if self.objects:
+            s.append('Objects:')
+        else:
+            s.append('Objects: None')
         for fn in sorted(self.objects):
             obj = self.objects[fn]
             s.append('')
@@ -161,5 +164,4 @@ class Package:
             count = obj.options.get('count')
             if count is not None:
                 s.append('      Count:             {}'.format(count))
-        s.append('')
         return '\n'.join(s)

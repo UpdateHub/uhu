@@ -124,7 +124,7 @@ class PackageTestCase(PackageMockMixin, BaseTestCase):
         pkg_file = self.create_file(b'')
         shutil.copyfile('local_config.json', pkg_file)
         with open('local_config.txt') as fp:
-            expected = fp.read()
+            expected = fp.read().strip()
         package = Package.from_file(pkg_file)
         observed = str(package)
         self.assertEqual(observed, expected)
