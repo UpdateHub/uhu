@@ -100,7 +100,6 @@ class ObjectTestCase(ObjectMockMixin, BaseTestCase):
     def test_serialized_object(self):
         obj = Object(self.filename, self.options)
         expected = {
-            'id': self.filename,
             'sha256sum': self.content_sha256sum,
             'parts': [
                 Chunk(b's', 0).serialize(),

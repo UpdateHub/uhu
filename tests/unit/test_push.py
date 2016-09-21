@@ -44,7 +44,6 @@ class PushTestCase(PushMockMixin, BaseTestCase):
         self.assertEqual(request.headers['Content-Type'], 'application/json')
         # objects
         for file in request_body.get('objects'):
-            self.assertIsNotNone(file.get('id'))
             self.assertIsNotNone(file.get('sha256sum'))
             self.assertIsNotNone(file.get('parts'))
             for part in file.get('parts'):
@@ -119,11 +118,11 @@ class PushTestCase(PushMockMixin, BaseTestCase):
     def test_upload_files_requests_are_made_correctly(self):
         objects = [self.create_file(b'000') for i in range(3)]
         pkg_file = self.create_package_file(
-            version=self.version, objects=objects, product=self.product)
+            version=self.version, files=objects, product=self.product)
         pkg = Package.from_file(pkg_file)
         files = list(pkg.objects.values())
         uploads = self.create_uploads_meta(files[:2])
-        uploads.append(self.create_upload_meta(files[-1], file_exists=True))
+        uploads.append(self.create_upload_meta(files[-1], 3, file_exists=True))
         self.set_push(self.product, uploads=uploads)
 
         push = Push(pkg)

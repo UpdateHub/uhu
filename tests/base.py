@@ -96,16 +96,19 @@ class PackageMockMixin(ObjectMockMixin):
         self.version = '2.0'
         self.product = '0' * 64
         self.package_id = '1234'
-        self.object_options = {
-            'mode': 'raw',
-            'target-device': 'device'
-        }
 
-    def create_package_file(self, version, objects, product):
+    def create_package_file(self, version, files, product):
+        objects = {}
+        for obj_id, fn in enumerate(files, 1):
+            objects[obj_id] = {
+                'filename': fn,
+                'mode': 'raw',
+                'target-device': 'device'
+            }
         content = json.dumps({
             'product': product,
             'version': version,
-            'objects': {obj: self.object_options for obj in objects},
+            'objects': objects,
         }).encode()
         return self.create_file(content=content)
 
@@ -158,7 +161,7 @@ class HTTPServerMockMixin(BaseMockMixin):
 
 class UploadMockMixin(PackageMockMixin, HTTPServerMockMixin, ConfigMockMixin):
 
-    def create_upload_meta(self, file, file_exists=False,
+    def create_upload_meta(self, file, obj_id, file_exists=False,
                            part_exists=False, success=True):
         file.load()
         if success:
@@ -172,14 +175,15 @@ class UploadMockMixin(PackageMockMixin, HTTPServerMockMixin, ConfigMockMixin):
         }
         parts = {str(part): part_obj for part in range(file.n_chunks)}
         file_obj = {
-            'object_id': file.filename,
+            'object_id': obj_id,
             'exists': file_exists,
             'parts': parts,
         }
         return file_obj
 
     def create_uploads_meta(self, files, **kw):
-        return [self.create_upload_meta(file, **kw) for file in files]
+        return [self.create_upload_meta(fn, obj_id, **kw)
+                for obj_id, fn in enumerate(files, 1)]
 
 
 class PushMockMixin(UploadMockMixin):
@@ -230,6 +234,7 @@ class PullMockMixin(HTTPServerMockMixin, PackageMockMixin):
 
     def set_object(self):
         self.obj_fn = 'image.bin'
+        self.obj_id = '1'
         self.obj_content = b'123456789'
         self.obj_sha256sum = hashlib.sha256(self.obj_content).hexdigest()
         self.addCleanup(self.remove_file, self.obj_fn)

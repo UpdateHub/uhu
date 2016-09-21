@@ -27,34 +27,32 @@ class PackageTestCase(PackageMockMixin, BaseTestCase):
             Package().from_file(__file__)
 
     def test_can_load_package_file(self):
-        objects = [self.create_file(b'0') for _ in range(15)]
+        files = [self.create_file(b'0') for _ in range(1)]
         pkg_file = self.create_package_file(
-            version=self.version, product=self.product, objects=objects)
+            version=self.version, files=files, product=self.product)
         package = Package.from_file(pkg_file)
-
         self.assertEqual(package.product, self.product)
         self.assertEqual(package.version, self.version)
-        self.assertEqual(len(package.objects), len(objects))
+        self.assertEqual(len(package.objects), len(files))
         for obj in package.objects.values():
             self.assertIsInstance(obj, Object)
 
     def test_package_serialized(self):
         objects = [self.create_file(bytes(i)) for i in range(3)]
         pkg_file = self.create_package_file(
-            product=self.product, objects=objects, version=self.version)
+            product=self.product, files=objects, version=self.version)
         package = Package.from_file(pkg_file)
         observed = package.serialize()
 
         self.assertEqual(observed['version'], self.version)
         self.assertEqual(len(observed['objects']), len(objects))
         for file in observed['objects']:
-            self.assertIsNotNone(file['id'])
             self.assertIsNotNone(file['sha256sum'])
 
     def test_package_metadata(self):
         objects = [self.create_file(bytes(i)) for i in range(3)]
         pkg_file = self.create_package_file(
-            product=self.product, objects=objects, version=self.version)
+            product=self.product, files=objects, version=self.version)
         package = Package.from_file(pkg_file)
         observed = package.metadata.serialize()
 
@@ -72,7 +70,7 @@ class PackageTestCase(PackageMockMixin, BaseTestCase):
             'product': self.product,
             'version': None,
             'objects': {
-                __file__: {
+                '1': {
                     'filename': __file__,
                     'mode': 'raw',
                     'target-device': 'device',
@@ -98,7 +96,7 @@ class PackageTestCase(PackageMockMixin, BaseTestCase):
             'product': self.product,
             'version': self.version,
             'objects': {
-                __file__: {
+                '1': {
                     'filename': __file__,
                     'mode': 'raw',
                     'target-device': 'device',
@@ -130,9 +128,8 @@ class PackageTestCase(PackageMockMixin, BaseTestCase):
         self.assertEqual(observed, expected)
 
     def test_can_add_an_object(self):
-        objects = [self.create_file(bytes(i)) for i in range(3)]
         pkg_file = self.create_package_file(
-            product=self.product, objects=objects, version=self.version)
+            product=self.product, files=[], version=self.version)
         package = Package.from_file(pkg_file)
         obj_fn = self.create_file(b'')
         options = {
@@ -140,30 +137,37 @@ class PackageTestCase(PackageMockMixin, BaseTestCase):
             'mode': 'raw',
             'target-device': '/dev/sda'
         }
-        self.assertEqual(len(package.objects), 3)
+        self.assertEqual(len(package.objects), 0)
         package.add_object(obj_fn, options)
-        self.assertEqual(len(package.objects), 4)
-        obj = package.objects.get(obj_fn)
+        self.assertEqual(len(package.objects), 1)
+        obj = package.objects.get(1)
         self.assertIsInstance(obj, Object)
         self.assertEqual(obj.filename, obj_fn)
         self.assertEqual(obj.metadata.mode, 'raw')
         self.assertEqual(obj.metadata.target_device, '/dev/sda')
 
+    def test_can_add_more_than_one_object_per_file(self):
+        package = Package()
+        obj = self.create_file(b'')
+        package.add_object(obj, {})
+        package.add_object(obj, {})
+        self.assertEqual(len(package.objects), 2)
+
     def test_can_edit_object(self):
         obj = self.create_file(b'123')
         pkg_file = self.create_package_file(
-            product=self.product, objects=[obj], version=self.version)
+            product=self.product, files=[obj], version=self.version)
         package = Package.from_file(pkg_file)
-        pkg_obj = package.objects[obj]
+        pkg_obj = package.objects[1]
         self.assertEqual(pkg_obj.options['target-device'], 'device')
-        package.edit_object(obj, 'target-device', '/dev/sdb')
+        package.edit_object(1, 'target-device', '/dev/sdb')
         self.assertEqual(pkg_obj.options['target-device'], '/dev/sdb')
 
     def test_can_remove_object(self):
         objects = [self.create_file(bytes(i)) for i in range(3)]
-        obj = objects[0]
+        obj = 1
         pkg_file = self.create_package_file(
-            product=self.product, objects=objects, version=self.version)
+            product=self.product, files=objects, version=self.version)
         package = Package.from_file(pkg_file)
 
         self.assertIsNotNone(package.objects.get(obj))
@@ -177,7 +181,7 @@ class PackageTestCase(PackageMockMixin, BaseTestCase):
     def test_remove_object_does_nothing_if_object_doesnt_exist(self):
         objects = [self.create_file(bytes(i)) for i in range(3)]
         pkg_file = self.create_package_file(
-            product=self.product, objects=objects, version=self.version)
+            product=self.product, files=objects, version=self.version)
         package = Package.from_file(pkg_file)
 
         self.assertEqual(len(package.objects), 3)

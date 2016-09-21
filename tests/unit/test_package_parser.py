@@ -39,7 +39,7 @@ class AddObjectCommandTestCase(PackageMockMixin, BaseTestCase):
         self.assertEqual(result.exit_code, 0)
         package = Package.from_file(self.pkg_file)
         self.assertEqual(len(package.objects), 1)
-        obj = package.objects.get(__file__)
+        obj = package.objects.get(1)
         self.assertEqual(obj.filename, __file__)
         self.assertEqual(obj.metadata.mode, 'raw')
         self.assertEqual(obj.metadata.target_device, 'device')
@@ -173,6 +173,7 @@ class EditObjectCommandTestCase(PackageMockMixin, BaseTestCase):
         self.runner = CliRunner()
         self.pkg_file = '.efu-test'
         self.obj_file = 'setup.py'
+        self.obj_id = '1'
         self.addCleanup(self.remove_file, self.pkg_file)
 
         os.environ[LOCAL_CONFIG_VAR] = self.pkg_file
@@ -181,7 +182,8 @@ class EditObjectCommandTestCase(PackageMockMixin, BaseTestCase):
         data = {
             'product': '1234R',
             'objects': {
-                self.obj_file: {
+                self.obj_id: {
+                    'filename': self.obj_file,
                     'target-device': '/dev/sda'
                 }
             }
@@ -190,21 +192,21 @@ class EditObjectCommandTestCase(PackageMockMixin, BaseTestCase):
             json.dump(data, fp)
 
     def test_can_edit_object_with_edit_object_command(self):
-        args = [self.obj_file, 'target-device', '/dev/sdb']
+        args = [self.obj_id, 'target-device', '/dev/sdb']
         self.runner.invoke(edit_object_command, args=args)
         with open(self.pkg_file) as fp:
             pkg = json.load(fp)
-        obj = pkg['objects'][self.obj_file]
+        obj = pkg['objects'][self.obj_id]
         self.assertEqual(obj['target-device'], '/dev/sdb')
 
     def test_edit_command_returns_0_if_successful(self):
-        args = [self.obj_file, 'target-device', '/dev/sdb']
+        args = [self.obj_id, 'target-device', '/dev/sdb']
         result = self.runner.invoke(edit_object_command, args=args)
         self.assertEqual(result.exit_code, 0)
 
     def test_edit_command_returns_1_if_package_does_not_exist(self):
         os.environ[LOCAL_CONFIG_VAR] = '.not-exists'
-        args = [self.obj_file, 'target-device', '/dev/sdb']
+        args = [self.obj_id, 'target-device', '/dev/sdb']
         result = self.runner.invoke(edit_object_command, args=args)
         self.assertEqual(result.exit_code, 1)
 
@@ -219,9 +221,10 @@ class RemoveObjectCommandTestCase(PackageMockMixin, BaseTestCase):
     def setUp(self):
         super().setUp()
         self.pkg_file = '.efu-test'
+        self.obj_id = '1'
         data = {
             'product': '1234R',
-            'objects': {'setup.py': {}}
+            'objects': {self.obj_id: {'filename': __file__}}
         }
         os.environ[LOCAL_CONFIG_VAR] = self.pkg_file
         self.addCleanup(delete_environment_variable, LOCAL_CONFIG_VAR)
@@ -231,18 +234,19 @@ class RemoveObjectCommandTestCase(PackageMockMixin, BaseTestCase):
         self.runner = CliRunner()
 
     def test_can_remove_image_with_remove_command(self):
-        self.runner.invoke(remove_object_command, args=['setup.py'])
+        r = self.runner.invoke(remove_object_command, args=[self.obj_id])
+        print(r.output)
         with open(self.pkg_file) as fp:
             package = json.load(fp)
-        self.assertIsNone(package['objects'].get('setup.py'))
+        self.assertIsNone(package['objects'].get(self.obj_id))
 
-    def test_rm_command_returns_0_if_successful(self):
-        result = self.runner.invoke(remove_object_command, args=['setup.py'])
+    def test_remove_command_returns_0_if_successful(self):
+        result = self.runner.invoke(remove_object_command, args=[self.obj_id])
         self.assertEqual(result.exit_code, 0)
 
-    def test_rm_command_returns_1_if_package_does_not_exist(self):
+    def test_remove_command_returns_1_if_package_does_not_exist(self):
         os.environ[LOCAL_CONFIG_VAR] = '.not-exists'
-        result = self.runner.invoke(remove_object_command, args=['setup.py'])
+        result = self.runner.invoke(remove_object_command, args=[self.obj_id])
         self.assertEqual(result.exit_code, 1)
 
 
@@ -259,7 +263,8 @@ class ShowCommandTestCase(PackageMockMixin, BaseTestCase):
         package = {
             'product': '1234',
             'objects': {
-                __file__: {
+                1: {
+                    'filename': __file__,
                     'mode': 'raw',
                     'target-device': 'device',
                 }
@@ -294,7 +299,7 @@ class ExportCommandTestCase(PackageMockMixin, BaseTestCase):
             'product': self.product,
             'version': None,
             'objects': {
-                __file__: {
+                '1': {
                     'filename': __file__,
                     'mode': 'raw',
                     'target-device': 'device',

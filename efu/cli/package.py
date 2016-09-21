@@ -45,13 +45,13 @@ def show_command():
 
 
 @package_cli.command('remove')
-@click.argument('filename')
-def remove_object_command(filename):
+@click.argument('object-id', type=int)
+def remove_object_command(object_id):
     ''' Removes the filename entry within package file '''
     try:
         pkg_file = get_local_config_file()
         package = Package.from_file(pkg_file)
-        package.remove_object(filename)
+        package.remove_object(object_id)
         package.dump(pkg_file)
     except FileNotFoundError:
         print('Package file does not exist. '
@@ -100,15 +100,15 @@ for option in ObjectOptions.click_options:
 
 
 @package_cli.command(name='edit')
-@click.argument('obj')
+@click.argument('object-id', type=int)
 @click.argument('key')
 @click.argument('value')
-def edit_object_command(obj, key, value):
+def edit_object_command(object_id, key, value):
     ''' Edits an object property within package '''
     try:
         pkg_file = get_local_config_file()
         package = Package.from_file(pkg_file)
-        package.edit_object(obj, key, value)
+        package.edit_object(object_id, key, value)
         package.dump(pkg_file)
     except FileNotFoundError:
         print('Package file does not exist. '

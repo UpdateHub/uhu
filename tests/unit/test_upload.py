@@ -15,18 +15,18 @@ class UploadTestCase(UploadMockMixin, BaseTestCase):
         self.file = Object(self.create_file(b'\0'), self.options)
 
     def test_does_not_upload_when_file_exists_in_server(self):
-        meta = self.create_upload_meta(self.file, file_exists=True)
+        meta = self.create_upload_meta(self.file, 1, file_exists=True)
         result = Upload(self.file, meta).upload()
         self.assertEqual(result, UploadStatus.EXISTS)
 
     def test_returns_success_when_upload_is_successful(self):
-        meta = self.create_upload_meta(self.file)
+        meta = self.create_upload_meta(self.file, 1)
         result = Upload(self.file, meta).upload()
         self.assertEqual(result, UploadStatus.SUCCESS)
 
     def test_upload_requests_payload_are_made_correctly(self):
         file = Object(self.create_file(b'1234'), self.options)
-        meta = self.create_upload_meta(file)
+        meta = self.create_upload_meta(file, 1)
 
         Upload(file, meta).upload()
 
@@ -37,6 +37,6 @@ class UploadTestCase(UploadMockMixin, BaseTestCase):
         self.assertEqual(self.httpd.requests[3].body, b'4')
 
     def test_upload_returns_failure_result_when_part_upload_fails(self):
-        meta = self.create_upload_meta(self.file, success=False)
+        meta = self.create_upload_meta(self.file, 1, success=False)
         result = Upload(self.file, meta).upload()
         self.assertEqual(result, UploadStatus.FAIL)

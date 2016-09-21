@@ -62,7 +62,6 @@ class Object:
     def serialize(self):
         self.load()
         return {
-            'id': self.filename,
             'sha256sum': self.sha256sum,
             'parts': [chunk.serialize() for chunk in self.chunks],
             'metadata': self.metadata.serialize()

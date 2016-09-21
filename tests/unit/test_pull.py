@@ -22,7 +22,8 @@ class PullTestCase(PullMockMixin, BaseTestCase):
         self.full_package = {
             'product': self.product,
             'objects': {
-                self.obj_fn: {
+                self.obj_id: {
+                    'filename': self.obj_fn,
                     'mode': 'raw',
                     'target-device': 'device'
                 }

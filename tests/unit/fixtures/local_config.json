@@ -2,7 +2,8 @@
     "product": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "version": "2.0",
     "objects": {
-	"files/pkg.json": {
+	"1": {
+            "filename": "files/pkg.json",
 	    "seek": 0,
 	    "truncate": false,
 	    "count": -1,
@@ -11,7 +12,8 @@
 	    "mode": "raw",
 	    "chunk-size": 1234
 	},
-	"files/setup.py": {
+	"2": {
+	    "filename": "files/setup.py",
 	    "seek": 5,
 	    "mode": "raw",
 	    "count": 3,
@@ -20,7 +22,8 @@
 	    "truncate": true,
 	    "chunk-size": 10000
 	},
-	"files/tox.ini": {
+	"3": {
+	    "filename": "files/tox.ini",
 	    "required-uncompressed-size": 345,
 	    "format-options": "-i 100 -J size=500",
 	    "filesystem": "ext4",

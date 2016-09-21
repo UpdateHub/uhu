@@ -2,6 +2,7 @@
 # This software is released under the MIT License
 
 import json
+from collections import OrderedDict
 
 from ..http.request import Request
 from ..metadata import ObjectMetadata, PackageMetadata
@@ -24,32 +25,27 @@ class Package:
     @classmethod
     def from_file(cls, fn):
         with open(fn) as fp:
-            package = json.load(fp)
-
-        file_objects = package.get('objects')
-        product = package.get('product')
-        version = package.get('version')
-        objects = {}
-        if file_objects is not None:
-            for fn, options in file_objects.items():
-                obj = Object(fn, options)
-                objects[obj.filename] = obj
-        package = Package(version=version, objects=objects, product=product)
+            pkg_file = json.load(fp, object_pairs_hook=OrderedDict)
+        package = Package(
+            version=pkg_file.get('version'), product=pkg_file.get('product'))
+        objects = pkg_file.get('objects', {})
+        for obj_id, obj in objects.items():
+            package.add_object(obj['filename'], obj, obj_id=int(obj_id))
         package.load_metadata()
         return package
 
     @classmethod
     def from_metadata(cls, metadata):
-        objects = {}
-        for metadata_obj in metadata['objects']:
-            options = {k: v for k, v in metadata_obj.items()
-                       if k not in ObjectMetadata.VOLATILE_OPTIONS}
-            obj = Object(metadata_obj['filename'], options, load=False)
-            obj.metadata = ObjectMetadata(
-                metadata_obj['filename'], metadata_obj['sha256sum'],
-                metadata_obj['size'], options)
-            objects[obj.filename] = obj
-        return Package(objects=objects, product=metadata['product'])
+        package = Package(product=metadata['product'])
+        for obj in metadata['objects']:
+            options = {option: value for option, value in obj.items()
+                       if option not in ObjectMetadata.VOLATILE_OPTIONS}
+            metadata = ObjectMetadata(
+                obj['filename'], obj['sha256sum'], obj['size'], options)
+            package.add_object(
+                obj['filename'], options=options, load=False,
+                metadata=metadata)
+        return package
 
     def load_metadata(self):
         self.metadata = PackageMetadata(
@@ -63,8 +59,8 @@ class Package:
         }
 
     def dump(self, fn, full=False):
-        objects = {obj.filename: obj.metadata.serialize(full=False)
-                   for obj in self.objects.values()}
+        objects = {obj_id: obj.metadata.serialize(full=False)
+                   for obj_id, obj in self.objects.items()}
         pkg = {
             'product': self.product,
             'objects': objects,
@@ -73,20 +69,29 @@ class Package:
         with open(fn, 'w') as fp:
             json.dump(pkg, fp)
 
-    def add_object(self, fn, options):
-        obj = Object(fn, options)
-        obj.load()
-        self.objects[fn] = obj
+    def _next_object_id(self):
+        ids = self.objects.keys()
+        if ids:
+            return max(ids) + 1
+        return 1
 
-    def edit_object(self, fn, option, value):
-        obj = self.objects[fn]
+    def add_object(self, fn, options, obj_id=None, load=True, metadata=None):
+        obj = Object(fn, options, load=load)
+        if metadata is not None:
+            obj.metadata = metadata
+        if obj_id is None:
+            obj_id = self._next_object_id()
+        self.objects[obj_id] = obj
+
+    def edit_object(self, obj_id, option, value):
+        obj = self.objects[obj_id]
         obj.options[option] = value
 
-    def remove_object(self, fn):
+    def remove_object(self, obj_id):
         try:
-            del self.objects[fn]
+            del self.objects[obj_id]
         except KeyError:
-            pass  # alredy deleted
+            pass  # already deleted
 
     @classmethod
     def get_status(cls, product, package_id):
@@ -105,11 +110,11 @@ class Package:
             s.append('Objects:')
         else:
             s.append('Objects: None')
-        for fn in sorted(self.objects):
-            obj = self.objects[fn]
+        for obj_id in sorted(self.objects):
+            obj = self.objects[obj_id]
             s.append('')
-            s.append('  {} [mode: {}]'.format(
-                fn, obj.metadata.mode))
+            s.append('  {}# {} [mode: {}]'.format(
+                obj_id, obj.metadata.filename, obj.metadata.mode))
             s.append('')
             # compressed option
             compressed = obj.options.get('compressed')
