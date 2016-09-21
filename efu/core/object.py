@@ -33,7 +33,7 @@ class Object:
         self.filename = fn
         self.options = options
         self.size = None
-        self.chunks = None
+        self.chunks = []
         self.sha256sum = None
         self.metadata = None
 
@@ -48,29 +48,25 @@ class Object:
         if self._loaded:
             return
         self._fd = open(self.filename, 'br')
-        sha256sum = hashlib.sha256()
         self.size = os.path.getsize(self.filename)
-        self.chunks = []
+
+        sha256sum = hashlib.sha256()
         for chunk in self:
-            self.chunks.append(chunk)
+            self.chunks.append(chunk.serialize())
             sha256sum.update(chunk.data)
         self.sha256sum = sha256sum.hexdigest()
         self.metadata = ObjectMetadata(
             self.filename, self.sha256sum, self.size, self.options)
+
         self._loaded = True
 
     def serialize(self):
         self.load()
         return {
             'sha256sum': self.sha256sum,
-            'parts': [chunk.serialize() for chunk in self.chunks],
+            'parts': self.chunks,
             'metadata': self.metadata.serialize()
         }
-
-    @property
-    def n_chunks(self):
-        if self.chunks is not None:
-            return len(self.chunks)
 
     def _read(self):
         data = self._fd.read(get_chunk_size())
@@ -78,3 +74,6 @@ class Object:
 
     def __iter__(self):
         return iter(self._read, None)
+
+    def __len__(self):
+        return len(self.chunks)

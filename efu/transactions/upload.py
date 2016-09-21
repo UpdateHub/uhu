@@ -29,7 +29,7 @@ class Upload(object):
         self._bar = None
         if progress:
             self._bar = UploadProgressBar(
-                self._object.filename, max=self._object.n_chunks)
+                self._object.filename, max=len(self._object))
 
     def upload(self):
         '''

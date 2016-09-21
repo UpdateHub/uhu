@@ -161,9 +161,9 @@ class HTTPServerMockMixin(BaseMockMixin):
 
 class UploadMockMixin(PackageMockMixin, HTTPServerMockMixin, ConfigMockMixin):
 
-    def create_upload_meta(self, file, obj_id, file_exists=False,
+    def create_upload_meta(self, obj, obj_id, file_exists=False,
                            part_exists=False, success=True):
-        file.load()
+        obj.load()
         if success:
             url = self.generic_url(success=True)
         else:
@@ -173,7 +173,7 @@ class UploadMockMixin(PackageMockMixin, HTTPServerMockMixin, ConfigMockMixin):
             'exists': part_exists,
             'url': url,
         }
-        parts = {str(part): part_obj for part in range(file.n_chunks)}
+        parts = {str(part): part_obj for part in range(len(obj))}
         file_obj = {
             'object_id': obj_id,
             'exists': file_exists,

@@ -61,14 +61,14 @@ class ObjectTestCase(ObjectMockMixin, BaseTestCase):
         observed = obj.sha256sum
         self.assertEqual(observed, expected)
 
-    def test_object_n_chunks_is_none_when_not_loaded(self):
+    def test_object_len_is_0_when_not_loaded(self):
         obj = Object(self.filename, self.options, load=False)
-        self.assertIsNone(obj.n_chunks)
+        self.assertEqual(len(obj), 0)
 
-    def test_loaded_object_n_chunks(self):
+    def test_loaded_object_len(self):
         obj = Object(self.filename, self.options)
         obj.load()
-        self.assertEqual(obj.n_chunks, 4)
+        self.assertEqual(len(obj), 4)
 
     def test_object_size_is_none_when_object_is_not_loaded(self):
         obj = Object(self.filename, self.options, load=False)
