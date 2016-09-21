@@ -43,8 +43,7 @@ class Package:
             metadata = ObjectMetadata(
                 obj['filename'], obj['sha256sum'], obj['size'], options)
             package.add_object(
-                obj['filename'], options=options, load=False,
-                metadata=metadata)
+                obj['filename'], options=options, metadata=metadata)
         return package
 
     def load_metadata(self):
@@ -75,8 +74,8 @@ class Package:
             return max(ids) + 1
         return 1
 
-    def add_object(self, fn, options, obj_id=None, load=True, metadata=None):
-        obj = Object(fn, options, load=load)
+    def add_object(self, fn, options, obj_id=None, metadata=None):
+        obj = Object(fn, options)
         if metadata is not None:
             obj.metadata = metadata
         if obj_id is None:

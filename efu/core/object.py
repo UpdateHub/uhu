@@ -29,23 +29,20 @@ class Chunk:
 
 class Object:
 
-    def __init__(self, fn, options=None, load=True):
+    def __init__(self, fn, options=None):
         self.filename = fn
         self.options = options
         self.size = None
         self.chunks = []
         self.sha256sum = None
         self.metadata = None
+        self.loaded = False
 
         self._fd = None
         self._chunk_number = count()
-        self._loaded = False
-
-        if load:
-            self.load()
 
     def load(self):
-        if self._loaded:
+        if self.loaded:
             return
         self._fd = open(self.filename, 'br')
         self.size = os.path.getsize(self.filename)
@@ -57,8 +54,7 @@ class Object:
         self.sha256sum = sha256sum.hexdigest()
         self.metadata = ObjectMetadata(
             self.filename, self.sha256sum, self.size, self.options)
-
-        self._loaded = True
+        self.loaded = True
 
     def serialize(self):
         self.load()

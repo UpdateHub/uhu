@@ -84,6 +84,7 @@ def add_object_command(filename, mode, **options):
         package = Package.from_file(pkg_file)
         metadata = ObjectOptions(filename, mode, options).as_metadata()
         package.add_object(filename, metadata)
+        package.load_metadata()
         package.dump(pkg_file)
     except FileNotFoundError:
         print('Package file does not exist. '

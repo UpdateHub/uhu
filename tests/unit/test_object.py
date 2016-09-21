@@ -51,7 +51,7 @@ class ObjectTestCase(ObjectMockMixin, BaseTestCase):
         self.assertEqual(obj.filename, __file__)
 
     def test_object_sha256sum_is_none_when_not_loaded(self):
-        obj = Object(self.filename, self.options, load=False)
+        obj = Object(self.filename, self.options)
         self.assertIsNone(obj.sha256sum)
 
     def test_loaded_object_sha256sum(self):
@@ -62,7 +62,7 @@ class ObjectTestCase(ObjectMockMixin, BaseTestCase):
         self.assertEqual(observed, expected)
 
     def test_object_len_is_0_when_not_loaded(self):
-        obj = Object(self.filename, self.options, load=False)
+        obj = Object(self.filename, self.options)
         self.assertEqual(len(obj), 0)
 
     def test_loaded_object_len(self):
@@ -71,7 +71,7 @@ class ObjectTestCase(ObjectMockMixin, BaseTestCase):
         self.assertEqual(len(obj), 4)
 
     def test_object_size_is_none_when_object_is_not_loaded(self):
-        obj = Object(self.filename, self.options, load=False)
+        obj = Object(self.filename, self.options)
         self.assertIsNone(obj.size)
 
     def test_loaded_object_size(self):
@@ -81,6 +81,7 @@ class ObjectTestCase(ObjectMockMixin, BaseTestCase):
 
     def test_read_object(self):
         obj = Object(self.filename, self.options)
+        obj.load()
         obj._fd.seek(0)
         self.assertEqual(obj._read().data, b's')
         self.assertEqual(obj._read().data, b'p')
@@ -119,8 +120,8 @@ class ObjectTestCase(ObjectMockMixin, BaseTestCase):
         self.assertEqual(observed, expected)
 
     def test_does_not_load_object_twice(self):
-        obj = Object(self.filename, self.options, load=False)
-        self.assertFalse(obj._loaded)
+        obj = Object(self.filename, self.options)
+        self.assertFalse(obj.loaded)
         obj.load()
         with patch('hashlib.sha256') as mock:
             obj.load()

@@ -141,6 +141,7 @@ class PackageTestCase(PackageMockMixin, BaseTestCase):
         package.add_object(obj_fn, options)
         self.assertEqual(len(package.objects), 1)
         obj = package.objects.get(1)
+        obj.load()
         self.assertIsInstance(obj, Object)
         self.assertEqual(obj.filename, obj_fn)
         self.assertEqual(obj.metadata.mode, 'raw')
