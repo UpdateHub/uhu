@@ -1,81 +1,65 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-from ..core import Object, Package
+import hashlib
+import os
+
 from ..http.request import Request
-from ..utils import get_server_url, get_local_config_file
+from ..utils import get_server_url
 
 
-class DownloadObjectStatus:
+class DownloadObjectResult:
     SUCCESS = 0
     EXISTS = 1
     ERROR = 2
 
 
-class Pull(object):
+class Pull:
 
-    def __init__(self, product, package_id):
-        self.product = product
-        self.package_id = package_id
+    def __init__(self, package):
+        self.package = package
+        self.metadata = None
         self.existent_files = []
 
     def get_metadata(self):
         path = '/products/{product}/packages/{package}'.format(
-            product=self.product, package=self.package_id)
-        url = get_server_url(path)
-        response = Request(url, 'GET').send()
-        if response.ok:
-            metadata = response.json()
-            return metadata
-        raise ValueError('Package not found')
+            product=self.package.product, package=self.package.uid)
+        response = Request(get_server_url(path), 'GET').send()
+        if not response.ok:
+            raise ValueError('Package not found')
+        self.metadata = response.json()
 
-    def _get_object(self, obj):
-        if obj['filename'] in self.existent_files:
-            return DownloadObjectStatus.EXISTS
-
-        download_path = '/products/{product}/objects/{obj}'.format(
-            product=self.product, obj=obj['sha256sum'])
-        url = get_server_url(download_path)
-        response = Request(url, 'GET', stream=True).send()
-        if response.ok:
-            with open(obj['filename'], 'wb') as fp:
-                for chunk in response.iter_content():
-                    fp.write(chunk)
-            return DownloadObjectStatus.SUCCESS
-        else:
-            return DownloadObjectStatus.ERROR
-
-    def check_local_files(self, pkg_objects):
+    def check_local_files(self, package):
         '''
-        Verifies if local files will not be overwritten by commit files.
+        Verifies if local files will not be overwritten by incoming files.
 
         Also, it populates self.existent_files with files that must
         not be downloaded.
         '''
-        for pkg_obj in pkg_objects:
-            try:
-                obj = Object(pkg_obj['filename'])
-                obj.load()
-                if obj.sha256sum != pkg_obj['sha256sum']:
-                    # files with same name with different content.
-                    # Must abort pull.
-                    raise FileExistsError
-                else:
-                    # file exists and it is identical to the local.
-                    # We can pull, but it should not be downloaded.
-                    self.existent_files.append(obj.filename)
-            except FileNotFoundError:
-                # file does not exist, so we can download it
-                pass
+        for obj in package:
+            if not os.path.exists(obj.filename):
+                continue  # File does not exist
+            sha256sum = hashlib.sha256()
+            for chunk in obj:
+                sha256sum.update(chunk)
+            if sha256sum.hexdigest() != obj.sha256sum:
+                # Local file diverges from server file
+                raise FileExistsError(
+                    '{} will be overwritten', obj.filename)
+            # Local file is equal to server file
+            self.existent_files.append(obj.filename)
 
-    def pull(self, full=True):
-        metadata = self.get_metadata()
-        package = Package.from_metadata(metadata)
-        package.dump(get_local_config_file())
-        if full:
-            objects = metadata.get('objects')
-            if objects is not None:
-                self.check_local_files(objects)
-                for obj in objects:
-                    self._get_object(obj)
-        return package
+    def download_object(self, obj):
+        if obj.filename in self.existent_files:
+            return DownloadObjectResult.EXISTS
+        download_path = '/products/{product}/objects/{obj}'.format(
+            product=self.package.product, obj=obj.sha256sum)
+        response = Request(
+            get_server_url(download_path), 'GET', stream=True).send()
+        if response.ok:
+            with open(obj.filename, 'wb') as fp:
+                for chunk in response.iter_content():
+                    fp.write(chunk)
+            return DownloadObjectResult.SUCCESS
+        else:
+            return DownloadObjectResult.ERROR

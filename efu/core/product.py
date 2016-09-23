@@ -8,6 +8,10 @@ from ..utils import get_local_config, get_local_config_file
 
 
 class Product:
+    '''
+    A class to represent a product. In the near future, other methods
+    will be present, such as methods to manage product on server.
+    '''
 
     def __init__(self):
         self._config = get_local_config()

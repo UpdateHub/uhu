@@ -3,92 +3,54 @@
 
 import json
 
+from ..core.object import ObjectUploadResult
 from ..http.request import Request
-from ..utils import get_server_url
+from ..utils import get_server_url, validate_schema
 
 from . import exceptions
-from .ui import SUCCESS_MSG, FAIL_MSG
-from .upload import Upload, UploadStatus
 
 
-class PushExitCode(object):
-    SUCCESS = 0
-    START_FAIL = 1
-    UPLOAD_FAIL = 2
-    FINISH_FAIL = 3
+class Push:
 
+    def __init__(self, package, callback=None):
+        self.package = package
+        self.upload_list = None
+        self.start_push_url = get_server_url(
+            '/products/{}/packages'.format(self.package.product))
+        self.finish_push_url = None
+        self.callback = callback
 
-class Push(object):
-
-    def __init__(self, package):
-        self._package = package
-        self._upload_list = None
-        self._finish_push_url = None
-        self._commit_id = None
-
-    @property
-    def _start_push_url(self):
-        return get_server_url(
-            '/products/{}/commits'.format(self._package.product))
-
-    def _start_push(self):
-        request = Request(
-            self._start_push_url,
+    def start_push(self):
+        body = self.package.serialize()
+        validate_schema('metadata.json', body['metadata'])
+        response = Request(
+            self.start_push_url,
             method='POST',
-            payload=json.dumps(self._package.serialize()),
+            payload=json.dumps(body),
             json=True,
-        )
-        response = request.send()
+        ).send()
+        if self.callback is not None:
+            self.callback.push_start(response)
         if response.status_code != 201:
             raise exceptions.StartPushError
+        push = response.json()
+        self.upload_list = push['uploads']
+        self.finish_push_url = push['finish_url']
 
-        response_body = response.json()
-        self._upload_list = {upload['object_id']: upload
-                             for upload in response_body['uploads']}
-        self._finish_push_url = response_body['finish_url']
-
-    def _upload_files(self):
+    def upload_objects(self):
         results = []
-        for file_id, meta in self._upload_list.items():
-            file = self._package.objects[file_id]
-            result = Upload(file, meta, progress=True).upload()
-            results.append(result)
-        successful_status = (UploadStatus.SUCCESS, UploadStatus.EXISTS)
-        success = [result in successful_status for result in results]
-        if not all(success):
-            raise exceptions.FileUploadError
+        for conf in self.upload_list:
+            obj = self.package.objects[conf['object_id']]
+            results.append(obj.upload(conf, self.callback))
+        # stores all upload results
+        for result in results:
+            if not ObjectUploadResult.is_ok(result):
+                raise exceptions.UploadError
 
-    def _finish_push(self):
-        request = Request(self._finish_push_url, 'POST')
-        response = request.send()
+    def finish_push(self):
+        response = Request(self.finish_push_url, 'POST').send()
+        self.package.uid = response.json().get('package_id')
+        if self.callback is not None:
+            self.callback.push_finish(self.package, response)
         if response.status_code != 201:
             raise exceptions.FinishPushError
-        self._commit_id = response.json().get('commit_id')
-
-    def run(self):
-        # START
-        try:
-            print('Starting push: ', end='')
-            self._start_push()
-            print(SUCCESS_MSG)
-        except exceptions.StartPushError:
-            print(FAIL_MSG)
-            return PushExitCode.START_FAIL
-
-        # UPLOAD
-        try:
-            self._upload_files()
-        except exceptions.FileUploadError:
-            return PushExitCode.UPLOAD_FAIL
-
-        # FINISH
-        try:
-            print('Finishing push: ', end='')
-            self._finish_push()
-            print(SUCCESS_MSG)
-            print('Commit ID: {}'.format(self._commit_id))
-        except exceptions.FinishPushError:
-            print(FAIL_MSG)
-            return PushExitCode.FINISH_FAIL
-
-        return PushExitCode.SUCCESS

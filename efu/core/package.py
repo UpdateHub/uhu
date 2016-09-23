@@ -5,98 +5,142 @@ import json
 from collections import OrderedDict
 
 from ..http.request import Request
-from ..metadata import ObjectMetadata, PackageMetadata
+from ..transactions import Pull, Push
 from ..utils import get_server_url
 
 from . import Object
 
 
 class Package:
+    ''' A package represents a group of objects. '''
 
-    def __init__(self, version=None, objects=None, product=None):
+    def __init__(self, uid=None, version=None, product=None):
+        self.uid = uid
         self.version = version
-        self.objects = objects if objects is not None else {}
         self.product = product
-        self.metadata = None
+        self.objects = {}
 
     @classmethod
     def from_file(cls, fn):
+        ''' Creates a package from a dumped package '''
         with open(fn) as fp:
-            pkg_file = json.load(fp, object_pairs_hook=OrderedDict)
+            dump = json.load(fp, object_pairs_hook=OrderedDict)
         package = Package(
-            version=pkg_file.get('version'), product=pkg_file.get('product'))
-        objects = pkg_file.get('objects', {})
-        for obj_id, obj in objects.items():
-            package.add_object(obj['filename'], obj, obj_id=int(obj_id))
-        package.load_metadata()
+            version=dump.get('version'), product=dump.get('product'))
+        objects = dump.get('objects', {})
+        for obj_uid, conf in objects.items():
+            package.add_object(
+                uid=int(obj_uid), fn=conf['filename'],
+                mode=conf['mode'], options=conf['options'])
         return package
 
     @classmethod
     def from_metadata(cls, metadata):
-        package = Package(product=metadata['product'])
-        for obj in metadata['objects']:
-            options = {option: value for option, value in obj.items()
-                       if option not in ObjectMetadata.VOLATILE_OPTIONS}
-            metadata = ObjectMetadata(
-                obj['filename'], obj['sha256sum'], obj['size'], options)
-            package.add_object(
-                obj['filename'], options=options, metadata=metadata)
+        ''' Creates a package from a metadata object '''
+        package = Package(
+            product=metadata['product'], version=metadata['version'])
+        for obj_metadata in metadata['objects']:
+            options = {option: value for option, value in obj_metadata.items()
+                       if option not in ('filename', 'mode')}
+            obj = package.add_object(
+                obj_metadata['filename'], obj_metadata['mode'], options)
+            obj.size = obj_metadata['size']
+            obj.sha256sum = obj_metadata['sha256sum']
         return package
 
-    def load_metadata(self):
-        self.metadata = PackageMetadata(
-            self.product, self.version, self.objects.values())
+    def add_object(self, fn, mode, options, uid=None):
+        ''' Adds a new object within package. Returns an Object instance '''
+        if uid is None:
+            uid = self._next_object_id()
+        obj = Object(uid, fn, mode, options)
+        self.objects[uid] = obj
+        return obj
+
+    def edit_object(self, uid, option, value):
+        ''' Given an object id, sets obj.option to value '''
+        obj = self.objects[uid]
+        obj.options[option] = value
+
+    def remove_object(self, uid):
+        ''' Removes an object from package '''
+        del self.objects[uid]
+
+    def load(self, callback=None):
+        if callback is not None:
+            callback.pre_package_load(self)
+        for obj in self:
+            obj.load(callback)
+            if callback is not None:
+                callback.package_load(self)
+        if callback is not None:
+            callback.post_package_load(self)
 
     def serialize(self):
+        ''' Serialize package to send to server '''
         return {
             'version': self.version,
-            'objects': [obj.serialize() for obj in self.objects.values()],
-            'metadata': self.metadata.serialize()
+            'objects': [obj.serialize() for obj in self],
+            'metadata': self.metadata()
         }
 
-    def dump(self, fn, full=False):
-        objects = {obj_id: obj.metadata.serialize(full=False)
-                   for obj_id, obj in self.objects.items()}
-        pkg = {
+    def metadata(self):
+        ''' Serialize package as metadata '''
+        return {
             'product': self.product,
-            'objects': objects,
-            'version': self.version if full else None
+            'version': self.version,
+            'objects': [obj.metadata() for obj in self],
         }
-        with open(fn, 'w') as fp:
-            json.dump(pkg, fp)
+
+    def template(self):
+        ''' Serialize package to dump to a file '''
+        return {
+            'version': self.version,
+            'product': self.product,
+            'objects': {obj.uid: obj.template() for obj in self}
+        }
+
+    def dump(self, dest):
+        ''' Writes package template in dest file '''
+        with open(dest, 'w') as fp:
+            json.dump(self.template(), fp)
+
+    def push(self, callback=None):
+        push = Push(self, callback)
+        push.start_push()
+        push.upload_objects()
+        push.finish_push()
+
+    def pull(self, full=True):
+        pull = Pull(self)
+        pull.get_metadata()
+        package = Package.from_metadata(pull.metadata)
+        if full:
+            pull.check_local_files(package)
+            for obj in package:
+                pull.download_object(obj)
+        return package
+
+    def get_status(self):
+        path = '/products/{product}/packages/{package}/status'
+        url = get_server_url(
+            path.format(product=self.product, package=self.uid))
+        response = Request(url, 'GET', json=True).send()
+        if response.status_code != 200:
+            raise ValueError('Status not found')
+        return response.json().get('status')
 
     def _next_object_id(self):
+        ''' Genretares objects ids '''
         ids = self.objects.keys()
         if ids:
             return max(ids) + 1
         return 1
 
-    def add_object(self, fn, options, obj_id=None, metadata=None):
-        obj = Object(fn, options)
-        if metadata is not None:
-            obj.metadata = metadata
-        if obj_id is None:
-            obj_id = self._next_object_id()
-        self.objects[obj_id] = obj
+    def __len__(self):
+        return len(self.objects)
 
-    def edit_object(self, obj_id, option, value):
-        obj = self.objects[obj_id]
-        obj.options[option] = value
-
-    def remove_object(self, obj_id):
-        try:
-            del self.objects[obj_id]
-        except KeyError:
-            pass  # already deleted
-
-    @classmethod
-    def get_status(cls, product, package_id):
-        path = '/products/{product}/packages/{package}/status'
-        url = get_server_url(path.format(product=product, package=package_id))
-        response = Request(url, 'GET', json=True).send()
-        if response.status_code == 200:
-            return response.json().get('status')
-        raise ValueError('Status not found')
+    def __iter__(self):
+        return iter(self.objects.values())
 
     def __str__(self):
         s = []
@@ -106,7 +150,7 @@ class Package:
             s.append('Objects:')
         else:
             s.append('Objects: None')
-        for obj_id in sorted(self.objects):
+        for uid in sorted(self.objects):
             s.append('')
-            s.append('  {}# {}'.format(obj_id, str(self.objects[obj_id])))
+            s.append(str(self.objects[uid]))
         return '\n'.join(s)

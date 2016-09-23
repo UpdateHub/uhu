@@ -1,0 +1,88 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+
+    "title": "Raw object",
+    "description": "Object specifications for RAW mode",
+
+    "type": "object",
+
+    "properties": {
+        "filename": {
+            "description": "file name used by client to rebuild the commit",
+            "type": "string",
+            "minLength": 1
+        },
+        "size": {
+            "description": "Total size of the object in bytes",
+            "type": "integer",
+            "minimum": 0
+        },
+        "sha256sum": {
+            "descsription": "SHA256 sum of the object data",
+            "$ref": "definitions.json#/sha256sum"
+        },
+        "mode": {
+            "description": "Represents the install mode for the object data",
+            "type": "string",
+            "enum": [
+                "raw"
+            ]
+        },
+        "target-device": {
+            "description": "Target device for the object (e.g. /dev/sda1)",
+            "type": "string"
+        },
+        "compressed": {
+            "description": "If the object is a compressed file or not",
+            "type": "boolean"
+        },
+        "required-uncompressed-size": {
+            "description": "Number of bytes required for installing the object",
+            "type": "integer",
+            "minimum": 0
+        },
+        "post-update-hook": {
+            "description": "Hook to be runned after object update is completed",
+            "$ref": "post-update-hook.json"
+        },
+        "chunk-size": {
+            "description": "The size of the buffers (in bytes) used to read and write (default is 128KiB).",
+            "type": "integer",
+            "default": 131072,
+            "minimum": 0
+        },
+        "skip": {
+            "description": "How many chunk-size blocks must be skipped in the source file",
+            "type": "integer",
+            "default": 0,
+            "minimum": 0
+        },
+        "seek": {
+            "description": "How many chunk-size blocks must be skipped in the target file",
+            "type": "integer",
+            "default": 0,
+            "minimum": 0
+        },
+        "count": {
+            "description": "How many chunk-size blocks must be copied from the source file to the target. The default value of -1 means all possible bytes until the end of the file",
+            "type": "integer",
+            "default": -1,
+            "minimum": -1
+        },
+        "truncate": {
+            "description": "True if the file pointed to by the target_path should be open in truncate mode (erase content before writing)",
+            "type": "boolean",
+            "default": true
+        }
+    },
+
+    "required": [
+        "filename",
+        "mode",
+        "sha256sum",
+        "size",
+        "target-device"
+    ],
+
+    "additionalProperties": false
+}

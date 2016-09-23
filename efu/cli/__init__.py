@@ -11,7 +11,6 @@ from .product import product_cli
 @click.group()
 def cli():
     ''' EasyFOTA utility '''
-    pass
 
 
 # General commands

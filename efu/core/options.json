@@ -1,0 +1,118 @@
+[
+    {
+        "metadata": "target-device",
+        "modes": ["copy", "raw", "tarball"],
+        "required_in": ["copy", "raw", "tarball"],
+        "type": "path",
+        "help": "Target device for the object (e.g. /dev/sda1)",
+        "cli": ["--target-device", "-td"]
+    },
+    {
+        "metadata": "target-path",
+        "modes": ["copy", "tarball"],
+        "required_in": ["copy", "tarball"],
+        "type": "str",
+        "help": "Target path on which the object must be installed to (e.g. /vmlinuz). This is relative to the mount point.",
+        "cli": ["--target-path", "-tp"]
+    },
+    {
+        "metadata": "filesystem",
+        "modes": ["copy", "tarball"],
+        "required_in": ["copy", "tarball"],
+        "type": "str",
+        "help": "Filesystem type that must be used to mount the target-device",
+        "cli": ["--filesystem", "-fs"]
+    },
+    {
+        "metadata": "mount-options",
+        "modes": ["copy", "tarball"],
+        "type": "str",
+        "help": "Options to mount the filesystem in target-device",
+        "cli": ["--mount-options"]
+    },
+    {
+        "metadata": "format?",
+        "modes": ["copy", "tarball"],
+        "type": "bool",
+        "default": false,
+        "help": "Specifies whether the target device (target-device) should be formatted or not.",
+        "cli": ["--format"]
+    },
+    {
+        "metadata": "format-options",
+        "modes": ["copy", "tarball"],
+        "requirements": {
+            "format": {
+                "type": "value",
+                "value": true
+            }
+        },
+        "type": "str",
+        "help": "Options to format target-device",
+        "cli": ["--format-options"]
+    },
+    {
+        "metadata": "chunk-size",
+        "modes": ["raw"],
+        "type": "int",
+        "default": 131072,
+        "min": 0,
+        "help": "The size of the buffers (in bytes) used to read and write (default is 128KiB)",
+        "cli": ["--chunk-size"]
+    },
+    {
+        "metadata": "count",
+        "modes": ["raw"],
+        "type": "int",
+        "default": -1,
+        "min": -1,
+        "help": "How many chunk-size blocks must be copied from the source file to the target. The default value of -1 means all possible bytes until the end of the file",
+        "cli": ["--count"]
+    },
+    {
+        "metadata": "seek",
+        "modes": ["raw"],
+        "type": "int",
+        "default": 0,
+        "min": 0,
+        "help": "How many chunk-size blocks must be skipped in the target file",
+        "cli": ["--seek"]
+    },
+    {
+        "metadata": "skip",
+        "modes": ["raw"],
+        "type": "int",
+        "default": 0,
+        "min": 0,
+        "help": "How many chunk-size blocks must be skipped in the source file",
+        "cli": ["--skip"]
+    },
+    {
+        "metadata": "truncate",
+        "modes": ["raw"],
+        "type": "bool",
+        "default": false,
+        "help": "True if the file pointed to by the target-path should be open in truncate mode (erase content before writing)",
+        "cli": ["--truncate"]
+    },
+    {
+        "metadata": "compressed",
+        "modes": ["copy", "raw", "tarball"],
+        "type": "bool",
+        "default": false,
+        "help": "if the image is a compressed file or not.",
+        "cli": ["--compressed"]
+    },
+    {
+        "metadata": "required-uncompressed-size",
+        "is_volatile": true
+    },
+        {
+        "metadata": "sha256sum",
+        "is_volatile": true
+    },
+    {
+        "metadata": "size",
+        "is_volatile": true
+    }
+]

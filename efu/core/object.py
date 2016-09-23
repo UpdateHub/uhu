@@ -2,84 +2,123 @@
 # This software is released under the MIT License
 
 import hashlib
-import itertools
 import os
 
-from ..metadata import ObjectMetadata
+from ..http import Request
 from ..utils import get_chunk_size, yes_or_no
 
+from .options import OptionsParser
 
-DEVICE_OPTIONS = ['truncate', 'seek', 'filesystem']
 
+class ObjectUploadResult:
+    SUCCESS = 1
+    EXISTS = 2
+    FAIL = 3
 
-class Chunk:
+    OK_RESULTS = (SUCCESS, EXISTS)
 
-    def __new__(cls, *args):
-        ''' Returns None if data (args[0]) is empty '''
-        return super().__new__(cls) if args[0] else None
-
-    def __init__(self, data, number):
-        self.data = data
-        self.number = number
-        self.sha256sum = hashlib.sha256(self.data).hexdigest()
-
-    def serialize(self):
-        return {
-            'sha256sum': self.sha256sum,
-            'number': self.number,
-        }
+    @classmethod
+    def is_ok(cls, result):
+        return result in cls.OK_RESULTS
 
 
 class Object:
+    '''
+    Objects represents a file or a image with instructions (metadata)
+    to agent operate it.
+    '''
 
-    def __init__(self, fn, options=None):
+    VOLATILE_OPTIONS = ('size', 'sha256sum')
+    DEVICE_OPTIONS = ['truncate', 'seek', 'filesystem']
+
+    def __init__(self, uid, fn, mode, options):
+        self.uid = uid
         self.filename = fn
-        self.options = options
+        self.mode = mode
+        self.options = OptionsParser(self.mode, options).clean()
+
         self.size = None
-        self.chunks = []
         self.sha256sum = None
-        self.metadata = None
-        self.loaded = False
-
-        self._fd = None
-        self._chunk_number = itertools.count()
-
-    def load(self):
-        if self.loaded:
-            return
-        self._fd = open(self.filename, 'br')
-        self.size = os.path.getsize(self.filename)
-
-        sha256sum = hashlib.sha256()
-        for chunk in self:
-            self.chunks.append(chunk.serialize())
-            sha256sum.update(chunk.data)
-        self.sha256sum = sha256sum.hexdigest()
-        self.metadata = ObjectMetadata(
-            self.filename, self.sha256sum, self.size, self.options)
-        self.loaded = True
+        self.chunks = []
+        self.chunk_size = get_chunk_size()
 
     def serialize(self):
-        self.load()
+        ''' Serialize object to send to server '''
         return {
-            'sha256sum': self.sha256sum,
-            'parts': self.chunks,
-            'metadata': self.metadata.serialize()
+            'id': self.uid,
+            'chunks': self.chunks,
+            'metadata': self.metadata()
         }
 
-    def _read(self):
-        data = self._fd.read(get_chunk_size())
-        return Chunk(data, next(self._chunk_number))
+    def metadata(self):
+        ''' Serialize object as metadata '''
+        metadata = {
+            'filename': self.filename,
+            'mode': self.mode,
+            'sha256sum': self.sha256sum,
+            'size': self.size,
+        }
+        metadata.update(self.options)
+        return metadata
 
-    def __iter__(self):
-        return iter(self._read, None)
+    def template(self):
+        ''' Serialize object for dumping to a file '''
+        return {
+            'filename': self.filename,
+            'mode': self.mode,
+            'options': self.options,
+        }
+
+    def load(self, callback=None):
+        self.size = os.path.getsize(self.filename)
+        sha256sum = hashlib.sha256()
+
+        if callback is not None:
+            callback.pre_object_load(self)
+        for position, chunk in enumerate(self):
+            sha256sum.update(chunk)
+            self.chunks.append({
+                'position': position,
+                'sha256sum': hashlib.sha256(chunk).hexdigest()
+            })
+            if callback is not None:
+                callback.object_load(self)
+        self.sha256sum = sha256sum.hexdigest()
+        if callback is not None:
+            callback.post_object_load(self)
+
+    def upload(self, conf, callback=None):
+        if callback is not None:
+            callback.pre_object_upload(self)
+        result = ObjectUploadResult.SUCCESS
+        if conf['exists']:
+            result = ObjectUploadResult.EXISTS
+        else:
+            for position, chunk in enumerate(self):
+                chunk_conf = conf['chunks'][str(position)]
+                if chunk_conf['exists']:
+                    continue
+                response = Request(chunk_conf['url'], 'POST', chunk).send()
+                if response.status_code != 201:
+                    result = ObjectUploadResult.FAIL
+                if callback is not None:
+                    callback.object_upload(self)
+        if callback is not None:
+            callback.post_object_upload(self)
+        return result
 
     def __len__(self):
         return len(self.chunks)
 
+    def __iter__(self):
+        with open(self.filename, 'br') as fp:
+            for chunk in iter(lambda: fp.read(self.chunk_size), b''):
+                yield chunk
+
     def __str__(self):
         s = []
-        s.append('{} [mode: {}]'.format(self.filename, self.metadata.mode))
+        s.append('  {}# {} [mode: {}]'.format(
+            self.uid, self.filename, self.mode))
         s.append('')
         # compressed option
         compressed = self.options.get('compressed')
@@ -94,7 +133,7 @@ class Object:
         if device is not None:
             line = '      Target device:     {}'.format(device)
             device_options = {option: self.options.get(option)
-                              for option in DEVICE_OPTIONS}
+                              for option in self.DEVICE_OPTIONS}
             if any(device_options.values()):
                 truncate = device_options['truncate']
                 if truncate is not None:
@@ -107,7 +146,7 @@ class Object:
         # format option
         format_ = self.options.get('format?')
         if format_ is not None:
-            line = '      Format device:     {}'.format(yes_or_no(format_))
+            line = '      Format device:     {} '.format(yes_or_no(format_))
             format_options = self.options.get('format-options')
             if format_options:
                 line += '[options: "{}"]'.format(format_options)

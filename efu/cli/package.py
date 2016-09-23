@@ -4,13 +4,16 @@
 import sys
 
 import click
+import requests
 
 from ..core import Package
+from ..core.options import MODES
+from ..transactions.exceptions import (
+    StartPushError, UploadError, FinishPushError)
 from ..utils import get_local_config_file
 
-from ._object import ObjectOptions, MODES
-from .pull import pull_command
-from .push import push_command
+from ._object import ClickOptionsParser, CLICK_OPTIONS
+from ._push import PushCallback
 
 
 @click.group(name='package')
@@ -25,7 +28,7 @@ def new_version_command(version):
         pkg_file = get_local_config_file()
         package = Package.from_file(pkg_file)
         package.version = version
-        package.dump(pkg_file, full=True)
+        package.dump(pkg_file)
     except FileNotFoundError:
         print('Package file does not exist. '
               'Create one with <efu use> command')
@@ -82,21 +85,22 @@ def add_object_command(filename, mode, **options):
     try:
         pkg_file = get_local_config_file()
         package = Package.from_file(pkg_file)
-        metadata = ObjectOptions(filename, mode, options).as_metadata()
-        package.add_object(filename, metadata)
-        package.load_metadata()
-        package.dump(pkg_file)
     except FileNotFoundError:
         print('Package file does not exist. '
               'Create one with <efu use> command')
         sys.exit(1)
+    parser = ClickOptionsParser(mode, options)
+    try:
+        options = parser.clean()
     except ValueError as err:
         print(err)
         sys.exit(2)
+    package.add_object(filename, mode, options)
+    package.dump(pkg_file)
 
 
 # Adds all object options
-for option in ObjectOptions.click_options:
+for option in CLICK_OPTIONS.values():
     add_object_command.params.append(option)
 
 
@@ -121,16 +125,16 @@ def edit_object_command(object_id, key, value):
 
 
 @package_cli.command(name='status')
-@click.argument('package_id')
-def status_command(package_id):
+@click.argument('package-uid')
+def status_command(package_uid):
     '''
     Prints the status of the given package
     '''
     try:
         pkg_file = get_local_config_file()
         package = Package.from_file(pkg_file)
-        status = Package.get_status(package.product, package_id)
-        print(status)
+        package.uid = package_uid
+        print(package.get_status())
     except FileNotFoundError:
         print('Package file does not exist')
         sys.exit(1)
@@ -140,5 +144,64 @@ def status_command(package_id):
 
 
 # Transaction commands
-package_cli.add_command(pull_command)
-package_cli.add_command(push_command)
+@package_cli.command(name='push')
+def push_command():
+    '''
+    Pushes a package file to server with the given version.
+    '''
+    try:
+        pkg_file = get_local_config_file()
+        package = Package.from_file(pkg_file)
+    except FileNotFoundError:
+        print('Package file does not exist. '
+              'Create one with <efu use> command')
+        sys.exit(1)
+    callback = PushCallback()
+    package.load(callback)
+    try:
+        package.push(callback)
+    except StartPushError as err:
+        print(err)
+        sys.exit(2)
+    except UploadError as err:
+        print(err)
+        sys.exit(3)
+    except FinishPushError as err:
+        print(err)
+        sys.exit(4)
+    except requests.exceptions.ConnectionError:
+        print("ERROR: Can't reach server")
+        sys.exit(5)
+
+
+@package_cli.command(name='pull')
+@click.argument('package-uid')
+@click.option('--full/--metadata', required=True,
+              help='if pull should include all files or only the metadata.')
+def pull_command(package_uid, full):
+    '''
+    Downloads a package from server.
+    '''
+    try:
+        pkg_file = get_local_config_file()
+        package = Package.from_file(pkg_file)
+        package.uid = package_uid
+    except FileNotFoundError:
+        print('ERROR: Package file does not exist. '
+              'Create one with <efu use> command')
+        sys.exit(1)
+    if not package.product:
+        print('ERROR: Product not set')
+        sys.exit(2)
+    if len(package) != 0:
+        print('ERROR: You have a local package that '
+              'would be overwritten by this action.')
+        sys.exit(3)
+    try:
+        package.pull(full=full)
+    except ValueError as err:
+        print(err)
+        sys.exit(4)
+    except FileExistsError as err:
+        print(err)
+        sys.exit(5)

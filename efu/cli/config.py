@@ -15,7 +15,7 @@ def config_cli():
 
 
 @config_cli.command()
-def init():
+def init_command():
     ''' Sets efu required initial configuration. '''
     access_id = input('EasyFOTA Access Key ID: ')
     access_secret = input('EasyFota Systems Secret Access Key: ')
@@ -26,17 +26,17 @@ def init():
 @click.argument('entry')
 @click.argument('value')
 @click.option('--section', help='Section to write the configuration')
-def set_(entry, value, section):
+def set_command(entry, value, section):
     '''
     Sets the given VALUE in a configuration ENTRY.
     '''
     config.set(entry, value, section=section)
 
 
-@config_cli.command()
+@config_cli.command(name='get')
 @click.argument('entry')
 @click.option('--section', help='Section to write the configuration')
-def get(entry, section):
+def get_command(entry, section):
     '''
     Gets the value from a given ENTRY.
     '''

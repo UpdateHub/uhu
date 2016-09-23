@@ -6,7 +6,7 @@ class StartPushError(Exception):
     pass
 
 
-class FileUploadError(Exception):
+class UploadError(Exception):
     pass
 
 

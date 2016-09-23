@@ -1,0 +1,82 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+
+    "title": "Tarball object",
+    "description": "Object specification for TARBALL mode",
+
+    "type": "object",
+
+    "properties": {
+        "filename": {
+            "description": "file name used by client to rebuild the commit",
+            "type": "string",
+            "minLength": 1
+        },
+        "size": {
+            "description": "Total size of the object in bytes",
+            "type": "integer",
+            "minimum": 0
+        },
+        "sha256sum": {
+            "descsription": "SHA256 sum of the object data",
+            "$ref": "definitions.json#/sha256sum"
+        },
+        "mode": {
+            "description": "Represents the install mode for the object data",
+            "type": "string",
+            "enum": [
+                "tarball"
+            ]
+        },
+        "target-device": {
+            "description": "Target device for the object (e.g. /dev/sda1)",
+            "type": "string"
+        },
+        "compressed": {
+            "description": "If the object is a compressed file or not",
+            "type": "boolean"
+        },
+        "required-uncompressed-size": {
+            "description": "Number of bytes required for installing the object",
+            "type": "integer",
+            "minimum": 0
+        },
+        "post-update-hook": {
+            "description": "Hook to be runned after object update is completed",
+            "$ref": "post-update-hook.json"
+        },
+        "filesystem": {
+            "description": "Filesystem type that must be used to mount the target-device",
+            "type": "string"
+        },
+        "target-path": {
+            "description": "Target path on which the object must be installed to (e.g., /vmlinuz). This is relative to the mount point. Field present when mode equals to copy or tarball",
+            "type": "string"
+        },
+        "format?": {
+            "description": "Specifies whether the target device (target-device) should be formatted",
+            "type": "boolean",
+            "default": false
+        },
+        "format-options": {
+            "description": "Options to format target-device",
+            "type": "string"
+        },
+        "mount-options": {
+            "description": "Options to mount the filesystem in target-device",
+            "type": "string"
+        }
+    },
+
+    "required": [
+        "filename",
+        "filesystem",
+        "mode",
+        "sha256sum",
+        "size",
+        "target-device",
+        "target-path"
+    ],
+
+    "additionalProperties": false
+}
