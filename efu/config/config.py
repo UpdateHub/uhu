@@ -4,6 +4,8 @@
 import configparser
 import os
 
+from ..utils import get_global_config_file
+
 
 class Sections:
     MAIN = 'settings'
@@ -13,24 +15,15 @@ class Sections:
 class Config(object):
     ''' This is the wrapper to manage ~/.efu configuration file. '''
 
-    _ENV_VAR = 'EFU_CONFIG_FILE'
-
     def __new__(cls):
         if not hasattr(cls, 'instance'):
             cls.instance = super().__new__(cls)
         return cls.instance
 
     def __init__(self):
-        self._filename = self._get_config_filename()
+        self._filename = get_global_config_file()
         self._config = configparser.ConfigParser(
-            default_section=Sections.MAIN
-        )
-
-    def _get_config_filename(self):
-        config_fn = os.environ.get(self._ENV_VAR, None)
-        if config_fn is None:
-            config_fn = os.path.expanduser('~/.efu')
-        return config_fn
+            default_section=Sections.MAIN)
 
     def _read(self):
         if os.path.exists(self._filename):

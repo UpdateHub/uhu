@@ -2,40 +2,40 @@
 # This software is released under the MIT License
 
 import os
-import unittest
 
 from efu import utils
 
-from ..base import delete_environment_variable, ObjectMockMixin, BaseTestCase
+from ..utils import EFUTestCase, FileFixtureMixin, EnvironmentFixtureMixin
 
 
-class UtilsTestCase(unittest.TestCase):
+class UtilsTestCase(EnvironmentFixtureMixin, EFUTestCase):
 
     def setUp(self):
-        self.addCleanup(delete_environment_variable, 'EFU_CHUNK_SIZE')
-        self.addCleanup(delete_environment_variable, 'EFU_SERVER_URL')
-        self.addCleanup(delete_environment_variable, utils.LOCAL_CONFIG_VAR)
+        self.addCleanup(self.remove_env_var, utils.CHUNK_SIZE_VAR)
+        self.addCleanup(self.remove_env_var, utils.GLOBAL_CONFIG_VAR)
+        self.addCleanup(self.remove_env_var, utils.LOCAL_CONFIG_VAR)
+        self.addCleanup(self.remove_env_var, utils.SERVER_URL_VAR)
 
     def test_get_chunk_size_by_environment_variable(self):
-        os.environ['EFU_CHUNK_SIZE'] = '1'
+        os.environ[utils.CHUNK_SIZE_VAR] = '1'
         observed = utils.get_chunk_size()
         self.assertEqual(observed, 1)
 
     def test_get_default_chunk_size(self):
         observed = utils.get_chunk_size()
-        self.assertEqual(observed, utils._DEFAULT_CHUNK_SIZE)
+        self.assertEqual(observed, utils.DEFAULT_CHUNK_SIZE)
 
     def test_get_server_url_by_environment_variable(self):
-        os.environ['EFU_SERVER_URL'] = 'http://ossystems.com.br'
+        os.environ[utils.SERVER_URL_VAR] = 'http://ossystems.com.br'
         observed = utils.get_server_url()
         self.assertEqual(observed, 'http://ossystems.com.br')
 
     def test_get_default_server_url(self):
         observed = utils.get_server_url()
-        self.assertEqual(observed, utils._SERVER_URL)
+        self.assertEqual(observed, utils.DEFAULT_SERVER_URL)
 
     def test_can_get_url_with_path(self):
-        os.environ['EFU_SERVER_URL'] = 'http://ossystems.com.br'
+        os.environ[utils.SERVER_URL_VAR] = 'http://ossystems.com.br'
         observed = utils.get_server_url('/test')
         self.assertEqual(observed, 'http://ossystems.com.br/test')
 
@@ -49,13 +49,23 @@ class UtilsTestCase(unittest.TestCase):
         observed = utils.yes_or_no(False)
         self.assertEqual(expected, observed)
 
+    def test_can_get_default_global_config_file(self):
+        observed = utils.get_global_config_file()
+        self.assertEqual(observed, utils.DEFAULT_GLOBAL_CONFIG_FILE)
 
-class LocalConfigTestCase(ObjectMockMixin, BaseTestCase):
+    def test_can_get_config_file_by_environment_variable(self):
+        os.environ[utils.GLOBAL_CONFIG_VAR] = '/tmp/super_file'
+        observed = utils.get_global_config_file()
+        self.assertEqual(observed, '/tmp/super_file')
+
+
+class LocalConfigTestCase(
+        EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
 
     def setUp(self):
         self.config_fn = '/tmp/.efu'
         os.environ[utils.LOCAL_CONFIG_VAR] = self.config_fn
-        self.addCleanup(delete_environment_variable, utils.LOCAL_CONFIG_VAR)
+        self.addCleanup(self.remove_env_var, utils.LOCAL_CONFIG_VAR)
         self.addCleanup(self.remove_file, self.config_fn)
 
     def test_can_get_local_config_file_by_environment_variable(self):

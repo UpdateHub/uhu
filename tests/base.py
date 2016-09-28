@@ -11,7 +11,7 @@ from uuid import uuid4
 
 from efu.config.config import Config
 from efu.core import Object, Package
-from efu.utils import LOCAL_CONFIG_VAR
+from efu.utils import LOCAL_CONFIG_VAR, GLOBAL_CONFIG_VAR
 
 from .httpmock.httpd import HTTPMockServer
 
@@ -41,13 +41,13 @@ class ConfigMockMixin(BaseMockMixin):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
         _, self.config_filename = tempfile.mkstemp()
-        os.environ[Config._ENV_VAR] = self.config_filename
+        os.environ[GLOBAL_CONFIG_VAR] = self.config_filename
         self.config = Config()
 
     def clean(self):
         super().clean()
         os.remove(self.config_filename)
-        delete_environment_variable(Config._ENV_VAR)
+        delete_environment_variable(GLOBAL_CONFIG_VAR)
 
 
 class ObjectMockMixin(BaseMockMixin):

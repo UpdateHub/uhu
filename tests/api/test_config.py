@@ -4,29 +4,23 @@
 import os
 
 from efu.config.config import Config, Sections
+from efu.utils import DEFAULT_GLOBAL_CONFIG_FILE, GLOBAL_CONFIG_VAR
 
-from ..base import BaseTestCase, ConfigMockMixin
+from ..utils import EFUTestCase, EnvironmentFixtureMixin, FileFixtureMixin
 
 
-class ConfigTestCase(ConfigMockMixin, BaseTestCase):
+class ConfigTestCase(FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase):
+
+    def setUp(self):
+        self.config_filename = self.create_file('')
+        self.set_env_var(GLOBAL_CONFIG_VAR, self.config_filename)
+        self.config = Config()
 
     def test_config_class_is_singleton(self):
         config1 = Config()
         config2 = Config()
         self.assertIs(config2, config1)
         self.assertEqual(config2, config1)
-
-    def test_can_retrieve_config_file_by_hardcode(self):
-        del os.environ[Config._ENV_VAR]
-        expected = '.efu'
-        observed = self.config._get_config_filename().split('/')[-1]
-        self.assertEqual(observed, expected)
-
-    def test_can_retrieve_config_file_by_environment_variable(self):
-        expected = '/tmp/super_file'
-        os.environ[Config._ENV_VAR] = expected
-        observed = self.config._get_config_filename()
-        self.assertEqual(observed, expected)
 
     def test_get_value_from_default_section(self):
         key = 'test_key'
