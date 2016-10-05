@@ -50,7 +50,7 @@ class AddObjectCommandTestCase(PackageTestCase):
         self.assertEqual(obj.mode, 'raw')
         self.assertEqual(obj.options['target-device'], '/dev/sda')
 
-    def test_export_command_returns_1_if_package_does_not_exist(self):
+    def test_add_command_returns_1_if_package_does_not_exist(self):
         self.set_env_var(LOCAL_CONFIG_VAR, 'dont-exist')
         cmd = [self.obj_fn, '-m', 'raw', '-td', '/dev/sda']
         result = self.runner.invoke(add_object_command, cmd)
@@ -260,6 +260,7 @@ class ExportCommandTestCase(PackageTestCase):
         expected = {
             'product': self.product,
             'version': None,
+            'supported-hardware': {},
             'objects': {
                 '1': {
                     'filename': self.obj_fn,

@@ -19,6 +19,7 @@ class Package:
         self.version = version
         self.product = product
         self.objects = {}
+        self.supported_hardware = {}
 
     @classmethod
     def from_file(cls, fn):
@@ -27,6 +28,7 @@ class Package:
             dump = json.load(fp, object_pairs_hook=OrderedDict)
         package = Package(
             version=dump.get('version'), product=dump.get('product'))
+        package.supported_hardware = dump.get('supported-hardware', {})
         objects = dump.get('objects', {})
         for obj_uid, conf in objects.items():
             package.add_object(
@@ -47,6 +49,39 @@ class Package:
             obj.size = obj_metadata['size']
             obj.sha256sum = obj_metadata['sha256sum']
         return package
+
+    def add_supported_hardware(self, name, revisions=None):
+        revisions = revisions if revisions is not None else []
+        self.supported_hardware[name] = {
+            'name': name,
+            'revisions': sorted([rev for rev in revisions])
+        }
+
+    def remove_supported_hardware(self, hardware):
+        supported_hardware = self.supported_hardware.pop(hardware, None)
+        if supported_hardware is None:
+            err = 'Hardware {} does not exist or is already removed.'
+            raise ValueError(err.format(hardware))
+
+    def add_supported_hardware_revision(self, hardware, revision):
+        supported_hardware = self.supported_hardware.get(hardware)
+        if supported_hardware is None:
+            err = 'Hardware {} does not exist'.format(hardware)
+            raise ValueError(err)
+        if revision not in supported_hardware['revisions']:
+            supported_hardware['revisions'].append(revision)
+        supported_hardware['revisions'].sort()
+
+    def remove_supported_hardware_revision(self, hardware, revision):
+        supported_hardware = self.supported_hardware.get(hardware)
+        if supported_hardware is None:
+            err = 'Hardware {} does not exist'.format(hardware)
+            raise ValueError(err)
+        try:
+            supported_hardware['revisions'].remove(revision)
+        except ValueError:
+            err = 'Revision {} for {} does not exist or is already removed'
+            raise ValueError(err.format(revision, hardware))
 
     def add_object(self, fn, mode, options, uid=None):
         ''' Adds a new object within package. Returns an Object instance '''
@@ -85,17 +120,21 @@ class Package:
 
     def metadata(self):
         ''' Serialize package as metadata '''
-        return {
+        metadata = {
             'product': self.product,
             'version': self.version,
             'objects': [obj.metadata() for obj in self],
         }
+        if self.supported_hardware:
+            metadata['supported-hardware'] = self.supported_hardware
+        return metadata
 
     def template(self):
         ''' Serialize package to dump to a file '''
         return {
             'version': self.version,
             'product': self.product,
+            'supported-hardware': self.supported_hardware,
             'objects': {obj.uid: obj.template() for obj in self}
         }
 
@@ -146,6 +185,17 @@ class Package:
         s = []
         s.append('Product: {}'.format(self.product))
         s.append('Version: {}'.format(self.version))
+        if self.supported_hardware:
+            s.append('Supported hardware:')
+            s.append('')
+            for i, name in enumerate(sorted(self.supported_hardware), 1):
+                revisions = ', '.join(
+                    self.supported_hardware[name]['revisions'])
+                revisions = revisions if revisions else 'all'
+                s.append('  {}# {} [revisions: {}]'.format(i, name, revisions))
+                s.append('')
+        else:
+            s.append('Supported hardware: all')
         if self.objects:
             s.append('Objects:')
         else:

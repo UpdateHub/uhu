@@ -17,6 +17,14 @@ class PackageTestCase(FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase):
         self.set_env_var(CHUNK_SIZE_VAR, 2)
         self.version = '2.0'
         self.product = '1234'
+        self.hardware = 'PowerX'
+        self.hardware_revision = ['PX230']
+        self.supported_hardware = {
+            self.hardware: {
+                'name': self.hardware,
+                'revisions': self.hardware_revision,
+            }
+        }
         self.pkg_uid = 'pkg-uid'
         self.obj_content = b'spam'
         self.obj_fn = self.create_file(self.obj_content)
@@ -38,6 +46,7 @@ class PackageConstructorsTestCase(PackageTestCase):
         fn = self.create_file(json.dumps({
             'product': self.product,
             'version': self.version,
+            'supported-hardware': self.supported_hardware,
             'objects': {
                 obj_id: {
                     'filename': self.obj_fn,
@@ -53,6 +62,7 @@ class PackageConstructorsTestCase(PackageTestCase):
         pkg = Package.from_file(fn)
         self.assertEqual(pkg.version, self.version)
         self.assertEqual(pkg.product, self.product)
+        self.assertEqual(pkg.supported_hardware, self.supported_hardware)
         self.assertEqual(len(pkg), 1)
         obj = pkg.objects[obj_id]
         self.assertEqual(obj.uid, obj_id)
@@ -139,6 +149,8 @@ class PackageRepresentationsTestCase(PackageTestCase):
     def test_can_represent_package_serialized(self):
         pkg = Package(version=self.version, product=self.product)
         pkg.add_object(self.obj_fn, self.obj_mode, self.obj_options)
+        pkg.add_supported_hardware(
+            name=self.hardware, revisions=self.hardware_revision)
         pkg.load()
         serial = pkg.serialize()
         self.assertEqual(serial['version'], self.version)
@@ -146,6 +158,9 @@ class PackageRepresentationsTestCase(PackageTestCase):
         metadata = serial['metadata']
         self.assertEqual(metadata['version'], self.version)
         self.assertEqual(metadata['product'], self.product)
+        self.assertEqual(
+            metadata['supported-hardware'], self.supported_hardware)
+
         metadata_objects = metadata['objects']
         self.assertEqual(len(metadata_objects), 1)
         metadata_obj = metadata_objects[0]
@@ -175,10 +190,14 @@ class PackageRepresentationsTestCase(PackageTestCase):
     def test_can_represent_package_as_metadata(self):
         pkg = Package(version=self.version, product=self.product)
         pkg.add_object(self.obj_fn, self.obj_mode, self.obj_options)
+        pkg.add_supported_hardware(
+            name=self.hardware, revisions=self.hardware_revision)
         pkg.load()
         metadata = pkg.metadata()
         self.assertEqual(metadata['version'], self.version)
         self.assertEqual(metadata['product'], self.product)
+        self.assertEqual(
+            metadata['supported-hardware'], self.supported_hardware)
         objects = metadata['objects']
         self.assertEqual(len(objects), 1)
         obj = objects[0]
@@ -191,10 +210,14 @@ class PackageRepresentationsTestCase(PackageTestCase):
     def test_can_represent_package_as_template(self):
         pkg = Package(version=self.version, product=self.product)
         pkg.add_object(self.obj_fn, self.obj_mode, self.obj_options)
+        pkg.add_supported_hardware(
+            name=self.hardware, revisions=self.hardware_revision)
         template = pkg.template()
         self.assertEqual(template['version'], self.version)
         self.assertEqual(template['product'], self.product)
         self.assertEqual(len(template['objects']), 1)
+        self.assertEqual(
+            template['supported-hardware'], self.supported_hardware)
         template_obj = template['objects'][1]
         self.assertEqual(template_obj['mode'], self.obj_mode)
         self.assertEqual(template_obj['filename'], self.obj_fn)
@@ -288,3 +311,100 @@ class PackageStatusTestCase(HTTPTestCaseMixin, PackageTestCase):
         package = Package(product=self.product, uid=self.pkg_uid)
         with self.assertRaises(ValueError):
             package.get_status()
+
+
+class PackageSupportedHardwareManagementTestCase(PackageTestCase):
+
+    def test_can_add_supported_hardware(self):
+        pkg = Package()
+        self.assertEqual(len(pkg.supported_hardware), 0)
+        pkg.add_supported_hardware(name='PowerX', revisions=['PX230'])
+        self.assertEqual(len(pkg.supported_hardware), 1)
+        hardware = pkg.supported_hardware['PowerX']
+        self.assertEqual(hardware['name'], 'PowerX')
+        self.assertEqual(hardware['revisions'], ['PX230'])
+
+    def test_can_remove_supported_hardware(self):
+        pkg = Package()
+        pkg.add_supported_hardware(name='PowerX')
+        pkg.add_supported_hardware(name='PowerY')
+        self.assertEqual(len(pkg.supported_hardware), 2)
+        pkg.remove_supported_hardware('PowerX')
+        self.assertEqual(len(pkg.supported_hardware), 1)
+        pkg.remove_supported_hardware('PowerY')
+        self.assertEqual(len(pkg.supported_hardware), 0)
+
+    def test_remove_supported_hardware_raises_error_if_invalid_hardware(self):
+        pkg = Package()
+        with self.assertRaises(ValueError):
+            pkg.remove_supported_hardware('dosnt-exist')
+
+    def test_can_add_hardware_revision(self):
+        pkg = Package()
+        pkg.add_supported_hardware(name='PowerX', revisions=['PX230'])
+        pkg.add_supported_hardware_revision('PowerX', 'PX240')
+        revisions = pkg.supported_hardware['PowerX']['revisions']
+        self.assertEqual(revisions, ['PX230', 'PX240'])
+
+    def test_add_hardware_revision_raises_error_if_invalid_hardware(self):
+        pkg = Package()
+        with self.assertRaises(ValueError):
+            pkg.add_supported_hardware_revision('dosnt-exist', 'revision')
+
+    def test_can_remove_hardware_revision(self):
+        pkg = Package()
+        pkg.add_supported_hardware(name='PowerX', revisions=['PX240'])
+        self.assertEqual(len(pkg.supported_hardware['PowerX']['revisions']), 1)
+        pkg.remove_supported_hardware_revision('PowerX', 'PX240')
+        self.assertEqual(len(pkg.supported_hardware['PowerX']['revisions']), 0)
+
+    def test_remove_hardware_revision_raises_error_if_invalid_hardware(self):
+        pkg = Package()
+        with self.assertRaises(ValueError):
+            pkg.remove_supported_hardware_revision('dosnt-exist', 'revision')
+
+    def test_remove_hardware_revision_raises_error_if_invalid_revision(self):
+        pkg = Package()
+        pkg.add_supported_hardware('PowerX')
+        with self.assertRaises(ValueError):
+            pkg.remove_supported_hardware_revision('PowerX', 'dosnt-exist')
+
+    def test_hardware_revisions_are_alphanumeric_sorted(self):
+        pkg = Package()
+        pkg.add_supported_hardware(name='PowerX', revisions=['PX240'])
+        pkg.add_supported_hardware_revision('PowerX', 'PX250')
+        pkg.add_supported_hardware_revision('PowerX', 'PX230')
+        expected = ['PX230', 'PX240', 'PX250']
+        observed = pkg.supported_hardware['PowerX']['revisions']
+        self.assertEqual(observed, expected)
+
+    def test_entries_are_not_duplicated_when_adding_same_hardware_twice(self):
+        pkg = Package()
+        pkg.add_supported_hardware(name='PowerX', revisions=['PX230'])
+        pkg.add_supported_hardware(name='PowerX', revisions=['PX230'])
+        self.assertEqual(len(pkg.supported_hardware), 1)
+        self.assertEqual(len(pkg.supported_hardware['PowerX']['revisions']), 1)
+
+    def test_dump_package_with_supported_hardware(self):
+        pkg = Package()
+        pkg.add_supported_hardware(name='PowerX', revisions=['PX230'])
+        pkg_fn = self.create_file('')
+        pkg.dump(pkg_fn)
+        with open(pkg_fn) as fp:
+            dump = json.load(fp)
+        supported_hardware = dump.get('supported-hardware')
+        self.assertIsNotNone(supported_hardware)
+        self.assertEqual(len(supported_hardware), 1)
+        self.assertEqual(supported_hardware['PowerX']['name'], 'PowerX')
+        self.assertEqual(supported_hardware['PowerX']['revisions'], ['PX230'])
+
+    def test_supported_hardware_within_package_string(self):
+        pkg = Package(version='2.0', product='1234')
+        pkg.add_supported_hardware(name='PowerX')
+        pkg.add_supported_hardware(name='PowerY', revisions=['PY230'])
+        pkg.add_supported_hardware(
+            name='PowerZ', revisions=['PZ250', 'PZ240', 'PZ230'])
+        observed = str(pkg)
+        with open('tests/fixtures/supported_hardware.txt') as fp:
+            expected = fp.read().strip()
+        self.assertEqual(observed, expected)
