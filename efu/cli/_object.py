@@ -17,7 +17,9 @@ TYPES = {
 class ClickObjectOption(click.Option):
 
     def __init__(self, option):
-        if option.min or option.max:
+        if option.choices:
+            type_ = click.Choice(option.choices)
+        elif option.min or option.max:
             type_ = click.IntRange(min=option.min, max=option.max)
         else:
             type_ = TYPES[option.type]

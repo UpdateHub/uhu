@@ -12,6 +12,17 @@ from efu.cli._object import ClickObjectOption, ClickOptionsParser
 
 class ClickObjectTestCase(unittest.TestCase):
 
+    def test_choice_type(self):
+        option = Option({
+            'metadata': 'name',
+            'type': 'str',
+            'choices': ['one', 'two', 'three'],
+            'cli': ['--name']
+        })
+        click_option = ClickObjectOption(option)
+        self.assertIsInstance(click_option.type, click.Choice)
+        self.assertEqual(click_option.type.choices, ['one', 'two', 'three'])
+
     def test_int_type(self):
         option = Option({
             'metadata': 'name',

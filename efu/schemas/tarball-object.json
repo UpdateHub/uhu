@@ -47,7 +47,8 @@
         },
         "filesystem": {
             "description": "Filesystem type that must be used to mount the target-device",
-            "type": "string"
+            "type": "string",
+            "enum": ["ext2", "ext3", "ext4", "btrfs", "xfs", "fsfs", "jffs2", "ubifs"]
         },
         "target-path": {
             "description": "Target path on which the object must be installed to (e.g., /vmlinuz). This is relative to the mount point. Field present when mode equals to copy or tarball",

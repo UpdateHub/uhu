@@ -22,6 +22,7 @@ class Option:
         self.max = self._rules.get('max')
         self.is_volatile = self._rules.get('is_volatile', False)
         self.verbose_name = self._rules.get('verbose-name')
+        self.choices = self._rules.get('choices')
 
 
 # Loads all options and modes from options.json

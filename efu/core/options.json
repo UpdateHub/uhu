@@ -12,7 +12,7 @@
         "metadata": "target-path",
         "modes": ["copy", "tarball"],
         "required_in": ["copy", "tarball"],
-        "type": "str",
+        "type": "path",
         "help": "Target path on which the object must be installed to (e.g. /vmlinuz). This is relative to the mount point.",
         "cli": ["--target-path", "-tp"],
         "verbose-name": "target path"
@@ -22,6 +22,7 @@
         "modes": ["copy", "tarball"],
         "required_in": ["copy", "tarball"],
         "type": "str",
+        "choices": ["ext2", "ext3", "ext4", "btrfs", "xfs", "fsfs", "jffs2", "ubifs"],
         "help": "Filesystem type that must be used to mount the target-device",
         "cli": ["--filesystem", "-fs"],
         "verbose-name": "filesystem"
