@@ -5,7 +5,8 @@
         "required_in": ["copy", "raw", "tarball"],
         "type": "path",
         "help": "Target device for the object (e.g. /dev/sda1)",
-        "cli": ["--target-device", "-td"]
+        "cli": ["--target-device", "-td"],
+        "verbose-name": "target device"
     },
     {
         "metadata": "target-path",
@@ -13,7 +14,8 @@
         "required_in": ["copy", "tarball"],
         "type": "str",
         "help": "Target path on which the object must be installed to (e.g. /vmlinuz). This is relative to the mount point.",
-        "cli": ["--target-path", "-tp"]
+        "cli": ["--target-path", "-tp"],
+        "verbose-name": "target path"
     },
     {
         "metadata": "filesystem",
@@ -21,14 +23,16 @@
         "required_in": ["copy", "tarball"],
         "type": "str",
         "help": "Filesystem type that must be used to mount the target-device",
-        "cli": ["--filesystem", "-fs"]
+        "cli": ["--filesystem", "-fs"],
+        "verbose-name": "filesystem"
     },
     {
         "metadata": "mount-options",
         "modes": ["copy", "tarball"],
         "type": "str",
         "help": "Options to mount the filesystem in target-device",
-        "cli": ["--mount-options"]
+        "cli": ["--mount-options"],
+        "verbose-name": "mount options"
     },
     {
         "metadata": "format?",
@@ -36,20 +40,22 @@
         "type": "bool",
         "default": false,
         "help": "Specifies whether the target device (target-device) should be formatted or not.",
-        "cli": ["--format"]
+        "cli": ["--format"],
+        "verbose-name": "format device"
     },
     {
         "metadata": "format-options",
         "modes": ["copy", "tarball"],
         "requirements": {
-            "format": {
+            "format?": {
                 "type": "value",
                 "value": true
             }
         },
         "type": "str",
         "help": "Options to format target-device",
-        "cli": ["--format-options"]
+        "cli": ["--format-options"],
+        "verbose-name": "format device options"
     },
     {
         "metadata": "chunk-size",
@@ -58,7 +64,8 @@
         "default": 131072,
         "min": 0,
         "help": "The size of the buffers (in bytes) used to read and write (default is 128KiB)",
-        "cli": ["--chunk-size"]
+        "cli": ["--chunk-size"],
+        "verbose-name": "chunk size"
     },
     {
         "metadata": "count",
@@ -67,7 +74,8 @@
         "default": -1,
         "min": -1,
         "help": "How many chunk-size blocks must be copied from the source file to the target. The default value of -1 means all possible bytes until the end of the file",
-        "cli": ["--count"]
+        "cli": ["--count"],
+        "verbose-name": "count"
     },
     {
         "metadata": "seek",
@@ -76,7 +84,8 @@
         "default": 0,
         "min": 0,
         "help": "How many chunk-size blocks must be skipped in the target file",
-        "cli": ["--seek"]
+        "cli": ["--seek"],
+        "verbose-name": "seek"
     },
     {
         "metadata": "skip",
@@ -85,7 +94,8 @@
         "default": 0,
         "min": 0,
         "help": "How many chunk-size blocks must be skipped in the source file",
-        "cli": ["--skip"]
+        "cli": ["--skip"],
+        "verbose-name": "skip from source"
     },
     {
         "metadata": "truncate",
@@ -93,7 +103,8 @@
         "type": "bool",
         "default": false,
         "help": "True if the file pointed to by the target-path should be open in truncate mode (erase content before writing)",
-        "cli": ["--truncate"]
+        "cli": ["--truncate"],
+        "verbose-name": "truncate"
     },
     {
         "metadata": "compressed",
@@ -101,18 +112,22 @@
         "type": "bool",
         "default": false,
         "help": "if the image is a compressed file or not.",
-        "cli": ["--compressed"]
+        "cli": ["--compressed"],
+        "verbose-name": "compressed file"
     },
     {
         "metadata": "required-uncompressed-size",
-        "is_volatile": true
+        "is_volatile": true,
+        "verbose-name": "uncompressed size"
     },
-        {
+    {
         "metadata": "sha256sum",
-        "is_volatile": true
+        "is_volatile": true,
+        "verbose-name": "sha256sum"
     },
     {
         "metadata": "size",
-        "is_volatile": true
+        "is_volatile": true,
+        "verbose-name": "file size"
     }
 ]

@@ -16,7 +16,8 @@ class OptionTestCase(unittest.TestCase):
             "metadata": "format?",
             "type": "bool",
             "default": false,
-            "help": "Spam with eggs"
+            "help": "Spam with eggs",
+            "verbose-name": "format device"
         }''')
         opt = Option(conf)
         self.assertEqual(opt.metadata, 'format?')
@@ -24,6 +25,7 @@ class OptionTestCase(unittest.TestCase):
         self.assertEqual(opt.help, conf['help'])
         self.assertEqual(opt.modes, ('tarball', 'copy'))
         self.assertEqual(opt.required_in, ('copy',))
+        self.assertEqual(opt.verbose_name, 'format device')
 
 
 class OptionsParserTestCase(unittest.TestCase):

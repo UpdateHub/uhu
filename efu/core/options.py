@@ -21,6 +21,7 @@ class Option:
         self.min = self._rules.get('min')
         self.max = self._rules.get('max')
         self.is_volatile = self._rules.get('is_volatile', False)
+        self.verbose_name = self._rules.get('verbose-name')
 
 
 # Loads all options and modes from options.json
