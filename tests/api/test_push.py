@@ -26,7 +26,7 @@ class BasePushTestCase(
         self.package = Package(version=self.version, product=self.product)
         for _ in range(3):
             fn = self.create_file('123')
-            self.package.add_object(fn, 'raw', {'target-device': 'raw'})
+            self.package.add_object(fn, 'raw', {'target-device': '/dev/sda'})
 
 
 class PushTestCase(BasePushTestCase):

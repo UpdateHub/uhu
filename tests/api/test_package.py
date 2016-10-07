@@ -81,7 +81,7 @@ class PackageConstructorsTestCase(PackageTestCase):
                     'filename': self.obj_fn,
                     'mode': 'copy',
                     'size': self.obj_size,
-                    'sha256sum': self.obj_fn,
+                    'sha256sum': self.obj_sha256,
                     'target-device': '/dev/sda',
                     'target-path': '/boot',
                     'filesystem': 'ext4'

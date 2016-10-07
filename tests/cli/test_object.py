@@ -146,12 +146,12 @@ class ClickOptionsParserTestCase(unittest.TestCase):
             'seek': 10
         }
         parser = ClickOptionsParser('raw', options)
-        self.assertEqual(len(parser.options), 2)
-        self.assertNotIn('target_path', parser.options)
-        self.assertNotIn('target-path', parser.options)
-        self.assertNotIn('filesystem', parser.options)
-        self.assertEqual(parser.options['target-device'], '/dev/sda')
-        self.assertEqual(parser.options['seek'], 10)
+        self.assertEqual(len(parser.values), 2)
+        self.assertNotIn('target_path', parser.values)
+        self.assertNotIn('target-path', parser.values)
+        self.assertNotIn('filesystem', parser.values)
+        self.assertEqual(parser.values['target-device'], '/dev/sda')
+        self.assertEqual(parser.values['seek'], 10)
 
     def test_parser_clean_returns_cleaned_object_options(self):
         options = {
@@ -190,5 +190,5 @@ class ClickOptionsParserTestCase(unittest.TestCase):
             'format': True,
         }
         parser = ClickOptionsParser('copy', options)
-        self.assertEqual(parser.options['target-path'], '/home/music')
-        self.assertTrue(parser.options['format?'])
+        self.assertEqual(parser.values['target-path'], '/home/music')
+        self.assertTrue(parser.values['format?'])

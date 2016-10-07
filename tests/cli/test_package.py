@@ -60,7 +60,7 @@ class AddObjectCommandTestCase(PackageTestCase):
         cmd = [self.obj_fn,
                '-m', 'copy',
                '-td', '/dev/sda',
-               '-tp', 'path',
+               '-tp', '/path',
                '-fs', 'ext2',
                '--no-format', 'true',
                '--format-options', 'options']  # requires --format to be true
@@ -84,7 +84,7 @@ class AddObjectCommandTestCase(PackageTestCase):
                '--mode', 'copy',
                '--target-device', '/dev/sda',
                '--mount-options', 'options',
-               '--target-path', 'path',
+               '--target-path', '/path',
                '--filesystem', 'ext4',
                '--format', 'true',
                '--format-options', 'options']
@@ -96,7 +96,7 @@ class AddObjectCommandTestCase(PackageTestCase):
                '--mode', 'tarball',
                '--target-device', '/dev/sda',
                '--mount-options', 'options',
-               '--target-path', 'path',
+               '--target-path', '/path',
                '--filesystem', 'ext4',
                '--format', 'true',
                '--format-options', 'options']
@@ -114,7 +114,7 @@ class AddObjectCommandTestCase(PackageTestCase):
         cmd = [self.obj_fn,
                '--mode', 'copy',
                '--target-device', '/dev/sda',
-               '--target-path', 'path',
+               '--target-path', '/path',
                '--filesystem', 'ext4']
         result = self.runner.invoke(add_object_command, cmd)
         self.assertEqual(result.exit_code, 0)
@@ -123,7 +123,7 @@ class AddObjectCommandTestCase(PackageTestCase):
         cmd = [self.obj_fn,
                '--mode', 'tarball',
                '--target-device', '/dev/sda',
-               '--target-path', 'path',
+               '--target-path', '/path',
                '--filesystem', 'ext4']
         result = self.runner.invoke(add_object_command, cmd)
         self.assertEqual(result.exit_code, 0)
@@ -139,14 +139,14 @@ class AddObjectCommandTestCase(PackageTestCase):
             [self.obj_fn,
              '--mode', 'copy',
              '--target-device', '/dev/sda',
-             '--target-path', 'path'],
+             '--target-path', '/path'],
             [self.obj_fn,
              '--mode', 'copy',
              '--target-device', '/dev/sda',
              '--filesystem', 'ext4'],
             [self.obj_fn,
              '--mode', 'copy',
-             '--target-path', 'path',
+             '--target-path', '/path',
              '--filesystem', 'ext4']
         )
         for cmd in cmds:
@@ -165,7 +165,7 @@ class AddObjectCommandTestCase(PackageTestCase):
              '--filesystem', 'ext4'],
             [self.obj_fn,
              '--mode', 'tarball',
-             '--target-path', 'path',
+             '--target-path', '/path',
              '--filesystem', 'ext4']
         )
         for cmd in cmds:

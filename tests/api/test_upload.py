@@ -22,7 +22,7 @@ class UploadTestCase(
         self.set_env_var(SERVER_URL_VAR, self.httpd.url(''))
         self.set_env_var(CHUNK_SIZE_VAR, 1)
         self.obj_fn = self.create_file(b'spam')
-        self.obj = Object(1, self.obj_fn, 'raw', {'target-device': 'raw'})
+        self.obj = Object(1, self.obj_fn, 'raw', {'target-device': '/dev/sda'})
         self.obj.load()
 
     def test_returns_success_when_upload_is_successful(self):

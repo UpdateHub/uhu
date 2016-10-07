@@ -78,7 +78,7 @@ def export_command(filename):
 @package_cli.command('add')
 @click.argument('filename', type=click.Path(exists=True))
 @click.option(
-    '--mode', '-m', type=click.Choice(MODES),
+    '--mode', '-m', type=click.Choice(sorted(MODES)),
     help='How the object will be installed', required=True)
 def add_object_command(filename, mode, **options):
     ''' Adds an entry in the package file for the given artifact '''

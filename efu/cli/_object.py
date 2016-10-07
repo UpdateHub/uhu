@@ -41,9 +41,6 @@ class ClickOptionsParser(OptionsParser):
 
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
-        self.options = {CLICK_OPTIONS[opt].metadata: value
-                        for opt, value in self.options.items()
-                        if value is not None}
-
-    def get_option_display(self, option):
-        return option.cli[0]
+        self.values = {CLICK_OPTIONS[opt].metadata: value
+                       for opt, value in self.values.items()
+                       if value is not None}

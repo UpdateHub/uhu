@@ -45,7 +45,7 @@ class BasePullTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
                 {
                     'filename': self.obj_fn,
                     'mode': 'raw',
-                    'target-device': 'device',
+                    'target-device': '/device',
                     'size': 4,
                     'sha256sum': hashlib.sha256(self.obj_content).hexdigest()
                 }
