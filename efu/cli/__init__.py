@@ -3,15 +3,21 @@
 
 import click
 
+from ..repl import efu_interactive
+
 from .config import config_cli, cleanup_command
 from .hardware import hardware_cli
 from .package import package_cli
 from .product import product_cli
 
 
-@click.group()
-def cli():
+@click.group(invoke_without_command=True)
+@click.option('--package', type=click.Path())
+@click.pass_context
+def cli(ctx, package):
     ''' EasyFOTA utility '''
+    if ctx.invoked_subcommand is None:
+        efu_interactive(package)
 
 
 # General commands

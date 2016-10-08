@@ -23,6 +23,7 @@ setup(
         'progress==1.2',
         'requests==2.10.0',
         'jsonschema==2.5.1',
+        'prompt-toolkit==1.0.3',
         'rfc3987==1.3.6',
     ],
     author='O.S. Systems Software LTDA',
