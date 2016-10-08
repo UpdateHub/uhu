@@ -200,6 +200,31 @@ class OptionsParserTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             parser.check_allowed_options()
 
+    def test_check_options_requirements_returns_None_if_valid(self):
+        parser = OptionsParser('copy', {
+            'format?': True,
+            'format-options': '--all'  # requires format? True
+        })
+        self.assertIsNone(parser.check_options_requirements())
+
+    def test_check_options_requirements_raises_error_if_invalid(self):
+        parser = OptionsParser('copy', {
+            'format?': False,
+            'format-options': '--all'  # requires format? True
+        })
+        with self.assertRaises(ValueError):
+            parser.check_options_requirements()
+
+    def test_check_options_requirements_returns_None_if_not_required(self):
+        mode = 'copy'
+        options = {
+            'target-device': '/dev/sda',
+            'target-path': '/boot',
+            'filesystem': 'ext4'
+        }  # no format? passed
+        parser = OptionsParser('copy', options)
+        self.assertIsNone(parser.check_options_requirements())
+
     def test_clean_returns_options_with_default_values(self):
         parser = OptionsParser('raw', {'target-device': '/dev/sda'})
         self.assertEqual(len(parser.values), 1)
