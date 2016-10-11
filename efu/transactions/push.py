@@ -32,7 +32,8 @@ class Push:
         if self.callback is not None:
             self.callback.push_start(response)
         if response.status_code != 201:
-            raise exceptions.StartPushError
+            raise exceptions.StartPushError(
+                'It was not possible to start pushing')
         push = response.json()
         self.upload_list = push['uploads']
         self.finish_push_url = push['finish_url']
@@ -45,7 +46,8 @@ class Push:
         # stores all upload results
         for result in results:
             if not ObjectUploadResult.is_ok(result):
-                raise exceptions.UploadError
+                raise exceptions.UploadError(
+                    'Some objects has not been fully uploaded')
 
     def finish_push(self):
         response = Request(self.finish_push_url, 'POST').send()
@@ -53,4 +55,5 @@ class Push:
         if self.callback is not None:
             self.callback.push_finish(self.package, response)
         if response.status_code != 201:
-            raise exceptions.FinishPushError
+            raise exceptions.FinishPushError(
+                'It was not possible to finish push')

@@ -59,7 +59,7 @@ class Option:
         value = str(value)
         result = re.match(r'^/[^\0]*', value)
         if result is None:
-            err = '{} is not a valid absolut path'
+            err = '"{}" is not a valid absolut path'
             raise ValueError(err.format(value))
         return value
 
