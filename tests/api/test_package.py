@@ -133,8 +133,20 @@ class PackageObjectManagementTestCase(PackageTestCase):
 
     def test_edit_object_raises_error_if_object_doesnt_exist(self):
         pkg = Package(version=self.version, product=self.product)
-        with self.assertRaises(KeyError):
+        with self.assertRaises(ValueError):
             pkg.edit_object(100, 'target-device', '/dev/sdb')
+
+    def test_edit_object_raises_error_if_invalid_value_is_passed(self):
+        pkg = Package(version=self.version, product=self.product)
+        obj = pkg.add_object(self.obj_fn, self.obj_mode, self.obj_options)
+        with self.assertRaises(ValueError):
+            pkg.edit_object(obj.uid, 'target-device', 1)  # should be a path
+
+    def test_edit_object_raises_error_if_invalid_option_is_passed(self):
+        pkg = Package(version=self.version, product=self.product)
+        obj = pkg.add_object(self.obj_fn, self.obj_mode, self.obj_options)
+        with self.assertRaises(ValueError):
+            pkg.edit_object(obj.uid, 'target-path', '/')  # bot allowed in raw
 
     def test_can_remove_object(self):
         pkg = Package(version=self.version, product=self.product)

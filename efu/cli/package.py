@@ -119,7 +119,7 @@ def edit_object_command(object_id, key, value):
         print('Package file does not exist. '
               'Create one with <efu use> command')
         sys.exit(1)
-    except KeyError as err:
+    except ValueError as err:
         print(err)
         sys.exit(2)
 

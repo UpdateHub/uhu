@@ -93,8 +93,12 @@ class Package:
 
     def edit_object(self, uid, option, value):
         ''' Given an object id, sets obj.option to value '''
-        obj = self.objects[uid]
+        obj = self.objects.get(uid)
+        if obj is None:
+            err = '"{}" is an invalid object UID'
+            raise ValueError(err.format(uid))
         obj.options[option] = value
+        self.add_object(obj.filename, obj.mode, obj.options, uid=uid)
 
     def remove_object(self, uid):
         ''' Removes an object from package '''
