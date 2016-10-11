@@ -72,6 +72,15 @@ class LoadObjectTestCase(unittest.TestCase):
         ]
         self.assertEqual(obj.chunks, expected)
 
+    def test_load_object_always_reset_object_len(self):
+        with open(self.fn, 'bw') as fp:
+            fp.write(b'spam')
+        obj = Object(1, self.fn, 'raw', {'target-device': '/dev/sda'})
+        obj.load()
+        self.assertEqual(len(obj), 2)
+        obj.load()
+        self.assertEqual(len(obj), 2)
+
 
 class ObjectSerializationTestCase(unittest.TestCase):
 

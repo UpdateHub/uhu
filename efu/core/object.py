@@ -71,6 +71,7 @@ class Object:
 
     def load(self, callback=None):
         self.size = os.path.getsize(self.filename)
+        self.chunks = []
         sha256sum = hashlib.sha256()
 
         if callback is not None:
