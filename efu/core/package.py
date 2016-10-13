@@ -102,7 +102,11 @@ class Package:
 
     def remove_object(self, uid):
         ''' Removes an object from package '''
-        del self.objects[uid]
+        try:
+            del self.objects[uid]
+        except KeyError:
+            err = '{} object UID is not present within package'
+            raise ValueError(err.format(uid))
 
     def load(self, callback=None):
         if callback is not None:

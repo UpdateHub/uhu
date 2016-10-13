@@ -155,6 +155,11 @@ class PackageObjectManagementTestCase(PackageTestCase):
         pkg.remove_object(obj.uid)
         self.assertEqual(len(pkg), 0)
 
+    def test_remove_object_raises_error_if_invalid_file(self):
+        pkg = Package(version=self.version, product=self.product)
+        with self.assertRaises(ValueError):
+            pkg.remove_object('invalid')
+
 
 class PackageRepresentationsTestCase(PackageTestCase):
 
