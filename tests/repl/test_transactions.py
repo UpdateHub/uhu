@@ -56,13 +56,13 @@ class PushTestCase(BasePushTestCase):
         self.repl = EFURepl()
 
     def test_can_push_package(self):
-        self.set_push(self.product)
         self.repl.package.add_object(__file__, 'raw', {'target-device': '/'})
         self.repl.package.product = self.product
         self.repl.package.version = '2.0'
+        self.set_push(self.repl.package, '100')
         self.assertIsNone(self.repl.package.uid)
         functions.push_package(self.repl)
-        self.assertIsNotNone(self.repl.package.uid)
+        self.assertEqual(self.repl.package.uid, '100')
 
     def test_push_raises_error_if_missing_product(self):
         self.repl.package.version = '2.0'

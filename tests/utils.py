@@ -25,10 +25,10 @@ class HTTPTestCaseMixin:
     def generate_status_code(self, success=True, success_code=201):
         return success_code if success else 400
 
-    def generic_url(self, success, body=None):
+    def generic_url(self, success, body=None, method='POST'):
         code = self.generate_status_code(success)
         path = '/{}'.format(uuid4().hex)
-        self.httpd.register_response(path, 'POST', status_code=code, body=body)
+        self.httpd.register_response(path, method, status_code=code, body=body)
         return self.httpd.url(path)
 
     def clean(self):
@@ -110,40 +110,54 @@ class EnvironmentFixtureMixin:
 
 class UploadFixtureMixin:
 
-    def create_upload_conf(self, obj, obj_exists=False,
-                           chunk_exists=False, success=True):
-        url = self.generic_url(success=success)
-        chunk_conf = {
-            'exists': chunk_exists,
-            'url': url,
-        }
-        chunks = {str(chunk): chunk_conf for chunk in range(len(obj))}
-        obj_conf = {
-            'object_id': obj.uid,
-            'exists': obj_exists,
-            'chunks': chunks,
-        }
-        return obj_conf
+    def create_upload_conf(self, obj, product_uid, package_uid, exists=False,
+                           start_success=True, upload_success=True):
+        upload_url = self.generic_url(upload_success, method='PUT')
+
+        start_upload_path = '/products/{}/packages/{}/objects/{}'.format(
+            product_uid, package_uid, obj.sha256sum)
+        start_upload_url = self.httpd.url(start_upload_path)
+        start_upload_body = json.dumps({
+            'url': upload_url,
+            'storage': 'dummy',
+        })
+        start_upload_code = 200 if exists else 201
+        start_upload_code = start_upload_code if start_success else 400
+        self.httpd.register_response(
+            start_upload_path, 'POST', body=start_upload_body,
+            status_code=start_upload_code)
 
 
 class PushFixtureMixin:
 
-    def set_push(self, product, start_success=True,
-                 finish_success=True, uploads=None):
+    def set_push(self, package, package_uid, start_success=True,
+                 upload_success=True, upload_start_success=True,
+                 upload_exists=False, finish_success=True):
+        self.start_push_url(package.product, package_uid, start_success)
+        for obj in package:
+            obj.load()
+            self.create_upload_conf(
+                obj, package.product, package_uid, upload_exists,
+                upload_start_success, upload_success)
+        self.finish_push_url(package.product, package_uid, finish_success)
+
+    def start_push_url(self, product, package_uid, success=True):
+        path = '/products/{}/packages'.format(product)
+        code = self.generate_status_code(success)
+        if success:
+            body = {'package-uid': package_uid}
+        else:
+            body = {'errors': ['This is an error', 'And this is another one']}
         self.httpd.register_response(
-            '/products/{}/packages'.format(product),
-            method='POST',
-            body=json.dumps({
-                'uploads': [] if not uploads else uploads,
-                'finish_url': self.finish_push_url(finish_success)
-            }),
-            status_code=self.generate_status_code(start_success)
-        )
+            path, method='POST', body=json.dumps(body), status_code=code)
 
-    def finish_push_url(self, success=True):
-        return self.generic_url(
-            success, body=json.dumps({'package_id': 1}))
-
-    def create_package_uploads(self, package, **kwargs):
-        package.load()
-        return [self.create_upload_conf(obj, **kwargs) for obj in package]
+    def finish_push_url(self, product, package_uid, success=True):
+        path = '/products/{}/packages/{}/finish'.format(product, package_uid)
+        code = self.generate_status_code(success, 202)
+        if success:
+            body = ''
+        else:
+            body = json.dumps(
+                {'errors': ['This is an error', 'And this is another one']})
+        self.httpd.register_response(
+            path, method='POST', body=body, status_code=code)

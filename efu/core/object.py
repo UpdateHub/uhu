@@ -2,12 +2,14 @@
 # This software is released under the MIT License
 
 import hashlib
+import json
 import os
 
 from ..http import Request
-from ..utils import get_chunk_size, yes_or_no
+from ..utils import get_chunk_size, get_server_url, yes_or_no
 
 from .options import OptionsParser
+from .storages import STORAGES
 
 
 class ObjectUploadResult:
@@ -39,16 +41,9 @@ class Object:
 
         self.size = None
         self.sha256sum = None
-        self.chunks = []
-        self.chunk_size = get_chunk_size()
+        self.md5 = None
 
-    def serialize(self):
-        ''' Serialize object to send to server '''
-        return {
-            'id': self.uid,
-            'chunks': self.chunks,
-            'metadata': self.metadata()
-        }
+        self.chunk_size = get_chunk_size()
 
     def metadata(self):
         ''' Serialize object as metadata '''
@@ -71,45 +66,40 @@ class Object:
 
     def load(self, callback=None):
         self.size = os.path.getsize(self.filename)
-        self.chunks = []
         sha256sum = hashlib.sha256()
-
+        md5 = hashlib.md5()
         if callback is not None:
             callback.pre_object_load(self)
-        for position, chunk in enumerate(self):
+        for chunk in self:
             sha256sum.update(chunk)
-            self.chunks.append({
-                'position': position,
-                'sha256sum': hashlib.sha256(chunk).hexdigest()
-            })
+            md5.update(chunk)
             if callback is not None:
                 callback.object_load(self)
         self.sha256sum = sha256sum.hexdigest()
+        self.md5 = md5.hexdigest()
         if callback is not None:
             callback.post_object_load(self)
 
-    def upload(self, conf, callback=None):
-        if callback is not None:
-            callback.pre_object_upload(self)
-        result = ObjectUploadResult.SUCCESS
-        if conf['exists']:
-            result = ObjectUploadResult.EXISTS
+    def upload(self, product_uid, package_uid):
+        from ..transactions.exceptions import UploadError
+        url = get_server_url('/products/{}/packages/{}/objects/{}'.format(
+            product_uid, package_uid, self.sha256sum))
+        body = json.dumps({'etag': self.md5})
+        response = Request(url, 'POST', body, json=True).send()
+        if response.status_code == 200:
+            return ObjectUploadResult.EXISTS
+        elif response.status_code == 201:
+            body = response.json()
+            storage = STORAGES[body['storage']]()
+            upload_url = body['url']
+            storage.upload(self.filename, upload_url)
+            if storage.success:
+                return ObjectUploadResult.SUCCESS
+            return ObjectUploadResult.FAIL
         else:
-            for position, chunk in enumerate(self):
-                chunk_conf = conf['chunks'][str(position)]
-                if chunk_conf['exists']:
-                    continue
-                response = Request(chunk_conf['url'], 'POST', chunk).send()
-                if response.status_code != 201:
-                    result = ObjectUploadResult.FAIL
-                if callback is not None:
-                    callback.object_upload(self)
-        if callback is not None:
-            callback.post_object_upload(self)
-        return result
-
-    def __len__(self):
-        return len(self.chunks)
+            errors = response.json().get('errors', [])
+            error_msg = 'It was not possible to get url:\n{}'
+            raise UploadError(error_msg.format('\n'.join(errors)))
 
     def __iter__(self):
         with open(self.filename, 'br') as fp:

@@ -163,47 +163,6 @@ class PackageObjectManagementTestCase(PackageTestCase):
 
 class PackageRepresentationsTestCase(PackageTestCase):
 
-    def test_can_represent_package_serialized(self):
-        pkg = Package(version=self.version, product=self.product)
-        pkg.add_object(self.obj_fn, self.obj_mode, self.obj_options)
-        pkg.add_supported_hardware(
-            name=self.hardware, revisions=self.hardware_revision)
-        pkg.load()
-        serial = pkg.serialize()
-        self.assertEqual(serial['version'], self.version)
-
-        metadata = serial['metadata']
-        self.assertEqual(metadata['version'], self.version)
-        self.assertEqual(metadata['product'], self.product)
-        self.assertEqual(
-            metadata['supported-hardware'], self.supported_hardware)
-
-        metadata_objects = metadata['objects']
-        self.assertEqual(len(metadata_objects), 1)
-        metadata_obj = metadata_objects[0]
-        self.assertEqual(metadata_obj['mode'], self.obj_mode)
-        self.assertEqual(metadata_obj['filename'], self.obj_fn)
-        self.assertEqual(metadata_obj['size'], self.obj_size)
-        self.assertEqual(metadata_obj['sha256sum'], self.obj_sha256)
-        self.assertEqual(metadata_obj['target-device'], '/dev/sda')
-
-        objects = serial['objects']
-        self.assertEqual(len(objects), 1)
-        obj = objects[0]
-        self.assertEqual(obj['id'], 1)
-        self.assertEqual(len(obj['chunks']), 2)
-        self.assertEqual(obj['chunks'][0]['sha256sum'], self.sha256sum(b'sp'))
-        self.assertEqual(obj['chunks'][0]['position'], 0)
-        self.assertEqual(obj['chunks'][1]['sha256sum'], self.sha256sum(b'am'))
-        self.assertEqual(obj['chunks'][1]['position'], 1)
-
-        obj_metadata = obj['metadata']
-        self.assertEqual(obj_metadata['mode'], self.obj_mode)
-        self.assertEqual(obj_metadata['filename'], self.obj_fn)
-        self.assertEqual(obj_metadata['target-device'], '/dev/sda')
-        self.assertEqual(obj_metadata['sha256sum'], self.obj_sha256)
-        self.assertEqual(obj_metadata['size'], self.obj_size)
-
     def test_can_represent_package_as_metadata(self):
         pkg = Package(version=self.version, product=self.product)
         pkg.add_object(self.obj_fn, self.obj_mode, self.obj_options)

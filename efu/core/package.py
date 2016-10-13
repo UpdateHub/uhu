@@ -118,14 +118,6 @@ class Package:
         if callback is not None:
             callback.post_package_load(self)
 
-    def serialize(self):
-        ''' Serialize package to send to server '''
-        return {
-            'version': self.version,
-            'objects': [obj.serialize() for obj in self],
-            'metadata': self.metadata()
-        }
-
     def metadata(self):
         ''' Serialize package as metadata '''
         metadata = {

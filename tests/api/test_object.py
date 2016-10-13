@@ -42,44 +42,9 @@ class LoadObjectTestCase(unittest.TestCase):
 
         self.assertIsNone(obj.size)
         self.assertIsNone(obj.sha256sum)
-        self.assertEqual(len(obj.chunks), 0)
-
         obj.load()
-
         self.assertEqual(obj.size, 4)
         self.assertEqual(obj.sha256sum, sha256sum)
-        self.assertEqual(len(obj.chunks), 2)
-
-    def test_object_loaded_chunks(self):
-        content = b'spam'
-        content_sha256sum = hashlib.sha256(content).hexdigest()
-        with open(self.fn, 'bw') as fp:
-            fp.write(content)
-        mode = 'raw'
-        options = {'target-device': '/dev/sda'}
-        obj = Object(1, self.fn, mode, options)
-        obj.load()
-
-        expected = [
-            {
-                'position': 0,
-                'sha256sum': hashlib.sha256(b'sp').hexdigest()
-            },
-            {
-                'position': 1,
-                'sha256sum': hashlib.sha256(b'am').hexdigest()
-            },
-        ]
-        self.assertEqual(obj.chunks, expected)
-
-    def test_load_object_always_reset_object_len(self):
-        with open(self.fn, 'bw') as fp:
-            fp.write(b'spam')
-        obj = Object(1, self.fn, 'raw', {'target-device': '/dev/sda'})
-        obj.load()
-        self.assertEqual(len(obj), 2)
-        obj.load()
-        self.assertEqual(len(obj), 2)
 
 
 class ObjectSerializationTestCase(unittest.TestCase):
@@ -95,27 +60,6 @@ class ObjectSerializationTestCase(unittest.TestCase):
 
         self.addCleanup(os.remove, self.fn)
         self.addCleanup(os.environ.pop, CHUNK_SIZE_VAR)
-
-    def test_can_serialize_object(self):
-        obj = Object(1, self.fn, 'raw', {'target-device': '/dev/sda'})
-        obj.load()
-        serialized = obj.serialize()
-        # ID
-        self.assertEqual(serialized['id'], obj.uid)
-        # metadata
-        metadata = serialized['metadata']
-        self.assertEqual(metadata['mode'], 'raw')
-        self.assertEqual(metadata['filename'], self.fn)
-        self.assertEqual(metadata['target-device'], '/dev/sda')
-        self.assertEqual(metadata['sha256sum'], self.sha256sum)
-        self.assertEqual(metadata['size'], 4)
-        # chunks
-        chunks = serialized['chunks']
-        self.assertEqual(len(chunks), 2)
-        for chunk in chunks:
-            self.assertEqual(chunks.index(chunk), chunk['position'])
-        chunks[0]['sha256sum'] = hashlib.sha256(b'sp').hexdigest()
-        chunks[1]['sha256sum'] = hashlib.sha256(b'am').hexdigest()
 
     def test_can_serialize_object_as_metadata(self):
         obj = Object(1, self.fn, 'raw', {'target-device': '/dev/sda'})

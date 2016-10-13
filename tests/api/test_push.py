@@ -23,6 +23,7 @@ class BasePushTestCase(
         self.set_env_var(CHUNK_SIZE_VAR, 1)
         self.product = '0' * 64
         self.version = '2.0'
+        self.package_uid = '1' * 64
         self.package = Package(version=self.version, product=self.product)
         for _ in range(3):
             fn = self.create_file('123')
@@ -32,21 +33,21 @@ class BasePushTestCase(
 class PushTestCase(BasePushTestCase):
 
     def test_start_push_returns_None_when_successful(self):
-        self.set_push(self.product)
+        self.start_push_url(self.product, self.package_uid)
         self.package.load()
         push = Push(self.package)
         observed = push.start_push()
         self.assertIsNone(observed)
 
-    def test_raises_exception_when_start_push_fails(self):
-        self.set_push(self.product, start_success=False)
+    def test_start_push_raises_exception_when_fail(self):
+        self.start_push_url(self.product, self.package_uid, success=False)
         self.package.load()
         push = Push(self.package)
         with self.assertRaises(exceptions.StartPushError):
             push.start_push()
 
     def test_start_push_request_is_made_correctly(self):
-        self.set_push(self.product)
+        self.start_push_url(self.product, self.package_uid)
         start_url = self.httpd.url(
             '/products/{}/packages'.format(self.product))
         self.package.load()
@@ -54,26 +55,16 @@ class PushTestCase(BasePushTestCase):
         push.start_push()
 
         request = self.httpd.requests[0]
-        request_body = json.loads(request.body.decode())
-
         self.assertEqual(len(self.httpd.requests), 1)
         self.assertEqual(request.method, 'POST')
         self.assertEqual(request.url, start_url)
-        self.assertEqual(len(request_body.get('objects')), 3)
-        self.assertEqual(request_body.get('version'), self.version)
         self.assertEqual(request.headers['Content-Type'], 'application/json')
-        # objects
-        for obj in request_body.get('objects'):
-            chunks = obj.get('chunks')
-            self.assertIsNotNone(chunks)
-            for chunk in chunks:
-                self.assertIsNotNone(chunk.get('sha256sum'))
-                self.assertIsNotNone(chunk.get('position'))
+
         # metadata
-        metadata = request_body.get('metadata')
-        self.assertIsNotNone(metadata)
+        metadata = json.loads(request.body.decode())
         self.assertEqual(metadata['version'], self.version)
         self.assertEqual(metadata['product'], self.product)
+        self.assertEqual(len(metadata['objects']), 3)
         for metadata_obj in metadata['objects']:
             self.assertIsNotNone(metadata_obj['sha256sum'])
             self.assertIsNotNone(metadata_obj['filename'])
@@ -81,29 +72,34 @@ class PushTestCase(BasePushTestCase):
             self.assertIsNotNone(metadata_obj['mode'])
             self.assertIsNotNone(metadata_obj['target-device'])
 
-    def test_start_push_updates_finish_push_url(self):
-        self.set_push(self.product)
+    def test_start_push_updates_package_uid(self):
+        self.start_push_url(self.product, self.package_uid)
         self.package.load()
         push = Push(self.package)
+        self.assertIsNone(self.package.uid)
         push.start_push()
-        self.assertIsNotNone(push.finish_push_url)
+        self.assertEqual(self.package.uid, self.package_uid)
 
     def test_finish_push_returns_None_when_successful(self):
         push = Push(self.package)
-        push.finish_push_url = self.finish_push_url(success=True)
-        observed = push.finish_push()
-        self.assertIsNone(observed)
+        self.package.uid = self.package_uid
+        self.finish_push_url(self.product, self.package.uid)
+        self.assertIsNone(push.finish_push())
 
-    def test_finish_push_raises_exception_when_fail(self):
+    def test_finish_push_raises_error_when_fail(self):
         push = Push(self.package)
-        push.finish_push_url = self.finish_push_url(success=False)
+        self.package.uid = self.package_uid
+        self.finish_push_url(self.product, self.package_uid, success=False)
         with self.assertRaises(exceptions.FinishPushError):
             push.finish_push()
 
     def test_finish_push_request_is_made_correctly(self):
-        url = self.finish_push_url(success=True)
+        self.finish_push_url(self.product, self.package_uid, success=True)
+        path = '/products/{}/packages/{}/finish'.format(
+            self.product, self.package_uid)
+        url = self.httpd.url(path)
         push = Push(self.package)
-        push.finish_push_url = url
+        self.package.uid = self.package_uid
         push.finish_push()
         request = self.httpd.requests[0]
         self.assertEqual(len(self.httpd.requests), 1)
@@ -112,37 +108,27 @@ class PushTestCase(BasePushTestCase):
         self.assertEqual(request.body, b'')
 
     def test_upload_objects_return_None_when_successful(self):
-        uploads = self.create_package_uploads(self.package)
-        self.set_push(self.product, uploads=uploads)
+        self.set_push(self.package, self.package_uid)
         push = Push(self.package)
         push.start_push()
         observed = push.upload_objects()
         self.assertIsNone(observed)
 
     def test_upload_objects_return_None_when_file_exists(self):
-        uploads = self.create_package_uploads(self.package, obj_exists=True)
-        self.set_push(self.product, uploads=uploads)
+        self.set_push(self.package, self.package_uid, upload_exists=True)
         push = Push(self.package)
         push.start_push()
         observed = push.upload_objects()
         self.assertIsNone(observed)
 
-    def test_upload_objects_raises_exception_when_upload_part_fails(self):
-        uploads = self.create_package_uploads(self.package, success=False)
-        self.set_push(self.product, uploads=uploads)
-
-        push = Push(self.package)
-        push.start_push()
-        with self.assertRaises(exceptions.UploadError):
-            push.upload_objects()
-
     def test_upload_objects_requests_are_made_correctly(self):
-        uploads = self.create_package_uploads(self.package)
-        self.set_push(self.product, uploads=uploads)
+        self.set_push(self.package, self.package_uid)
         push = Push(self.package)
         push.start_push()
         push.upload_objects()
+        push.finish_push()
         # 1 request for starting push
-        # 9 requests since 3 files must be uploaded in 3 chunks each
-        # Total: 10 requests
-        self.assertEqual(len(self.httpd.requests), 10)
+        # 3 * (2 requests per file [get url and upload])
+        # 1 request for finishing push
+        # Total: 8 requests
+        self.assertEqual(len(self.httpd.requests), 8)
