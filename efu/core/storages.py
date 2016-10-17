@@ -3,15 +3,23 @@
 
 import requests
 
+from ..utils import call
+
 
 class BaseStorageBackend:
 
-    def __init__(self):
+    def __init__(self, obj, callback=None):
+        self.object = obj
         self.success = False
+        self.callback = callback
 
-    def upload(self, fn, url):
-        with open(fn, 'rb') as fp:
-            response = requests.put(url, data=fp)
+    def _upload(self):
+        for chunk in self.object:
+            call(self.callback, 'object_upload', self.object)
+            yield chunk
+
+    def upload(self, url):
+        response = requests.put(url, data=self._upload())
         if response.ok:
             self.success = True
 

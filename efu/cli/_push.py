@@ -5,6 +5,8 @@ from math import ceil
 
 from progress.bar import Bar
 
+from ..core.object import ObjectUploadResult
+
 
 GREEN = '\033[92m'
 RED = '\033[91m'
@@ -44,7 +46,9 @@ class PushCallback:
     def object_upload(self, obj):  # pylint: disable=W0613
         self.object_bar.next()
 
-    def post_object_upload(self, obj):  # pylint: disable=W0613
+    def post_object_upload(self, obj, status):
+        if status == ObjectUploadResult.EXISTS:
+            print(obj.filename, 'already uploaded', flush=True, end='')
         self.object_bar.finish()
 
     def push_start(self, response):

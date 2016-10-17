@@ -5,7 +5,7 @@ import json
 
 from ..core.object import ObjectUploadResult
 from ..http.request import Request
-from ..utils import get_server_url, validate_schema
+from ..utils import call, get_server_url, validate_schema
 
 from . import exceptions
 
@@ -30,8 +30,7 @@ class Push:
         response = Request(
             self.start_push_url, method='POST',
             payload=json.dumps(body), json=True).send()
-        if self.callback is not None:
-            self.callback.push_start(response)
+        call(self.callback, 'push_start', response)
         response_body = response.json()
         if response.status_code != 201:
             errors = '\n'.join(response_body.get('errors', []))
@@ -42,7 +41,8 @@ class Push:
     def upload_objects(self):
         results = []
         for obj in self.package.objects.values():
-            results.append(obj.upload(self.package.product, self.package.uid))
+            results.append(obj.upload(
+                self.package.product, self.package.uid, self.callback))
         for result in results:
             if not ObjectUploadResult.is_ok(result):
                 raise exceptions.UploadError(
@@ -50,8 +50,7 @@ class Push:
 
     def finish_push(self):
         response = Request(self.finish_push_url, 'POST').send()
-        if self.callback is not None:
-            self.callback.push_finish(self.package, response)
+        call(self.callback, 'push_finish', self.package, response)
         if response.status_code != 202:
             errors = '\n'.join(response.json()['errors'])
             error_msg = 'It was not possible to finish pushing:\n{}'

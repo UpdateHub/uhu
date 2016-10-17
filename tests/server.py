@@ -30,8 +30,8 @@ def push_cmd(cmd):
             fn = self.create_file('spam')
             pkg.add_object(fn, 'raw', {'target-device': '/'})
         pkg.dump(pkg_fn)
-        kwargs = cmd(self, pkg)
-        self.set_push(product, **kwargs)
+        kwargs = cmd(self)
+        self.set_push(pkg, '100',  **kwargs)
         print('- {}:\nexport {}={}\n'.format(name, LOCAL_CONFIG_VAR, pkg_fn))
     return wrapped
 
@@ -45,32 +45,16 @@ class EFUTestServer(PushFixtureMixin, FileFixtureMixin, UploadFixtureMixin,
         signal.signal(signal.SIGINT, self.shutdown)
 
     @push_cmd
-    def push_success(self, pkg):
-        return {'uploads': self.create_package_uploads(pkg)}
+    def push_success(self):
+        return {}
 
     @push_cmd
-    def push_existent(self, pkg):
-        uploads = self.create_package_uploads(
-            pkg, obj_exists=True)
-        return {'uploads': uploads}
+    def push_existent(self):
+        return {'upload_exists': True}
 
     @push_cmd
-    def push_finish_push_fail(self, pkg):
-        uploads = self.create_package_uploads(pkg)
-        return {'uploads': uploads, 'finish_success': False}
-
-    @push_cmd
-    def push_obj_chunk_fail(self, pkg):
-        uploads = self.create_package_uploads(pkg, success=False)
-        return {'uploads': uploads}
-
-    @push_cmd
-    def push_mixed(self, pkg):
-        f1, f2, f3 = list(pkg)
-        u1 = self.create_upload_conf(f1)
-        u2 = self.create_upload_conf(f2, success=False)
-        u3 = self.create_upload_conf(f3, obj_exists=True)
-        return {'uploads': [u1, u2, u3]}
+    def push_finish_push_fail(self):
+        return {'finish_success': False}
 
     def shutdown(self, *args):
         print('Shutting down server...')
@@ -85,8 +69,6 @@ class EFUTestServer(PushFixtureMixin, FileFixtureMixin, UploadFixtureMixin,
         self.push_success()
         self.push_existent()
         self.push_finish_push_fail()
-        self.push_obj_chunk_fail()
-        self.push_mixed()
 
 
 if __name__ == '__main__':

@@ -66,3 +66,8 @@ def validate_schema(schema_fn, obj):
     validator = Draft4Validator(
         schema, resolver=resolver, format_checker=format_checker)
     validator.validate(obj)
+
+
+def call(obj, name, *args, **kw):
+    f = getattr(obj, name, lambda *args, **kw: None)
+    f(*args, **kw)

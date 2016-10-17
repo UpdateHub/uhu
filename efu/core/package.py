@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 from ..http.request import Request
 from ..transactions import Pull, Push
-from ..utils import get_server_url
+from ..utils import call, get_server_url
 
 from . import Object
 
@@ -109,14 +109,11 @@ class Package:
             raise ValueError(err.format(uid))
 
     def load(self, callback=None):
-        if callback is not None:
-            callback.pre_package_load(self)
+        call(callback, 'pre_package_load', self)
         for obj in self:
             obj.load(callback)
-            if callback is not None:
-                callback.package_load(self)
-        if callback is not None:
-            callback.post_package_load(self)
+            call(callback, 'package_load', self)
+        call(callback, 'post_package_load', self)
 
     def metadata(self):
         ''' Serialize package as metadata '''
