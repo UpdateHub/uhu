@@ -14,8 +14,27 @@ class Request(object):
         self.url = 'http://{}:{}{}'.format(addr, port, request.path)
         self.method = request.command
         self.headers = request.headers
-        content_length = int(self.headers.get('Content-length', 0))
-        self.body = request.rfile.read(content_length)
+        encode = self.headers.get('Transfer-Encoding')
+        if encode == 'chunked':
+            self.body = bytes()
+            while True:
+                chunk = request.rfile.readline()
+                if chunk == b'0\r\n':
+                    chunk = request.rfile.readline()
+                    if chunk == b'\r\n':
+                        break
+                if chunk == b'\r\n':
+                    continue
+                size = int(chunk.replace(b'\r\n', b''), base=16)
+                buffer = bytes()
+                while True:
+                    buffer += request.rfile.readline().replace(b'\r\n', b'')
+                    if len(buffer) == size:
+                        break
+                self.body += buffer
+        else:
+            content_length = int(self.headers.get('Content-length', 0))
+            self.body = request.rfile.read(content_length)
 
 
 class Response(object):

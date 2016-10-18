@@ -157,6 +157,18 @@ class HTTPServerTestCase(HTTPTestCaseMixin, EFUTestCase):
         self.assertEqual(request.body, b'\0')
         self.assertEqual(request.headers['CustomHeader'], '42')
 
+    def test_can_make_chunked_transfer(self):
+        self.httpd.register_response('/', method='PUT')
+        meal = ['spam, ', 'eggs, ', 'and ', 'ham.']
+
+        def make_chunks():
+            for ingredient in meal:
+                yield ingredient.encode()
+
+        requests.put(self.httpd.url(), data=make_chunks())
+        request = self.httpd.requests[0]
+        self.assertEqual(request.body.decode(), ''.join(meal))
+
 
 class ResponseTestCase(unittest.TestCase):
 
