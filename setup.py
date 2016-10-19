@@ -20,10 +20,11 @@ setup(
     },
     install_requires=[
         'click==6.6',
-        'progress==1.2',
-        'requests==2.10.0',
         'jsonschema==2.5.1',
+        'python-magic==0.4.12',
+        'progress==1.2',
         'prompt-toolkit==1.0.3',
+        'requests==2.10.0',
         'rfc3987==1.3.6',
     ],
     author='O.S. Systems Software LTDA',

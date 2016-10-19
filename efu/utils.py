@@ -3,8 +3,10 @@
 
 import json
 import os
+import subprocess
 from collections import OrderedDict
 
+import magic
 from jsonschema import Draft4Validator, FormatChecker, RefResolver
 
 
@@ -71,3 +73,72 @@ def validate_schema(schema_fn, obj):
 def call(obj, name, *args, **kw):
     f = getattr(obj, name, lambda *args, **kw: None)
     f(*args, **kw)
+
+
+# Compressed file utilities
+
+SUPPORTED_COMPRESSION_MIMES = [
+    'application/gzip',
+    'application/x-gzip',
+    'application/x-xz'
+]
+
+
+def get_uncompressed_size(fn):
+    mime = magic.from_file(fn, mime=True)
+    try:
+        f = {
+            'application/x-gzip': gzip_uncompressed_size,
+            'application/gzip': gzip_uncompressed_size,
+            'application/x-xz': lzma_uncompressed_size,
+            'application/octet-stream': lzo_uncompressed_size,
+        }[mime]
+        return f(fn)
+    except KeyError:
+        raise ValueError('Unsuported compressed file type')
+
+
+def is_compression_supported(fn):
+    # This will only work if file exists (uploads)
+    mime = magic.from_file(fn, mime=True)
+    if mime in SUPPORTED_COMPRESSION_MIMES:
+        return True
+    if mime == 'application/octet-stream' and is_lzo(fn):
+        return True
+    return False
+
+
+def gzip_uncompressed_size(fn):
+    if is_gzip(fn):
+        cmd = "gzip -l %s | tail -n 1 | awk '{ print $2}'"
+        size = subprocess.check_output(cmd % fn, shell=True)
+        return int(size.decode())
+
+
+def lzma_uncompressed_size(fn):
+    if is_lzma(fn):
+        cmd = "xz -l %s --robot | tail -n 1 | awk '{ print $5}'"
+        size = subprocess.check_output(cmd % fn, shell=True)
+        return int(size.decode())
+
+
+def lzo_uncompressed_size(fn):
+    if is_lzo(fn):
+        cmd = "lzop -l %s | tail -n 1 | awk '{ print $3}'"
+        size = subprocess.check_output(cmd % fn, shell=True)
+        return int(size.decode())
+
+
+def is_lzo(fn):
+    result = subprocess.call(['lzop', '-t', fn])
+    return not bool(result)
+
+
+def is_lzma(fn):
+    result = subprocess.call(['xz', '-t', fn])
+    return not bool(result)
+
+
+def is_gzip(fn):
+    result = subprocess.call(['gzip', '-t', fn])
+    return not bool(result)

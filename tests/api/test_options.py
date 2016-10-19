@@ -171,8 +171,7 @@ class OptionsParserTestCase(unittest.TestCase):
         parser = OptionsParser('raw', {'target-device': '/dev/sda'})
         self.assertEqual(len(parser.values), 1)
         parser.inject_default_values()
-        self.assertEqual(len(parser.values), 7)
-        self.assertIsNotNone(parser.values.get('compressed'))
+        self.assertEqual(len(parser.values), 6)
         self.assertIsNotNone(parser.values.get('seek'))
         self.assertIsNotNone(parser.values.get('skip'))
         self.assertIsNotNone(parser.values.get('truncate'))
@@ -229,7 +228,7 @@ class OptionsParserTestCase(unittest.TestCase):
         parser = OptionsParser('raw', {'target-device': '/dev/sda'})
         self.assertEqual(len(parser.values), 1)
         options = parser.clean()
-        self.assertEqual(len(options), 7)
+        self.assertEqual(len(options), 6)
 
     def test_clean_raises_error_if_passed_allowed_options(self):
         parser = OptionsParser('raw', {

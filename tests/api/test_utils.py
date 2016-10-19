@@ -123,3 +123,46 @@ class MetadataValidatorTestCase(FileFixtureMixin, EFUTestCase):
             utils.validate_schema(self.schema, {'test': 1})
         with self.assertRaises(ValidationError):
             utils.validate_schema(self.schema, {'test': 'ok', 'extra': 2})
+
+
+class CompressedObjectTestCase(FileFixtureMixin, EFUTestCase):
+
+    def setUp(self):
+        base_dir = os.path.dirname(__file__)
+        self.fixtures_dir = os.path.join(base_dir, '../fixtures/compressed/')
+        uncompressed_fn = os.path.join(self.fixtures_dir, 'base.txt')
+        self.size = os.path.getsize(uncompressed_fn)
+
+    def test_can_get_gzip_uncompressed_size(self):
+        fn = os.path.join(self.fixtures_dir, 'base.txt.gz')
+        observed = utils.gzip_uncompressed_size(fn)
+        self.assertEqual(observed, self.size)
+
+    def test_can_get_lzma_uncompressed_size(self):
+        fn = os.path.join(self.fixtures_dir, 'base.txt.xz')
+        observed = utils.lzma_uncompressed_size(fn)
+        self.assertEqual(observed, self.size)
+
+    def test_can_get_lzo_uncompressed_size(self):
+        fn = os.path.join(self.fixtures_dir, 'base.txt.lzo')
+        observed = utils.lzo_uncompressed_size(fn)
+        self.assertEqual(observed, self.size)
+
+    def test_can_get_tar_uncompressed_size(self):
+        fn = os.path.join(self.fixtures_dir, 'archive.tar.gz')
+        observed = utils.gzip_uncompressed_size(fn)
+        expected = os.path.getsize(
+            os.path.join(self.fixtures_dir, 'archive.tar'))
+        self.assertEqual(observed, expected)
+
+    def test_can_get_uncompressed_size(self):
+        fixtures = ['base.txt.gz', 'base.txt.xz', 'base.txt.lzo']
+        for fixture in fixtures:
+            fn = os.path.join(self.fixtures_dir, fixture)
+            observed = utils.get_uncompressed_size(fn)
+            self.assertEqual(observed, self.size)
+
+    def test_uncompressed_size_raises_error_if_invalid_file(self):
+        fn = os.path.join(self.fixtures_dir, 'archive.tar')
+        with self.assertRaises(ValueError):
+            utils.get_uncompressed_size(fn)

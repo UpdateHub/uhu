@@ -33,7 +33,8 @@ class Package:
         for obj_uid, conf in objects.items():
             package.add_object(
                 uid=int(obj_uid), fn=conf['filename'],
-                mode=conf['mode'], options=conf['options'])
+                mode=conf['mode'], options=conf['options'],
+                compressed=conf['compressed'])
         return package
 
     @classmethod
@@ -83,11 +84,11 @@ class Package:
             err = 'Revision {} for {} does not exist or is already removed'
             raise ValueError(err.format(revision, hardware))
 
-    def add_object(self, fn, mode, options, uid=None):
+    def add_object(self, fn, mode, options, uid=None, compressed=None):
         ''' Adds a new object within package. Returns an Object instance '''
         if uid is None:
             uid = self._next_object_id()
-        obj = Object(uid, fn, mode, options)
+        obj = Object(uid, fn, mode, options, compressed)
         self.objects[uid] = obj
         return obj
 

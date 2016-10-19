@@ -51,6 +51,7 @@ class PackageConstructorsTestCase(PackageTestCase):
                 obj_id: {
                     'filename': self.obj_fn,
                     'mode': 'copy',
+                    'compressed': False,
                     'options': {
                         'target-device': '/dev/sda',
                         'target-path': '/boot',
@@ -68,6 +69,7 @@ class PackageConstructorsTestCase(PackageTestCase):
         self.assertEqual(obj.uid, obj_id)
         self.assertEqual(obj.filename, self.obj_fn)
         self.assertEqual(obj.mode, 'copy')
+        self.assertFalse(obj.compressed)
         self.assertEqual(obj.options['target-device'], '/dev/sda')
         self.assertEqual(obj.options['target-path'], '/boot')
         self.assertEqual(obj.options['filesystem'], 'ext4')
@@ -241,8 +243,14 @@ class PackageRepresentationsTestCase(PackageTestCase):
             'count': 3
         })
         package.add_object('files/tox.ini', mode='copy', options={
-            'compressed': True,
-            'required-uncompressed-size': 345,
+            'target-device': '/dev/sda3',
+            'target-path': '/dev/null',
+            'filesystem': 'ext4',
+            'format?': True,
+            'format-options': '-i 100 -J size=500',
+            'mount-options': '--all --fstab=/etc/fstab2'
+        })
+        package.add_object('files/archive.tar.gz', mode='tarball', options={
             'target-device': '/dev/sda3',
             'target-path': '/dev/null',
             'filesystem': 'ext4',

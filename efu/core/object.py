@@ -7,7 +7,9 @@ import math
 import os
 
 from ..http import Request
-from ..utils import call, get_chunk_size, get_server_url, yes_or_no
+from ..utils import (
+    call, get_chunk_size, get_server_url, get_uncompressed_size,
+    is_compression_supported, yes_or_no)
 
 from .options import OptionsParser
 from .storages import STORAGES
@@ -31,10 +33,10 @@ class Object:
     to agent operate it.
     '''
 
-    VOLATILE_OPTIONS = ('size', 'sha256sum')
+    VOLATILE_OPTIONS = ('size', 'sha256sum', 'required-uncompressed-size')
     DEVICE_OPTIONS = ['truncate', 'seek', 'filesystem']
 
-    def __init__(self, uid, fn, mode, options):
+    def __init__(self, uid, fn, mode, options, compressed=None):
         self.uid = uid
         self.filename = fn
         self.mode = mode
@@ -44,7 +46,27 @@ class Object:
         self.sha256sum = None
         self.md5 = None
 
+        self._compressed = compressed
+        self._mime = None
         self.chunk_size = get_chunk_size()
+
+    @property
+    def compressed(self):
+        # For now, copy objects cannot be compressed
+        if self.mode == 'copy':
+            return False
+        if self._compressed is None:
+            self._compressed = self.is_compressed()
+        return self._compressed
+
+    def is_compressed(self):
+        return is_compression_supported(self.filename)
+
+    @property
+    def uncompressed_size(self):
+        if not self.compressed:
+            return
+        return get_uncompressed_size(self.filename)
 
     def metadata(self):
         ''' Serialize object as metadata '''
@@ -53,7 +75,10 @@ class Object:
             'mode': self.mode,
             'sha256sum': self.sha256sum,
             'size': self.size,
+            'compressed': self.compressed,
         }
+        if self.compressed:
+            metadata['required-uncompressed-size'] = self.uncompressed_size
         metadata.update(self.options)
         return metadata
 
@@ -62,14 +87,15 @@ class Object:
         return {
             'filename': self.filename,
             'mode': self.mode,
+            'compressed': self.compressed,
             'options': self.options,
         }
 
     def load(self, callback=None):
         self.size = os.path.getsize(self.filename)
+        call(callback, 'pre_object_load', self)
         sha256sum = hashlib.sha256()
         md5 = hashlib.md5()
-        call(callback, 'pre_object_load', self)
         for chunk in self:
             sha256sum.update(chunk)
             md5.update(chunk)
@@ -119,14 +145,6 @@ class Object:
         s.append('  {}# {} [mode: {}]'.format(
             self.uid, self.filename, self.mode))
         s.append('')
-        # compressed option
-        compressed = self.options.get('compressed')
-        if compressed is not None:
-            line = '      Compressed file:   {}'.format(yes_or_no(compressed))
-            if compressed:
-                line += ' [uncompressed size: {}B]'.format(
-                    self.options.get('required-uncompressed-size'))
-            s.append(line)
         # device option
         device = self.options.get('target-device')
         if device is not None:
