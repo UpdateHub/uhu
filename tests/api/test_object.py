@@ -118,12 +118,10 @@ class CompressedObjectTestCase(unittest.TestCase):
             os.path.join(self.fixtures_dir, 'archive.tar'))
         self.assertEqual(obj.uncompressed_size, expected)
 
-    def test_can_load_compressed_object_correctly(self):
-        fn = os.path.join(self.fixtures_dir, 'base.txt.lzo')
+    def test_uncompressed_size_of_uncompressed_object_is_None(self):
+        fn = os.path.join(self.fixtures_dir, 'archive.tar')
         obj = Object(0, fn, mode='raw', options={'target-device': '/'})
-        obj.load()
-        self.assertTrue(obj.compressed)
-        self.assertEqual(obj.uncompressed_size, self.size)
+        self.assertIsNone(obj.uncompressed_size)
 
     def test_can_represent_compressed_object_as_metadata(self):
         fn = os.path.join(self.fixtures_dir, 'base.txt.lzo')
@@ -132,14 +130,17 @@ class CompressedObjectTestCase(unittest.TestCase):
         self.assertTrue(metadata['compressed'])
         self.assertEqual(metadata['required-uncompressed-size'], self.size)
 
+    def test_metadata_raises_error_if_invalid_uncompressed_object(self):
+        fn = os.path.join(self.fixtures_dir, 'base.txt.bz2')
+        obj = Object(0, fn, mode='raw', options={'target-device': '/'})
+        obj._compressed = True
+        obj.compressor = 'gzip'
+        with self.assertRaises(ValueError):
+            obj.metadata()
+
     def test_can_represent_compressed_object_as_template(self):
         fn = os.path.join(self.fixtures_dir, 'base.txt.lzo')
         obj = Object(0, fn, mode='raw', options={'target-device': '/'})
         template = obj.template()
         self.assertTrue(template['compressed'])
         self.assertIsNone(template.get('required-uncompressed-size'))
-
-    def test_uncompressed_size_of_uncompressed_object_is_None(self):
-        fn = os.path.join(self.fixtures_dir, 'archive.tar')
-        obj = Object(0, fn, mode='raw', options={'target-device': '/'})
-        self.assertIsNone(obj.uncompressed_size)

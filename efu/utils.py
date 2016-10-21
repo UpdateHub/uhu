@@ -3,10 +3,10 @@
 
 import json
 import os
+import shutil
 import subprocess
 from collections import OrderedDict
 
-import magic
 from jsonschema import Draft4Validator, FormatChecker, RefResolver
 
 
@@ -77,68 +77,81 @@ def call(obj, name, *args, **kw):
 
 # Compressed file utilities
 
-SUPPORTED_COMPRESSION_MIMES = [
-    'application/gzip',
-    'application/x-gzip',
-    'application/x-xz'
-]
+COMPRESSORS = {
+    # GZIP format: http://www.gzip.org/zlib/rfc-gzip.html#file-format
+    'gzip': {
+        'signature': b'\x1f\x8b',
+        'test': 'gzip -t %s',
+        'cmd': "gzip -l %s | tail -n 1 | awk '{ print $2}'"
+    },
+    # LZO format: http://www.lzop.org/download/lzop-1.03.tar.gz
+    'lzop': {
+        'signature': b'\x89LZO\x00\r\n\x1a\n',
+        'test': 'lzop -t %s',
+        'cmd': "lzop -l %s | tail -n 1 | awk '{ print $3}'"
+    },
+    # XZ format: http://tukaani.org/xz/xz-file-format.txt
+    'xz': {
+        'signature': b'\xfd7zXZ\x00',
+        'test': 'xz -t %s',
+        'cmd': "xz -l %s --robot | tail -n 1 | awk '{ print $5}'"
+    },
+}
 
 
-def get_uncompressed_size(fn):
-    mime = magic.from_file(fn, mime=True)
+MAX_COMPRESSOR_SIGNATURE_SIZE = max(
+    [len(compressor['signature']) for compressor in COMPRESSORS.values()])
+
+
+def get_compressor_format(fn):
+    '''
+    If file is compressed and we support it, return compression
+    format, otherwise return None explicitly.
+    '''
+    with open(fn, 'rb') as fp:
+        header = fp.read(MAX_COMPRESSOR_SIGNATURE_SIZE)
+    for fmt, compressor in COMPRESSORS.items():
+        signature = compressor['signature']
+        if signature == header[:len(signature)]:
+            return fmt
+    return None
+
+
+def is_compressor_supported(compressor):
+    '''
+    Checks if compressor utility exists so we can get uncompressed
+    size.
+    '''
+    return bool(shutil.which(compressor))
+
+
+def is_valid_compressed_file(fn, compressor_name):
+    ''' Checks if compressed file is a valid one. '''
+    compressor = COMPRESSORS.get(compressor_name)
+    test_cmd = compressor['test'] % fn
     try:
-        f = {
-            'application/x-gzip': gzip_uncompressed_size,
-            'application/gzip': gzip_uncompressed_size,
-            'application/x-xz': lzma_uncompressed_size,
-            'application/octet-stream': lzo_uncompressed_size,
-        }[mime]
-        return f(fn)
-    except KeyError:
-        raise ValueError('Unsuported compressed file type')
-
-
-def is_compression_supported(fn):
-    # This will only work if file exists (uploads)
-    mime = magic.from_file(fn, mime=True)
-    if mime in SUPPORTED_COMPRESSION_MIMES:
-        return True
-    if mime == 'application/octet-stream' and is_lzo(fn):
-        return True
+        result = subprocess.check_call(test_cmd, shell=True)
+        if result == 0:
+            return True
+    except subprocess.CalledProcessError:
+        pass  # file is corrupted
     return False
 
 
-def gzip_uncompressed_size(fn):
-    if is_gzip(fn):
-        cmd = "gzip -l %s | tail -n 1 | awk '{ print $2}'"
-        size = subprocess.check_output(cmd % fn, shell=True)
-        return int(size.decode())
-
-
-def lzma_uncompressed_size(fn):
-    if is_lzma(fn):
-        cmd = "xz -l %s --robot | tail -n 1 | awk '{ print $5}'"
-        size = subprocess.check_output(cmd % fn, shell=True)
-        return int(size.decode())
-
-
-def lzo_uncompressed_size(fn):
-    if is_lzo(fn):
-        cmd = "lzop -l %s | tail -n 1 | awk '{ print $3}'"
-        size = subprocess.check_output(cmd % fn, shell=True)
-        return int(size.decode())
-
-
-def is_lzo(fn):
-    result = subprocess.call(['lzop', '-t', fn])
-    return not bool(result)
-
-
-def is_lzma(fn):
-    result = subprocess.call(['xz', '-t', fn])
-    return not bool(result)
-
-
-def is_gzip(fn):
-    result = subprocess.call(['gzip', '-t', fn])
-    return not bool(result)
+def get_uncompressed_size(fn, compressor_name):
+    '''
+    Returns uncompressed size of a given compressed file.
+    '''
+    compressor = COMPRESSORS.get(compressor_name)
+    if compressor is None:
+        err = '"{}" is not supported'
+        raise ValueError(err.format(compressor_name))
+    if not is_compressor_supported(compressor_name):
+        err = '"{}" is not supported by your system.'
+        raise SystemError(err.format(compressor_name))
+    if not is_valid_compressed_file(fn, compressor_name):
+        err = '"{}" is a bad/corrupted {} file.'
+        raise ValueError(err.format(fn, compressor_name))
+    cmd = compressor['cmd'] % fn
+    size = subprocess.check_output(cmd, shell=True)
+    return int(size.decode())

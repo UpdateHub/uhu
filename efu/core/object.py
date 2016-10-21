@@ -9,7 +9,7 @@ import os
 from ..http import Request
 from ..utils import (
     call, get_chunk_size, get_server_url, get_uncompressed_size,
-    is_compression_supported, yes_or_no)
+    get_compressor_format, yes_or_no)
 
 from .options import OptionsParser
 from .storages import STORAGES
@@ -46,27 +46,25 @@ class Object:
         self.sha256sum = None
         self.md5 = None
 
+        self.compressor = None
         self._compressed = compressed
-        self._mime = None
+
         self.chunk_size = get_chunk_size()
 
     @property
     def compressed(self):
-        # For now, copy objects cannot be compressed
+        # For now, copy objects cannot be decompressed on agent
         if self.mode == 'copy':
             return False
         if self._compressed is None:
-            self._compressed = self.is_compressed()
+            self.compressor = get_compressor_format(self.filename)
+            self._compressed = bool(self.compressor)
         return self._compressed
-
-    def is_compressed(self):
-        return is_compression_supported(self.filename)
 
     @property
     def uncompressed_size(self):
-        if not self.compressed:
-            return
-        return get_uncompressed_size(self.filename)
+        if self.compressed:
+            return get_uncompressed_size(self.filename, self.compressor)
 
     def metadata(self):
         ''' Serialize object as metadata '''
