@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 from ..http.request import Request
 from ..transactions import Pull, Push
-from ..utils import call, get_server_url
+from ..utils import call, get_server_url, indent
 
 from . import Object
 
@@ -181,8 +181,11 @@ class Package:
 
     def __str__(self):
         s = []
+        # Product
         s.append('Product: {}'.format(self.product))
+        # Version
         s.append('Version: {}'.format(self.version))
+        # Supported hardware
         if self.supported_hardware:
             s.append('Supported hardware:')
             s.append('')
@@ -194,11 +197,13 @@ class Package:
                 s.append('')
         else:
             s.append('Supported hardware: all')
+        # Objects
         if self.objects:
             s.append('Objects:')
         else:
             s.append('Objects: None')
         for uid in sorted(self.objects):
             s.append('')
-            s.append(str(self.objects[uid]))
+            obj = indent(str(self.objects[uid]), 2)
+            s.append('  {}# {}'.format(uid, obj))
         return '\n'.join(s)

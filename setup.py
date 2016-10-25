@@ -21,6 +21,7 @@ setup(
     install_requires=[
         'click==6.6',
         'jsonschema==2.5.1',
+        'humanize==0.5.1',
         'python-magic==0.4.12',
         'progress==1.2',
         'prompt-toolkit==1.0.3',

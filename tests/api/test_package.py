@@ -221,9 +221,9 @@ class PackageRepresentationsTestCase(PackageTestCase):
 
     def test_can_represent_package_as_string(self):
         cwd = os.getcwd()
-        os.chdir('tests/fixtures')
+        os.chdir('tests/fixtures/package')
         self.addCleanup(os.chdir, cwd)
-        with open('local_config.txt') as fp:
+        with open('package_full.txt') as fp:
             expected = fp.read().strip()
         package = Package(
             version='2.0',
@@ -259,6 +259,7 @@ class PackageRepresentationsTestCase(PackageTestCase):
             'mount-options': '--all --fstab=/etc/fstab2'
         })
         observed = str(package)
+        self.maxDiff = None
         self.assertEqual(observed, expected)
 
     def test_package_as_string_when_empty(self):

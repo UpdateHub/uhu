@@ -1,0 +1,6 @@
+tarball_full.txt [mode: tarball]
+
+    Target device:     /dev/sda [filesystem: ext4]
+    Format device:     yes [options: "-b 1024"]
+    Mount options:     "--all"
+    Target path:       /

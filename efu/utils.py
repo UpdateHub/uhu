@@ -53,12 +53,6 @@ def remove_local_config():
     os.remove(get_local_config_file())
 
 
-def yes_or_no(value):
-    if value:
-        return 'yes'
-    return 'no'
-
-
 def validate_schema(schema_fn, obj):
     base_uri = 'file://{}/'.format(SCHEMAS_DIR)
     with open(os.path.join(SCHEMAS_DIR, schema_fn)) as fp:
@@ -73,6 +67,26 @@ def validate_schema(schema_fn, obj):
 def call(obj, name, *args, **kw):
     f = getattr(obj, name, lambda *args, **kw: None)
     f(*args, **kw)
+
+
+# String utilities
+
+def yes_or_no(value):
+    '''
+    Helper function to humanize boolean values.
+    If value represents a True value, returns "yes", otherwise "no".
+    '''
+    if value:
+        return 'yes'
+    return 'no'
+
+
+def indent(value, n):
+    ''' Indent a multline string to right by n '''
+    lines = value.split('\n')
+    padding = n * ' '
+    lines = ['{}{}'.format(padding, line).rstrip() for line in lines]
+    return '\n'.join(lines).strip()
 
 
 # Compressed file utilities

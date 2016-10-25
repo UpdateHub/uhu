@@ -5,15 +5,15 @@ Objects:
 
   1# files/pkg.json [mode: raw]
 
-      Target device:     /dev/sda
-      Chunk size:        1234
+      Target device:     /dev/sda [seek: 0, truncate: no]
+      Chunk size:        1.2 KiB
       Skip from source:  0
       Count:             -1
 
   2# files/setup.py [mode: raw]
 
       Target device:     /dev/sda [seek: 5, truncate: yes]
-      Chunk size:        10000
+      Chunk size:        9.8 KiB
       Skip from source:  19
       Count:             3
 

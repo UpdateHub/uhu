@@ -47,6 +47,95 @@ class LoadObjectTestCase(unittest.TestCase):
         self.assertEqual(obj.sha256sum, sha256sum)
 
 
+class ObjectStringRepresentationTestCase(unittest.TestCase):
+
+    def setUp(self):
+        cwd = os.getcwd()
+        os.chdir('tests/fixtures/object')
+        self.addCleanup(os.chdir, cwd)
+
+    def get_fixture(self, fn):
+        with open(fn) as fp:
+            return fp.read().strip()
+
+    def test_copy_default(self):
+        expected = self.get_fixture('copy_default.txt')
+        options = {
+            'target-device': '/dev/sda',
+            'target-path': '/',
+            'filesystem': 'ext4',
+        }
+        obj = Object(
+            0, 'copy_full.txt', mode='copy', options=options)
+        observed = str(obj)
+        self.assertEqual(observed, expected)
+
+    def test_copy_full_string(self):
+        expected = self.get_fixture('copy_full.txt')
+        options = {
+            'target-device': '/dev/sda',
+            'target-path': '/',
+            'filesystem': 'ext4',
+            'mount-options': '--all',
+            'format?': True,
+            'format-options': '-b 1024',
+        }
+        obj = Object(
+            0, 'copy_full.txt', mode='copy', options=options)
+        observed = str(obj)
+        self.assertEqual(observed, expected)
+
+    def test_raw_default(self):
+        expected = self.get_fixture('raw_default.txt')
+        options = {'target-device': '/dev/sda'}
+        obj = Object(
+            0, 'raw_full.txt', mode='raw', options=options)
+        observed = str(obj)
+        self.assertEqual(observed, expected)
+
+    def test_raw_full_string(self):
+        expected = self.get_fixture('raw_full.txt')
+        options = {
+            'target-device': '/dev/sda',
+            'truncate': True,
+            'seek': 10,
+            'skip': 20,
+            'count': 30,
+            'chunk-size': 4096,
+        }
+        obj = Object(
+            0, 'raw_full.txt', mode='raw', options=options)
+        observed = str(obj)
+        self.assertEqual(observed, expected)
+
+    def test_tarball_default(self):
+        expected = self.get_fixture('tarball_default.txt')
+        options = {
+            'target-device': '/dev/sda',
+            'target-path': '/',
+            'filesystem': 'ext4',
+        }
+        obj = Object(
+            0, 'tarball_full.txt', mode='tarball', options=options)
+        observed = str(obj)
+        self.assertEqual(observed, expected)
+
+    def test_tarball_full_string(self):
+        expected = self.get_fixture('tarball_full.txt')
+        options = {
+            'target-device': '/dev/sda',
+            'target-path': '/',
+            'filesystem': 'ext4',
+            'mount-options': '--all',
+            'format?': True,
+            'format-options': '-b 1024',
+        }
+        obj = Object(
+            0, 'tarball_full.txt', mode='tarball', options=options)
+        observed = str(obj)
+        self.assertEqual(observed, expected)
+
+
 class ObjectSerializationTestCase(unittest.TestCase):
 
     def setUp(self):

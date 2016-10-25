@@ -5,6 +5,9 @@ import hashlib
 import json
 import math
 import os
+from collections import OrderedDict
+
+from humanize.filesize import naturalsize
 
 from ..http import Request
 from ..utils import (
@@ -13,6 +16,52 @@ from ..utils import (
 
 from .options import OptionsParser
 from .storages import STORAGES
+
+
+OBJECT_STRING_TEMPLATE = OrderedDict([
+    ('target-device', OrderedDict([
+        ('display', 'Target device:'),
+        ('children', OrderedDict([
+            ('seek', OrderedDict([
+                ('display', 'seek:'),
+            ])),
+            ('truncate', OrderedDict([
+                ('display', 'truncate:'),
+                ('bool', True),
+            ])),
+            ('filesystem', OrderedDict([
+                ('display', 'filesystem:'),
+            ])),
+        ])),
+    ])),
+    ('format?', OrderedDict([
+        ('display', 'Format device:'),
+        ('bool', True),
+        ('children', OrderedDict([
+            ('format-options', OrderedDict([
+                ('display', 'options:'),
+                ('wrap', True),
+            ])),
+        ])),
+    ])),
+    ('mount-options', OrderedDict([
+        ('display', 'Mount options:'),
+        ('wrap', True),
+    ])),
+    ('target-path', OrderedDict([
+        ('display', 'Target path:'),
+    ])),
+    ('chunk-size', OrderedDict([
+        ('display', 'Chunk size:'),
+        ('bytes', True),
+    ])),
+    ('skip', OrderedDict([
+        ('display', 'Skip from source:'),
+    ])),
+    ('count', OrderedDict([
+        ('display', 'Count:'),
+    ])),
+])
 
 
 class ObjectUploadResult:
@@ -138,52 +187,36 @@ class Object:
             for chunk in iter(lambda: fp.read(self.chunk_size), b''):
                 yield chunk
 
+    def _str_value(self, option, conf):
+        value = self.options.get(option)
+        if conf.get('bool', False):
+            value = yes_or_no(value)
+        if conf.get('wrap', False):
+            value = '"{}"'.format(value)
+        if conf.get('bytes', False):
+            value = naturalsize(value, binary=True)
+        return value
+
+    def _str_children(self, conf):
+        options = conf.get('children')
+        s = []
+        if options is not None:
+            for option, conf in options.items():
+                if option in self.options:
+                    value = self._str_value(option, conf)
+                    s.append('{} {}'.format(conf['display'], value))
+        if s:
+            return '[{}]'.format(', '.join(s))
+        return ''
+
     def __str__(self):
         s = []
-        s.append('  {}# {} [mode: {}]'.format(
-            self.uid, self.filename, self.mode))
-        s.append('')
-        # device option
-        device = self.options.get('target-device')
-        if device is not None:
-            line = '      Target device:     {}'.format(device)
-            device_options = {option: self.options.get(option)
-                              for option in self.DEVICE_OPTIONS}
-            if any(device_options.values()):
-                truncate = device_options['truncate']
-                if truncate is not None:
-                    device_options['truncate'] = yes_or_no(truncate)
-                device_options = ['{}: {}'.format(k, device_options[k])
-                                  for k in sorted(device_options)
-                                  if device_options[k] is not None]
-                line += ' [{}]'.format(', '.join(device_options))
-            s.append(line)
-        # format option
-        format_ = self.options.get('format?')
-        if format_ is not None:
-            line = '      Format device:     {} '.format(yes_or_no(format_))
-            format_options = self.options.get('format-options')
-            if format_options:
-                line += '[options: "{}"]'.format(format_options)
-            s.append(line)
-        # mount options
-        mount = self.options.get('mount-options')
-        if mount is not None:
-            s.append('      Mount options:     "{}"'.format(mount))
-        # target path option
-        path = self.options.get('target-path')
-        if path is not None:
-            s.append('      Target path:       {}'.format(path))
-        # chunk size option
-        chunk = self.options.get('chunk-size')
-        if chunk is not None:
-            s.append('      Chunk size:        {}'.format(chunk))
-        # skip option
-        skip = self.options.get('skip')
-        if skip is not None:
-            s.append('      Skip from source:  {}'.format(skip))
-        # count option
-        count = self.options.get('count')
-        if count is not None:
-            s.append('      Count:             {}'.format(count))
+        header = '{} [mode: {}]\n'.format(self.filename, self.mode)
+        s.append(header)
+        for option, conf in OBJECT_STRING_TEMPLATE.items():
+            if option in self.options:
+                value = self._str_value(option, conf)
+                line = '    {:<18} {} {}'.format(
+                    conf['display'], value, self._str_children(conf))
+                s.append(line.rstrip())
         return '\n'.join(s)
