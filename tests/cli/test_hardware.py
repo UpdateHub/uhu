@@ -94,7 +94,7 @@ class SupportedHardwareCommandsTestCase(PackageTestCase):
     def test_can_remove_supported_hardware_revision(self):
         self.pkg.add_supported_hardware('PowerX', revisions=['3', '2', '1'])
         self.pkg.dump(self.pkg_fn)
-        result = self.runner.invoke(remove_supported_hardware_command, args=[
+        self.runner.invoke(remove_supported_hardware_command, args=[
             'PowerX',
             '-r', '2'
         ])

@@ -1,12 +1,11 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-import os
 import signal
 import sys
 from itertools import count
 
-from efu.core import Object, Package
+from efu.core import Package
 from efu.utils import LOCAL_CONFIG_VAR, CHUNK_SIZE_VAR
 
 from tests.utils import (
@@ -26,9 +25,10 @@ def push_cmd(cmd):
         self.set_env_var(LOCAL_CONFIG_VAR, pkg_fn)
         self.set_env_var(CHUNK_SIZE_VAR, 1)
         pkg = Package(version='1', product=product)
+        pkg.objects.add_list()
         for _ in range(3):
             fn = self.create_file('spam')
-            pkg.add_object(fn, 'raw', {'target-device': '/'})
+            pkg.objects.add(0, fn, 'raw', {'target-device': '/'})
         pkg.dump(pkg_fn)
         kwargs = cmd(self)
         self.set_push(pkg, '100',  **kwargs)

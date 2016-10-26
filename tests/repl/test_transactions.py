@@ -2,10 +2,9 @@
 # This software is released under the MIT License
 
 import json
-import unittest
-from unittest.mock import Mock
+import copy
+from unittest.mock import Mock, patch
 
-import efu.core.package
 from efu.repl.repl import EFURepl
 from efu.repl import functions
 from efu.utils import SERVER_URL_VAR
@@ -30,12 +29,13 @@ class PackageStatusTestCase(
         self.httpd.register_response(
             path, status_code=200, body=json.dumps({'status': 'success'}))
 
-        functions.__builtins__['print'] = Mock()
-
-        self.repl.package.product = self.product
-        self.repl.arg = self.pkg_uid
-        functions.get_package_status(self.repl)
-        functions.__builtins__['print'].assert_called_once_with('success')
+        builtins = copy.deepcopy(functions.__builtins__)
+        builtins['print'] = Mock()
+        with patch.dict(functions.__builtins__, builtins):
+            self.repl.package.product = self.product
+            self.repl.arg = self.pkg_uid
+            functions.get_package_status(self.repl)
+            functions.__builtins__['print'].assert_called_once_with('success')
 
     def test_get_package_status_raises_error_if_missing_product(self):
         self.assertIsNone(self.repl.package.product)
@@ -56,7 +56,9 @@ class PushTestCase(BasePushTestCase):
         self.repl = EFURepl()
 
     def test_can_push_package(self):
-        self.repl.package.add_object(__file__, 'raw', {'target-device': '/'})
+        self.repl.package.objects.add_list()
+        self.repl.package.objects.add(
+            0, __file__, 'raw', {'target-device': '/'})
         self.repl.package.product = self.product
         self.repl.package.version = '2.0'
         self.set_push(self.repl.package, '100')

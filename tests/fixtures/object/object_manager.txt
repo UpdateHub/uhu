@@ -1,0 +1,33 @@
+Objects:
+
+    0# Installation Set:
+
+        0# object_manager.txt [mode: raw]
+
+            Target device:     /dev/sda [seek: 0, truncate: no]
+            Chunk size:        128.0 KiB
+            Skip from source:  0
+            Count:             -1
+
+        1# object_manager.txt [mode: raw]
+
+            Target device:     /dev/sda [seek: 0, truncate: no]
+            Chunk size:        128.0 KiB
+            Skip from source:  0
+            Count:             -1
+
+    1# Installation Set:
+
+        0# object_manager.txt [mode: raw]
+
+            Target device:     /dev/sda [seek: 0, truncate: no]
+            Chunk size:        128.0 KiB
+            Skip from source:  0
+            Count:             -1
+
+        1# object_manager.txt [mode: raw]
+
+            Target device:     /dev/sda [seek: 0, truncate: no]
+            Chunk size:        128.0 KiB
+            Skip from source:  0
+            Count:             -1

@@ -2,9 +2,8 @@
 # This software is released under the MIT License
 
 import json
-import os
 
-from efu.core import Object, Package
+from efu.core import Package
 from efu.transactions import exceptions
 from efu.transactions.push import Push
 from efu.utils import SERVER_URL_VAR, CHUNK_SIZE_VAR
@@ -25,9 +24,11 @@ class BasePushTestCase(
         self.version = '2.0'
         self.package_uid = '1' * 64
         self.package = Package(version=self.version, product=self.product)
+        self.package.objects.add_list()
         for _ in range(3):
             fn = self.create_file('123')
-            self.package.add_object(fn, 'raw', {'target-device': '/dev/sda'})
+            self.package.objects.add(
+                0, fn, 'raw', {'target-device': '/dev/sda'})
 
 
 class PushTestCase(BasePushTestCase):
@@ -59,18 +60,8 @@ class PushTestCase(BasePushTestCase):
         self.assertEqual(request.method, 'POST')
         self.assertEqual(request.url, start_url)
         self.assertEqual(request.headers['Content-Type'], 'application/json')
-
-        # metadata
         metadata = json.loads(request.body.decode())
-        self.assertEqual(metadata['version'], self.version)
-        self.assertEqual(metadata['product'], self.product)
-        self.assertEqual(len(metadata['objects']), 3)
-        for metadata_obj in metadata['objects']:
-            self.assertIsNotNone(metadata_obj['sha256sum'])
-            self.assertIsNotNone(metadata_obj['filename'])
-            self.assertIsNotNone(metadata_obj['size'])
-            self.assertIsNotNone(metadata_obj['mode'])
-            self.assertIsNotNone(metadata_obj['target-device'])
+        self.assertEqual(metadata, self.package.metadata())
 
     def test_start_push_updates_package_uid(self):
         self.start_push_url(self.product, self.package_uid)

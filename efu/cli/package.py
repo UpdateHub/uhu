@@ -54,7 +54,8 @@ def remove_object_command(object_id):
     try:
         pkg_file = get_local_config_file()
         package = Package.from_file(pkg_file)
-        package.remove_object(object_id)
+        # FIX: Update to support active backup
+        package.objects.remove(0, object_id)
         package.dump(pkg_file)
     except FileNotFoundError:
         print('Package file does not exist. '
@@ -95,7 +96,10 @@ def add_object_command(filename, mode, **options):
     except ValueError as err:
         print(err)
         sys.exit(2)
-    package.add_object(filename, mode, options)
+    # FIX: Update to support active backup
+    if len(package.objects) == 0:
+        package.objects.add_list()
+    package.objects.add(0, filename, mode, options)
     package.dump(pkg_file)
 
 
@@ -113,7 +117,8 @@ def edit_object_command(object_id, key, value):
     try:
         pkg_file = get_local_config_file()
         package = Package.from_file(pkg_file)
-        package.edit_object(object_id, key, value)
+        # FIX: Update to support active backup
+        package.objects.update(0, object_id, key, value)
         package.dump(pkg_file)
     except FileNotFoundError:
         print('Package file does not exist. '

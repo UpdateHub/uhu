@@ -12,8 +12,9 @@ from ..core.options import MODES
 
 def get_objects_completer(ctx):
     ''' Generates a prompt completer based on package objects. '''
-    return WordCompleter(['{}# {}'.format(obj.uid, obj.filename)
-                          for obj in ctx.package.objects.values()])
+    objects = enumerate(ctx.package.objects.all())
+    return WordCompleter(['{}# {}'.format(index, obj.filename)
+                          for index, obj in objects])
 
 
 def parse_prompt_object_uid(value):
@@ -109,7 +110,10 @@ def add_object(ctx):
         value = value if value != '' else option.default
         cleaned_value = option.convert(value)
         options[option.metadata] = cleaned_value
-    ctx.package.add_object(fn, mode, options)
+    # FIX: Update to support active backup
+    if len(ctx.package.objects) == 0:
+        ctx.package.objects.add_list()
+    ctx.package.objects.add(0, fn, mode, options)
 
 
 def remove_object(ctx):
@@ -118,7 +122,7 @@ def remove_object(ctx):
     uid = prompt('  Choose a file to remove: ', completer=completer)
     if uid:
         uid = parse_prompt_object_uid(uid)
-        ctx.package.remove_object(uid)
+        ctx.package.objects.remove(0, uid)
 
 
 def edit_object(ctx):
@@ -127,17 +131,16 @@ def edit_object(ctx):
     uid = prompt('  Choose a file to edit: ', completer=completer)
     if uid:
         uid = parse_prompt_object_uid(uid)
-        if uid not in ctx.package.objects:
-            raise ValueError('"{}" does not exist within package.')
+        obj = ctx.package.objects.get(0, uid)
 
-    mode = MODES[ctx.package.objects[uid].mode]
+    mode = MODES[obj.mode]
     options = [option.metadata for option in mode]
     completer = WordCompleter(options)
     option = prompt('  Choose an option: ', completer=completer)
     if option not in options:
         raise ValueError('"{}" is not a valid option.'.format(option))
     value = prompt('  Set new value for "{}": '.format(option))
-    ctx.package.edit_object(uid, option, value)
+    ctx.package.objects.update(0, uid, option, value)
 
 
 def get_package_status(ctx):

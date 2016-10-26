@@ -4,7 +4,7 @@
 import json
 import unittest
 
-from efu.core.options import OPTIONS, Option, OptionsParser
+from efu.core.options import Option, OptionsParser
 
 
 class OptionTestCase(unittest.TestCase):
@@ -215,7 +215,6 @@ class OptionsParserTestCase(unittest.TestCase):
             parser.check_options_requirements()
 
     def test_check_options_requirements_returns_None_if_not_required(self):
-        mode = 'copy'
         options = {
             'target-device': '/dev/sda',
             'target-path': '/boot',

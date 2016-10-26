@@ -30,8 +30,7 @@ class ObjectDownloadTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
         self.fn = 'image.bin'
         self.content = b'spam'
         self.sha256 = hashlib.sha256(self.content).hexdigest()
-        self.obj = Object(
-            self.uid, self.fn, 'raw', {'target-device': '/dev/sda'})
+        self.obj = Object(self.fn, 'raw', {'target-device': '/dev/sda'})
         self.addCleanup(self.remove_file, self.fn)
 
         self.set_env_var(SERVER_URL_VAR, self.httpd.url(''))

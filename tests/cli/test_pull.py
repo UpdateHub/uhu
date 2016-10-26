@@ -1,7 +1,6 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-import hashlib
 import json
 import os
 
@@ -9,7 +8,7 @@ from click.testing import CliRunner
 
 from efu.cli.package import pull_command
 
-from ..utils import EFUTestCase, BasePullTestCase
+from ..utils import BasePullTestCase
 
 
 class PullCommandTestCase(BasePullTestCase):
@@ -49,8 +48,9 @@ class PullCommandTestCase(BasePullTestCase):
         self.assertEqual(result.exit_code, 2)
 
     def test_pull_command_returns_3_if_package_has_objects(self):
-        self.package.add_object(
-            __file__, mode='raw', options={'target-device': '/dev/sda'})
+        self.package.objects.add_list()
+        self.package.objects.add(
+            0, __file__, mode='raw', options={'target-device': '/dev/sda'})
         self.package.dump(self.pkg_fn)
         result = self.runner.invoke(pull_command, args=[self.pkg_uid])
         self.assertEqual(result.exit_code, 3)

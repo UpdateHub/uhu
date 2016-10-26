@@ -120,7 +120,6 @@ class UploadFixtureMixin:
 
         start_upload_path = '/products/{}/packages/{}/objects/{}'.format(
             product_uid, package_uid, obj.sha256sum)
-        start_upload_url = self.httpd.url(start_upload_path)
         start_upload_body = json.dumps({
             'url': upload_url,
             'storage': 'dummy',
@@ -138,7 +137,7 @@ class PushFixtureMixin:
                  upload_success=True, upload_start_success=True,
                  upload_exists=False, finish_success=True):
         self.start_push_url(package.product, package_uid, start_success)
-        for obj in package:
+        for obj in package.objects.all():
             obj.load()
             self.create_upload_conf(
                 obj, package.product, package_uid, upload_exists,
@@ -184,7 +183,6 @@ class BasePullTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
         self.package = Package(uid=self.pkg_uid, product=self.product)
 
         # object
-        self.obj_id = 1
         self.obj_fn = 'image.bin'
         self.obj_content = b'spam'
         self.obj_sha256 = hashlib.sha256(self.obj_content).hexdigest()
@@ -194,13 +192,16 @@ class BasePullTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
             'product': self.product,
             'version': '2.0',
             'objects': [
-                {
-                    'filename': self.obj_fn,
-                    'mode': 'raw',
-                    'target-device': '/device',
-                    'size': 4,
-                    'sha256sum': hashlib.sha256(self.obj_content).hexdigest()
-                }
+                [
+                    {
+                        'filename': self.obj_fn,
+                        'mode': 'raw',
+                        'target-device': '/device',
+                        'size': 4,
+                        'sha256sum': hashlib.sha256(
+                            self.obj_content).hexdigest()
+                    }
+                ]
             ]
         }
 

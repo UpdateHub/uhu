@@ -27,7 +27,6 @@ class PackageTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
         self.pkg_uid = '4321'
         self.set_env_var(LOCAL_CONFIG_VAR, self.pkg_fn)
         self.obj_fn = __file__
-        self.obj_uid = 1
         self.obj_options = {'target-device': '/dev/sda'}
 
 
@@ -45,7 +44,7 @@ class AddObjectCommandTestCase(PackageTestCase):
         self.assertEqual(result.exit_code, 0)
         package = Package.from_file(self.pkg_fn)
         self.assertEqual(len(package.objects), 1)
-        obj = package.objects.get(1)
+        obj = package.objects.get(0, 0)
         self.assertEqual(obj.filename, self.obj_fn)
         self.assertEqual(obj.mode, 'raw')
         self.assertEqual(obj.options['target-device'], '/dev/sda')
@@ -178,24 +177,25 @@ class EditObjectCommandTestCase(PackageTestCase):
     def setUp(self):
         super().setUp()
         pkg = Package(product=self.product)
-        pkg.add_object(self.obj_fn, mode='raw', options=self.obj_options)
+        pkg.objects.add_list()
+        pkg.objects.add(0, self.obj_fn, mode='raw', options=self.obj_options)
         pkg.dump(self.pkg_fn)
 
     def test_can_edit_object_with_edit_object_command(self):
-        args = [str(self.obj_uid), 'target-device', '/dev/sdb']
+        args = ['0', 'target-device', '/dev/sdb']
         self.runner.invoke(edit_object_command, args=args)
         pkg = Package.from_file(self.pkg_fn)
-        obj = pkg.objects.get(self.obj_uid)
+        obj = pkg.objects.get(0, 0)
         self.assertEqual(obj.options['target-device'], '/dev/sdb')
 
     def test_edit_command_returns_0_if_successful(self):
-        args = [str(self.obj_uid), 'target-device', '/dev/sdb']
+        args = ['0', 'target-device', '/dev/sdb']
         result = self.runner.invoke(edit_object_command, args=args)
         self.assertEqual(result.exit_code, 0)
 
     def test_edit_command_returns_1_if_package_does_not_exist(self):
         self.set_env_var(LOCAL_CONFIG_VAR, 'dont-exist')
-        args = [str(self.obj_uid), 'target-device', '/dev/sdb']
+        args = ['0', 'target-device', '/dev/sdb']
         result = self.runner.invoke(edit_object_command, args=args)
         self.assertEqual(result.exit_code, 1)
 
@@ -210,24 +210,25 @@ class RemoveObjectCommandTestCase(PackageTestCase):
     def setUp(self):
         super().setUp()
         pkg = Package(product=self.product)
-        pkg.add_object(self.obj_fn, mode='raw', options=self.obj_options)
+        pkg.objects.add_list()
+        pkg.objects.add(0, self.obj_fn, mode='raw', options=self.obj_options)
         pkg.dump(self.pkg_fn)
 
     def test_can_remove_object_with_remove_command(self):
-        result = self.runner.invoke(
-            remove_object_command, args=[str(self.obj_uid)])
+        self.runner.invoke(
+            remove_object_command, args=['0'])
         pkg = Package.from_file(self.pkg_fn)
-        self.assertIsNone(pkg.objects.get(self.obj_uid))
+        self.assertEqual(len(list(pkg.objects.all())), 0)
 
     def test_remove_command_returns_0_if_successful(self):
         result = self.runner.invoke(
-            remove_object_command, args=[str(self.obj_uid)])
+            remove_object_command, args=['0'])
         self.assertEqual(result.exit_code, 0)
 
     def test_remove_command_returns_1_if_package_does_not_exist(self):
         self.set_env_var(LOCAL_CONFIG_VAR, 'dont-exist')
         result = self.runner.invoke(
-            remove_object_command, args=[str(self.obj_uid)])
+            remove_object_command, args=['100'])
         self.assertEqual(result.exit_code, 1)
 
 
@@ -235,7 +236,8 @@ class ShowCommandTestCase(PackageTestCase):
 
     def test_show_command_returns_0_if_successful(self):
         pkg = Package(product=self.product)
-        pkg.add_object(self.obj_fn, mode='raw', options=self.obj_options)
+        pkg.objects.add_list()
+        pkg.objects.add(0, self.obj_fn, mode='raw', options=self.obj_options)
         pkg.dump(self.pkg_fn)
         result = self.runner.invoke(show_command)
         self.assertEqual(result.exit_code, 0)
@@ -251,7 +253,8 @@ class ExportCommandTestCase(PackageTestCase):
     def setUp(self):
         super().setUp()
         pkg = Package(product=self.product)
-        pkg.add_object(self.obj_fn, mode='raw', options=self.obj_options)
+        pkg.objects.add_list()
+        pkg.objects.add(0, self.obj_fn, mode='raw', options=self.obj_options)
         pkg.dump(self.pkg_fn)
         self.dest_pkg_fn = '/tmp/pkg-dump'
         self.addCleanup(self.remove_file, self.dest_pkg_fn)
@@ -261,21 +264,23 @@ class ExportCommandTestCase(PackageTestCase):
             'product': self.product,
             'version': None,
             'supported-hardware': {},
-            'objects': {
-                '1': {
-                    'filename': self.obj_fn,
-                    'mode': 'raw',
-                    'compressed': False,
-                    'options': {
-                        'chunk-size': 131072,
-                        'count': -1,
-                        'seek': 0,
-                        'skip': 0,
-                        'target-device': '/dev/sda',
-                        'truncate': False
+            'objects': [
+                [
+                    {
+                        'filename': self.obj_fn,
+                        'mode': 'raw',
+                        'compressed': False,
+                        'options': {
+                            'chunk-size': 131072,
+                            'count': -1,
+                            'seek': 0,
+                            'skip': 0,
+                            'target-device': '/dev/sda',
+                            'truncate': False
+                        }
                     }
-                }
-            }
+                ]
+            ]
         }
         self.assertFalse(os.path.exists(self.dest_pkg_fn))
         self.runner.invoke(export_command, args=[self.dest_pkg_fn])
@@ -306,7 +311,7 @@ class NewVersionCommandTestCase(PackageTestCase):
     def test_can_set_package_version(self):
         package = Package.from_file(self.pkg_fn)
         self.assertIsNone(package.version)
-        result = self.runner.invoke(
+        self.runner.invoke(
             new_version_command, args=[self.version])
         package = Package.from_file(self.pkg_fn)
         self.assertEqual(package.version, self.version)

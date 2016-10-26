@@ -7,9 +7,9 @@ from collections import OrderedDict
 
 from ..http.request import Request
 from ..transactions import Push
-from ..utils import call, get_server_url, indent
+from ..utils import call, get_server_url
 
-from . import Object
+from .object import ObjectManager
 
 
 class Package:
@@ -19,7 +19,7 @@ class Package:
         self.uid = uid
         self.version = version
         self.product = product
-        self.objects = {}
+        self.objects = ObjectManager()
         self.supported_hardware = {}
 
     @classmethod
@@ -30,12 +30,14 @@ class Package:
         package = Package(
             version=dump.get('version'), product=dump.get('product'))
         package.supported_hardware = dump.get('supported-hardware', {})
-        objects = dump.get('objects', {})
-        for obj_uid, conf in objects.items():
-            package.add_object(
-                uid=int(obj_uid), fn=conf['filename'],
-                mode=conf['mode'], options=conf['options'],
-                compressed=conf['compressed'])
+
+        file_object_set = dump.get('objects', [])
+        for file_object_list in file_object_set:
+            objects = package.objects.add_list()
+            for obj in file_object_list:
+                objects.add(
+                    fn=obj['filename'], mode=obj['mode'],
+                    options=obj['options'], compressed=obj['compressed'])
         return package
 
     @classmethod
@@ -43,13 +45,18 @@ class Package:
         ''' Creates a package from a metadata object '''
         package = Package(
             product=metadata['product'], version=metadata['version'])
-        for obj_metadata in metadata['objects']:
-            options = {option: value for option, value in obj_metadata.items()
-                       if option not in ('filename', 'mode', 'compressed')}
-            obj = package.add_object(
-                obj_metadata['filename'], obj_metadata['mode'], options)
-            obj.size = obj_metadata['size']
-            obj.sha256sum = obj_metadata['sha256sum']
+
+        for metadata_object_list in metadata['objects']:
+            object_list = package.objects.add_list()
+            for metadata_obj in metadata_object_list:
+                options = {option: value
+                           for option, value in metadata_obj.items()
+                           if option not in ('filename', 'mode', 'compressed')}
+                obj = object_list.add(
+                    fn=metadata_obj['filename'], mode=metadata_obj['mode'],
+                    options=options)
+                obj.size = metadata_obj['size']
+                obj.sha256sum = metadata_obj['sha256sum']
         return package
 
     def add_supported_hardware(self, name, revisions=None):
@@ -85,34 +92,9 @@ class Package:
             err = 'Revision {} for {} does not exist or is already removed'
             raise ValueError(err.format(revision, hardware))
 
-    def add_object(self, fn, mode, options, uid=None, compressed=None):
-        ''' Adds a new object within package. Returns an Object instance '''
-        if uid is None:
-            uid = self._next_object_id()
-        obj = Object(uid, fn, mode, options, compressed)
-        self.objects[uid] = obj
-        return obj
-
-    def edit_object(self, uid, option, value):
-        ''' Given an object id, sets obj.option to value '''
-        obj = self.objects.get(uid)
-        if obj is None:
-            err = '"{}" is an invalid object UID'
-            raise ValueError(err.format(uid))
-        obj.options[option] = value
-        self.add_object(obj.filename, obj.mode, obj.options, uid=uid)
-
-    def remove_object(self, uid):
-        ''' Removes an object from package '''
-        try:
-            del self.objects[uid]
-        except KeyError:
-            err = '{} object UID is not present within package'
-            raise ValueError(err.format(uid))
-
     def load(self, callback=None):
         call(callback, 'pre_package_load', self)
-        for obj in self:
+        for obj in self.objects.all():
             obj.load(callback)
             call(callback, 'package_load', self)
         call(callback, 'post_package_load', self)
@@ -122,7 +104,7 @@ class Package:
         metadata = {
             'product': self.product,
             'version': self.version,
-            'objects': [obj.metadata() for obj in self],
+            'objects': self.objects.metadata(),
         }
         if self.supported_hardware:
             metadata['supported-hardware'] = self.supported_hardware
@@ -134,7 +116,7 @@ class Package:
             'version': self.version,
             'product': self.product,
             'supported-hardware': self.supported_hardware,
-            'objects': {obj.uid: obj.template() for obj in self}
+            'objects': self.objects.template(),
         }
 
     def dump(self, dest):
@@ -167,7 +149,7 @@ class Package:
         object, we raise an exception to avoid object overwritting.
         '''
         objects = []
-        for obj in self:
+        for obj in self.objects.all():
             if not obj.exists():
                 objects.append(obj)
                 continue  # File does not exist, must be downloaded
@@ -206,18 +188,8 @@ class Package:
             raise ValueError('Status not found')
         return response.json().get('status')
 
-    def _next_object_id(self):
-        ''' Genretares objects ids '''
-        ids = self.objects.keys()
-        if ids:
-            return max(ids) + 1
-        return 1
-
     def __len__(self):
         return len(self.objects)
-
-    def __iter__(self):
-        return iter(self.objects.values())
 
     def __str__(self):
         s = []
@@ -239,11 +211,7 @@ class Package:
             s.append('Supported hardware: all')
         # Objects
         if self.objects:
-            s.append('Objects:')
+            s.append(str(self.objects))
         else:
             s.append('Objects: None')
-        for uid in sorted(self.objects):
-            s.append('')
-            obj = indent(str(self.objects[uid]), 2)
-            s.append('  {}# {}'.format(uid, obj))
         return '\n'.join(s)

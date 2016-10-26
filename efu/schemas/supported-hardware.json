@@ -18,5 +18,6 @@
             "minLength": 1
         }
     },
+    "required": ["hardware"],
     "additionalProperties": false
 }

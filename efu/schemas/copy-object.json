@@ -28,6 +28,10 @@
                 "copy"
             ]
         },
+        "install-if-different": {
+            "description": "Conditions to install object",
+            "$ref": "install-if-different.json"
+        },
         "target-device": {
             "description": "Target device for the object (e.g. /dev/sda1)",
             "type": "string"

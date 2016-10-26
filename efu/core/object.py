@@ -12,7 +12,7 @@ from humanize.filesize import naturalsize
 from ..http import Request
 from ..utils import (
     call, get_chunk_size, get_server_url, get_uncompressed_size,
-    get_compressor_format, yes_or_no)
+    get_compressor_format, indent, yes_or_no)
 
 from .options import OptionsParser
 from .storages import STORAGES
@@ -85,8 +85,7 @@ class Object:
     VOLATILE_OPTIONS = ('size', 'sha256sum', 'required-uncompressed-size')
     DEVICE_OPTIONS = ['truncate', 'seek', 'filesystem']
 
-    def __init__(self, uid, fn, mode, options, compressed=None):
-        self.uid = uid
+    def __init__(self, fn, mode, options, compressed=None):
         self.filename = fn
         self.mode = mode
         self.options = OptionsParser(self.mode, options).clean()
@@ -237,4 +236,132 @@ class Object:
                 line = '    {:<18} {} {}'.format(
                     conf['display'], value, self._str_children(conf))
                 s.append(line.rstrip())
+        return '\n'.join(s)
+
+
+class ObjectList:
+    '''
+    Low level package objects manager.
+    Represents a list o Object instances
+    '''
+
+    def __init__(self):
+        self._objects = []
+
+    def add(self, *args, **kwargs):
+        ''' Adds an object instance. Returns an Object instance '''
+        obj = Object(*args, **kwargs)
+        self._objects.append(obj)
+        return obj
+
+    def get(self, index):
+        ''' Retrives an object by index '''
+        try:
+            return self._objects[index]
+        except IndexError:
+            raise ValueError('Object not found')
+
+    def update(self, index, option, value):
+        ''' Given an object id, sets obj.option to value '''
+        obj = self.get(index)
+        obj.options[option] = value
+        self._objects[index] = Object(obj.filename, obj.mode, obj.options)
+
+    def remove(self, index):
+        ''' Removes an object '''
+        try:
+            return self._objects.pop(index)
+        except IndexError:
+            raise ValueError('Object not found')
+
+    def metadata(self):
+        return [obj.metadata() for obj in self]
+
+    def template(self):
+        return [obj.template() for obj in self]
+
+    def __iter__(self):
+        return iter(obj for obj in self._objects)
+
+    def __len__(self):
+        return len(self._objects)
+
+    def __str__(self):
+        s = []
+        s.append('Installation Set:\n')
+        for index, obj in enumerate(self):
+            s.append('    {}# {}\n'.format(index, indent(str(obj), 4)))
+        return '\n'.join(s)
+
+
+class ObjectManager:
+    '''
+    High level package objects manager.
+    Represents a list of ObjectList instances.
+    '''
+
+    def __init__(self):
+        self._lists = []
+
+    def add_list(self):
+        ''' Creates a new object list '''
+        objects = ObjectList()
+        self._lists.append(objects)
+        return objects
+
+    def get_list(self, index):
+        ''' Returns an object list'''
+        try:
+            return self._lists[index]
+        except IndexError:
+            raise ValueError('Object List not found')
+
+    def remove_list(self, index):
+        ''' Removes an object list '''
+        try:
+            self._lists.pop(index)
+        except IndexError:
+            raise ValueError('Object List not found')
+
+    def add(self, index, *args, **kw):
+        ''' Adds a new object in a given object list '''
+        objects = self.get_list(index)
+        return objects.add(*args, **kw)
+
+    def get(self, index, *args, **kw):
+        ''' Retrives an object '''
+        objects = self.get_list(index)
+        return objects.get(*args, **kw)
+
+    def update(self, index, *args, **kw):
+        ''' Updates an object option '''
+        objects = self.get_list(index)
+        objects.update(*args, **kw)
+
+    def remove(self, index, *args, **kw):
+        ''' Removes an object '''
+        objects = self.get_list(index)
+        objects.remove(*args, **kw)
+
+    def all(self):
+        ''' Returns all objects from all lists '''
+        return (obj for objects in self for obj in objects)
+
+    def metadata(self):
+        return [objects.metadata() for objects in self]
+
+    def template(self):
+        return [objects.template() for objects in self]
+
+    def __iter__(self):
+        return iter(objects for objects in self._lists)
+
+    def __len__(self):
+        return len(self._lists)
+
+    def __str__(self):
+        s = []
+        s.append('Objects:\n')
+        for index, objects in enumerate(self):
+            s.append('    {}# {}\n'.format(index, indent(str(objects), 4)))
         return '\n'.join(s)

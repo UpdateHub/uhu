@@ -1,9 +1,6 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-import os
-import re
-
 from click.testing import CliRunner
 
 from efu.cli.package import push_command

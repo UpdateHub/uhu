@@ -162,13 +162,13 @@ class CompressedObjectTestCase(FileFixtureMixin, EFUTestCase):
             utils.get_uncompressed_size(fn, 'bz2')
 
     @patch('efu.utils.shutil.which', return_value=None)
-    def test_uncompressed_size_raises_error_if_not_supported_by_os(self, mock):
+    def test_uncompressed_size_raises_error_if_not_supported_by_os(self, _):
         fn = os.path.join(self.fixtures_dir, 'base.txt.lzo')
         with self.assertRaises(SystemError):
             utils.get_uncompressed_size(fn, 'lzop')
 
     @patch('efu.utils.subprocess.check_call', return_value=1)
-    def test_uncompressed_size_raises_error_if_corrupted_file(self, mock):
+    def test_uncompressed_size_raises_error_if_corrupted_file(self, _):
         fn = os.path.join(self.fixtures_dir, 'base.txt.lzo')
         with self.assertRaises(ValueError):
             utils.get_uncompressed_size(fn, 'lzop')

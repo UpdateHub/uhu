@@ -2,7 +2,6 @@
 # This software is released under the MIT License
 
 import json
-import unittest
 
 from click.testing import CliRunner
 

@@ -40,7 +40,7 @@ class Push:
 
     def upload_objects(self):
         results = []
-        for obj in self.package.objects.values():
+        for obj in self.package.objects.all():
             results.append(obj.upload(
                 self.package.product, self.package.uid, self.callback))
         for result in results:

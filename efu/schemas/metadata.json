@@ -24,17 +24,25 @@
             },
             "minItems": 1
         },
+        "active-backup-backend": {
+            "type": "string",
+            "enum": ["u-boot", "grub2"]
+        },
         "post-update-hook": {
             "$ref": "post-update-hook.json"
         },
         "objects": {
             "type": "array",
             "items": {
-                "anyOf": [
-                    {"$ref": "raw-object.json"},
-                    {"$ref": "copy-object.json"},
-                    {"$ref": "tarball-object.json"}
-                ]
+                "type": "array",
+                "items": {
+                    "anyOf": [
+                        {"$ref": "raw-object.json"},
+                        {"$ref": "copy-object.json"},
+                        {"$ref": "tarball-object.json"}
+                    ]
+                },
+                "minItems": 1
             },
             "minItems": 1
         },

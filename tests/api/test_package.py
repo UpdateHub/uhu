@@ -42,31 +42,31 @@ class PackageConstructorsTestCase(PackageTestCase):
         self.assertEqual(pkg.product, self.product)
 
     def test_can_create_package_from_dumped_file(self):
-        obj_id = 23
         fn = self.create_file(json.dumps({
             'product': self.product,
             'version': self.version,
             'supported-hardware': self.supported_hardware,
-            'objects': {
-                obj_id: {
-                    'filename': self.obj_fn,
-                    'mode': 'copy',
-                    'compressed': False,
-                    'options': {
-                        'target-device': '/dev/sda',
-                        'target-path': '/boot',
-                        'filesystem': 'ext4',
+            'objects': [
+                [
+                    {
+                        'filename': self.obj_fn,
+                        'mode': 'copy',
+                        'compressed': False,
+                        'options': {
+                            'target-device': '/dev/sda',
+                            'target-path': '/boot',
+                            'filesystem': 'ext4',
+                        }
                     }
-                }
-            }
+                ]
+            ]
         }))
         pkg = Package.from_file(fn)
         self.assertEqual(pkg.version, self.version)
         self.assertEqual(pkg.product, self.product)
         self.assertEqual(pkg.supported_hardware, self.supported_hardware)
         self.assertEqual(len(pkg), 1)
-        obj = pkg.objects[obj_id]
-        self.assertEqual(obj.uid, obj_id)
+        obj = pkg.objects.get(0, 0)
         self.assertEqual(obj.filename, self.obj_fn)
         self.assertEqual(obj.mode, 'copy')
         self.assertFalse(obj.compressed)
@@ -79,23 +79,24 @@ class PackageConstructorsTestCase(PackageTestCase):
             'product': self.product,
             'version': self.version,
             'objects': [
-                {
-                    'filename': self.obj_fn,
-                    'mode': 'copy',
-                    'size': self.obj_size,
-                    'sha256sum': self.obj_sha256,
-                    'target-device': '/dev/sda',
-                    'target-path': '/boot',
-                    'filesystem': 'ext4'
-                }
+                [
+                    {
+                        'filename': self.obj_fn,
+                        'mode': 'copy',
+                        'size': self.obj_size,
+                        'sha256sum': self.obj_sha256,
+                        'target-device': '/dev/sda',
+                        'target-path': '/boot',
+                        'filesystem': 'ext4'
+                    }
+                ]
             ]
         }
         pkg = Package.from_metadata(metadata)
         self.assertEqual(pkg.version, self.version)
         self.assertEqual(pkg.product, self.product)
         self.assertEqual(len(pkg), 1)
-        obj = pkg.objects[1]
-        self.assertEqual(obj.uid, 1)
+        obj = pkg.objects.get(0, 0)
         self.assertEqual(obj.filename, self.obj_fn)
         self.assertEqual(obj.mode, 'copy')
         self.assertEqual(obj.options['target-device'], '/dev/sda')
@@ -103,71 +104,12 @@ class PackageConstructorsTestCase(PackageTestCase):
         self.assertEqual(obj.options['filesystem'], 'ext4')
 
 
-class PackageObjectManagementTestCase(PackageTestCase):
-
-    def test_can_add_object(self):
-        pkg = Package(version=self.version, product=self.product)
-        self.assertEqual(len(pkg), 0)
-        obj = pkg.add_object(self.obj_fn, self.obj_mode, self.obj_options)
-        self.assertEqual(len(pkg), 1)
-        self.assertEqual(obj.uid, 1)
-        self.assertEqual(obj.filename, self.obj_fn)
-        self.assertEqual(obj.options['target-device'], '/dev/sda')
-
-    def test_can_add_more_than_one_object_per_file(self):
-        pkg = Package(version=self.version, product=self.product)
-        self.assertEqual(len(pkg), 0)
-        obj1 = pkg.add_object(self.obj_fn, self.obj_mode, self.obj_options)
-        obj2 = pkg.add_object(
-            self.obj_fn, self.obj_mode, {'target-device': '/dev/sdb'})
-        self.assertEqual(len(pkg), 2)
-        self.assertNotEqual(obj1.uid, obj2.uid)
-        self.assertEqual(obj1.filename, obj2.filename)
-        self.assertEqual(obj1.options['target-device'], '/dev/sda')
-        self.assertEqual(obj2.options['target-device'], '/dev/sdb')
-
-    def test_can_edit_object(self):
-        pkg = Package(version=self.version, product=self.product)
-        obj = pkg.add_object(self.obj_fn, self.obj_mode, self.obj_options)
-        self.assertEqual(obj.options['target-device'], '/dev/sda')
-        pkg.edit_object(obj.uid, 'target-device', '/dev/sdb')
-        self.assertEqual(obj.options['target-device'], '/dev/sdb')
-
-    def test_edit_object_raises_error_if_object_doesnt_exist(self):
-        pkg = Package(version=self.version, product=self.product)
-        with self.assertRaises(ValueError):
-            pkg.edit_object(100, 'target-device', '/dev/sdb')
-
-    def test_edit_object_raises_error_if_invalid_value_is_passed(self):
-        pkg = Package(version=self.version, product=self.product)
-        obj = pkg.add_object(self.obj_fn, self.obj_mode, self.obj_options)
-        with self.assertRaises(ValueError):
-            pkg.edit_object(obj.uid, 'target-device', 1)  # should be a path
-
-    def test_edit_object_raises_error_if_invalid_option_is_passed(self):
-        pkg = Package(version=self.version, product=self.product)
-        obj = pkg.add_object(self.obj_fn, self.obj_mode, self.obj_options)
-        with self.assertRaises(ValueError):
-            pkg.edit_object(obj.uid, 'target-path', '/')  # bot allowed in raw
-
-    def test_can_remove_object(self):
-        pkg = Package(version=self.version, product=self.product)
-        obj = pkg.add_object(self.obj_fn, self.obj_mode, self.obj_options)
-        self.assertEqual(len(pkg), 1)
-        pkg.remove_object(obj.uid)
-        self.assertEqual(len(pkg), 0)
-
-    def test_remove_object_raises_error_if_invalid_file(self):
-        pkg = Package(version=self.version, product=self.product)
-        with self.assertRaises(ValueError):
-            pkg.remove_object('invalid')
-
-
 class PackageRepresentationsTestCase(PackageTestCase):
 
     def test_can_represent_package_as_metadata(self):
         pkg = Package(version=self.version, product=self.product)
-        pkg.add_object(self.obj_fn, self.obj_mode, self.obj_options)
+        pkg.objects.add_list()
+        pkg.objects.add(0, self.obj_fn, self.obj_mode, self.obj_options)
         pkg.add_supported_hardware(
             name=self.hardware, revisions=self.hardware_revision)
         pkg.load()
@@ -178,7 +120,7 @@ class PackageRepresentationsTestCase(PackageTestCase):
             metadata['supported-hardware'], self.supported_hardware)
         objects = metadata['objects']
         self.assertEqual(len(objects), 1)
-        obj = objects[0]
+        obj = objects[0][0]
         self.assertEqual(obj['mode'], self.obj_mode)
         self.assertEqual(obj['filename'], self.obj_fn)
         self.assertEqual(obj['size'], self.obj_size)
@@ -187,7 +129,8 @@ class PackageRepresentationsTestCase(PackageTestCase):
 
     def test_can_represent_package_as_template(self):
         pkg = Package(version=self.version, product=self.product)
-        pkg.add_object(self.obj_fn, self.obj_mode, self.obj_options)
+        pkg.objects.add_list()
+        pkg.objects.add(0, self.obj_fn, self.obj_mode, self.obj_options)
         pkg.add_supported_hardware(
             name=self.hardware, revisions=self.hardware_revision)
         template = pkg.template()
@@ -196,16 +139,19 @@ class PackageRepresentationsTestCase(PackageTestCase):
         self.assertEqual(len(template['objects']), 1)
         self.assertEqual(
             template['supported-hardware'], self.supported_hardware)
-        template_obj = template['objects'][1]
-        self.assertEqual(template_obj['mode'], self.obj_mode)
-        self.assertEqual(template_obj['filename'], self.obj_fn)
-        self.assertEqual(template_obj['options'], self.obj_options)
+        objects = template['objects'][0]
+        self.assertEqual(len(objects), 1)
+        obj = objects[0]
+        self.assertEqual(obj['mode'], self.obj_mode)
+        self.assertEqual(obj['filename'], self.obj_fn)
+        self.assertEqual(obj['options'], self.obj_options)
 
     def test_can_represent_package_as_file(self):
         dest = '/tmp/efu-dump.json'
         self.addCleanup(self.remove_file, dest)
         pkg = Package(version=self.version, product=self.product)
-        pkg.add_object(self.obj_fn, self.obj_mode, self.obj_options)
+        pkg.objects.add_list()
+        pkg.objects.add(0, self.obj_fn, self.obj_mode, self.obj_options)
         self.assertFalse(os.path.exists(dest))
         pkg.dump(dest)
         self.assertTrue(os.path.exists(dest))
@@ -214,7 +160,7 @@ class PackageRepresentationsTestCase(PackageTestCase):
         self.assertEqual(dump['version'], self.version)
         self.assertEqual(dump['product'], self.product)
         self.assertEqual(len(dump['objects']), 1)
-        dump_obj = dump['objects']['1']
+        dump_obj = dump['objects'][0][0]
         self.assertEqual(dump_obj['mode'], self.obj_mode)
         self.assertEqual(dump_obj['filename'], self.obj_fn)
         self.assertEqual(dump_obj['options'], self.obj_options)
@@ -224,17 +170,18 @@ class PackageRepresentationsTestCase(PackageTestCase):
         os.chdir('tests/fixtures/package')
         self.addCleanup(os.chdir, cwd)
         with open('package_full.txt') as fp:
-            expected = fp.read().strip()
+            expected = fp.read()
         package = Package(
             version='2.0',
             product='e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')  # nopep8
-        package.add_object('files/pkg.json', mode='raw', options={
+        package.objects.add_list()
+        package.objects.add(0, 'files/pkg.json', mode='raw', options={
             'target-device': '/dev/sda',
             'chunk-size': 1234,
             'skip': 0,
             'count': -1
         })
-        package.add_object('files/setup.py', mode='raw', options={
+        package.objects.add(0, 'files/setup.py', mode='raw', options={
             'target-device': '/dev/sda',
             'seek': 5,
             'truncate': True,
@@ -242,7 +189,7 @@ class PackageRepresentationsTestCase(PackageTestCase):
             'skip': 19,
             'count': 3
         })
-        package.add_object('files/tox.ini', mode='copy', options={
+        package.objects.add(0, 'files/tox.ini', mode='copy', options={
             'target-device': '/dev/sda3',
             'target-path': '/dev/null',
             'filesystem': 'ext4',
@@ -250,16 +197,17 @@ class PackageRepresentationsTestCase(PackageTestCase):
             'format-options': '-i 100 -J size=500',
             'mount-options': '--all --fstab=/etc/fstab2'
         })
-        package.add_object('files/archive.tar.gz', mode='tarball', options={
-            'target-device': '/dev/sda3',
-            'target-path': '/dev/null',
-            'filesystem': 'ext4',
-            'format?': True,
-            'format-options': '-i 100 -J size=500',
-            'mount-options': '--all --fstab=/etc/fstab2'
-        })
+        package.objects.add(
+            0, 'files/archive.tar.gz', mode='tarball', options={
+                'target-device': '/dev/sda3',
+                'target-path': '/dev/null',
+                'filesystem': 'ext4',
+                'format?': True,
+                'format-options': '-i 100 -J size=500',
+                'mount-options': '--all --fstab=/etc/fstab2'
+            }
+        )
         observed = str(package)
-        self.maxDiff = None
         self.assertEqual(observed, expected)
 
     def test_package_as_string_when_empty(self):
