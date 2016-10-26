@@ -1,11 +1,12 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+import hashlib
 import json
 from collections import OrderedDict
 
 from ..http.request import Request
-from ..transactions import Pull, Push
+from ..transactions import Push
 from ..utils import call, get_server_url, indent
 
 from . import Object
@@ -44,7 +45,7 @@ class Package:
             product=metadata['product'], version=metadata['version'])
         for obj_metadata in metadata['objects']:
             options = {option: value for option, value in obj_metadata.items()
-                       if option not in ('filename', 'mode')}
+                       if option not in ('filename', 'mode', 'compressed')}
             obj = package.add_object(
                 obj_metadata['filename'], obj_metadata['mode'], options)
             obj.size = obj_metadata['size']
@@ -147,14 +148,53 @@ class Package:
         push.upload_objects()
         push.finish_push()
 
+    def download_metadata(self):
+        path = '/products/{}/packages/{}'.format(self.product, self.uid)
+        response = Request(get_server_url(path), 'GET').send()
+        if not response.ok:
+            raise ValueError('Package not found')
+        return response.json()
+
+    def get_download_list(self):
+        '''
+        Returns a list with all objects that must be downloaded.
+
+        If local object exists and it is equal to remote object, we
+        do not downloaded it.  Verifies if local files will not be
+        overwritten by incoming files.
+
+        If local objects exists and it is different from remote
+        object, we raise an exception to avoid object overwritting.
+        '''
+        objects = []
+        for obj in self:
+            if not obj.exists():
+                objects.append(obj)
+                continue  # File does not exist, must be downloaded
+            sha256sum = hashlib.sha256()
+            for chunk in obj:
+                sha256sum.update(chunk)
+            if sha256sum.hexdigest() != obj.sha256sum:
+                # Local object diverges from server object, must abort
+                raise FileExistsError(
+                    '{} will be overwritten', obj.filename)
+            # If we got here, means that object exists locally and
+            # is equal to remote object. Therefore, it must be not
+            # downloaded.
+        return objects
+
+    def get_object_download_url(self, obj):
+        path = '/products/{}/packages/{}/objects/{}'.format(
+            self.product, self.uid, obj.sha256sum)
+        return get_server_url(path)
+
     def pull(self, full=True):
-        pull = Pull(self)
-        pull.get_metadata()
-        package = Package.from_metadata(pull.metadata)
+        metadata = self.download_metadata()
+        package = Package.from_metadata(metadata)
         if full:
-            pull.check_local_files(package)
-            for obj in package:
-                pull.download_object(obj)
+            objects = package.get_download_list()
+            for obj in objects:
+                obj.download(self.get_object_download_url(obj))
         return package
 
     def get_status(self):

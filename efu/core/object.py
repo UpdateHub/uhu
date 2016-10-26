@@ -179,6 +179,22 @@ class Object:
             error_msg = 'It was not possible to get url:\n{}'
             raise UploadError(error_msg.format('\n'.join(errors)))
 
+    def exists(self):
+        return os.path.exists(self.filename)
+
+    def download(self, url):
+        if self.exists():
+            return
+        from ..transactions.exceptions import DownloadError
+        response = Request(url, 'GET', stream=True).send()
+        if not response.ok:
+            errors = response.json().get('errors', [])
+            error_msg = 'It was not possible to download object:\n{}'
+            raise DownloadError(error_msg.format('\n'.join(errors)))
+        with open(self.filename, 'wb') as fp:
+            for chunk in response.iter_content():
+                fp.write(chunk)
+
     def __len__(self):
         if self.size is not None:
             return math.ceil(self.size/self.chunk_size)

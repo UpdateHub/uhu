@@ -10,6 +10,10 @@ class UploadError(Exception):
     pass
 
 
+class DownloadError(Exception):
+    pass
+
+
 class FinishPushError(Exception):
     pass
 

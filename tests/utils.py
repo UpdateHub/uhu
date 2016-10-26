@@ -4,9 +4,13 @@
 import hashlib
 import json
 import os
+import shutil
 import tempfile
 import unittest
 from uuid import uuid4
+
+from efu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
+from efu.core import Package
 
 from .httpmock.httpd import HTTPMockServer
 
@@ -161,3 +165,53 @@ class PushFixtureMixin:
                 {'errors': ['This is an error', 'And this is another one']})
         self.httpd.register_response(
             path, method='POST', body=body, status_code=code)
+
+
+class BasePullTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
+                       HTTPTestCaseMixin, EFUTestCase):
+
+    def setUp(self):
+        wd = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, wd)
+        self.addCleanup(os.chdir, os.getcwd())
+        os.chdir(wd)
+
+        self.pkg_fn = os.path.join(wd, '.efu')
+        self.set_env_var(LOCAL_CONFIG_VAR, self.pkg_fn)
+
+        self.product = '1324'
+        self.pkg_uid = '1234'
+        self.package = Package(uid=self.pkg_uid, product=self.product)
+
+        # object
+        self.obj_id = 1
+        self.obj_fn = 'image.bin'
+        self.obj_content = b'spam'
+        self.obj_sha256 = hashlib.sha256(self.obj_content).hexdigest()
+        self.addCleanup(self.remove_file, self.obj_fn)
+
+        self.metadata = {
+            'product': self.product,
+            'version': '2.0',
+            'objects': [
+                {
+                    'filename': self.obj_fn,
+                    'mode': 'raw',
+                    'target-device': '/device',
+                    'size': 4,
+                    'sha256sum': hashlib.sha256(self.obj_content).hexdigest()
+                }
+            ]
+        }
+
+        self.set_env_var(SERVER_URL_VAR, self.httpd.url(''))
+        # url to download metadata
+        self.httpd.register_response(
+            '/products/{}/packages/{}'.format(self.product, self.pkg_uid),
+            'GET', body=json.dumps(self.metadata), status_code=200)
+
+        # url to download object
+        path = '/products/{}/packages/{}/objects/{}'.format(
+            self.product, self.pkg_uid, self.obj_sha256)
+        self.httpd.register_response(
+            path, 'GET', body=self.obj_content, status_code=200)
