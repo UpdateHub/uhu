@@ -8,8 +8,10 @@ import unittest
 from efu.core import Object
 from efu.utils import CHUNK_SIZE_VAR
 
+from ..utils import EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase
 
-class ObjectTestCase(unittest.TestCase):
+
+class ObjectTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
 
     def test_can_create_object(self):
         fn = __file__
@@ -20,6 +22,19 @@ class ObjectTestCase(unittest.TestCase):
         self.assertEqual(obj.filename, fn)
         self.assertEqual(obj.mode, mode)
         self.assertEqual(obj.options['target-device'], '/dev/sda')
+
+    def test_can_get_object_size(self):
+        self.set_env_var(CHUNK_SIZE_VAR, 2)
+        fn = self.create_file(b'0' * 10)
+        obj = Object(0, fn, 'raw', {'target-device': '/dev/sda'})
+        obj.load()
+        self.assertEqual(len(obj), 5)
+
+    def test_object_size_raises_error_if_not_loaded(self):
+        fn = self.create_file(b'0' * 10)
+        obj = Object(0, fn, 'raw', {'target-device': '/dev/sda'})
+        with self.assertRaises(RuntimeError) as err:
+            len(obj)
 
 
 class LoadObjectTestCase(unittest.TestCase):

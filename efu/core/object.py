@@ -180,7 +180,9 @@ class Object:
             raise UploadError(error_msg.format('\n'.join(errors)))
 
     def __len__(self):
-        return math.ceil(self.size/self.chunk_size)
+        if self.size is not None:
+            return math.ceil(self.size/self.chunk_size)
+        raise RuntimeError('Object is not loaded.')
 
     def __iter__(self):
         with open(self.filename, 'br') as fp:
