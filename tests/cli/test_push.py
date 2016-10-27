@@ -6,7 +6,7 @@ from click.testing import CliRunner
 from efu.cli.package import push_command
 from efu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
-from ..api.test_push import BasePushTestCase
+from ..utils import BasePushTestCase
 
 
 class PushCommandMixin:
@@ -36,18 +36,18 @@ class PushCommandTestCase(PushCommandMixin, BasePushTestCase):
         result = self.runner.invoke(push_command)
         self.assertEqual(result.exit_code, 2)
 
-    def test_push_command_returns_3_if_error_when_uploading(self):
+    def test_push_command_returns_2_if_error_when_uploading(self):
         self.set_push(self.package, self.package_uid, upload_success=False)
         result = self.runner.invoke(push_command)
-        self.assertEqual(result.exit_code, 3)
+        self.assertEqual(result.exit_code, 2)
 
-    def test_push_command_returns_4_if_error_on_finish(self):
+    def test_push_command_returns_2_if_error_on_finish(self):
         self.set_push(self.package, self.package_uid, finish_success=False)
         result = self.runner.invoke(push_command)
-        self.assertEqual(result.exit_code, 4)
+        self.assertEqual(result.exit_code, 2)
 
-    def test_push_command_returns_5_if_cant_establish_connection(self):
+    def test_push_command_returns_3_if_cant_establish_connection(self):
         self.set_env_var(SERVER_URL_VAR, 'http://0.0.0.0:8000')
         self.set_push(self.package, self.package_uid)
         result = self.runner.invoke(push_command)
-        self.assertEqual(result.exit_code, 5)
+        self.assertEqual(result.exit_code, 3)

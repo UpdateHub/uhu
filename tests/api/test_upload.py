@@ -6,7 +6,7 @@
 
 from efu.core import Object
 from efu.core.object import ObjectUploadResult
-from efu.transactions.exceptions import UploadError
+from efu.exceptions import UploadError
 from efu.utils import CHUNK_SIZE_VAR, SERVER_URL_VAR
 
 from ..utils import (

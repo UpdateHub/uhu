@@ -9,8 +9,8 @@ import tempfile
 import unittest
 from uuid import uuid4
 
-from efu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
 from efu.core import Package
+from efu.utils import CHUNK_SIZE_VAR, LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 from .httpmock.httpd import HTTPMockServer
 
@@ -164,6 +164,24 @@ class PushFixtureMixin:
                 {'errors': ['This is an error', 'And this is another one']})
         self.httpd.register_response(
             path, method='POST', body=body, status_code=code)
+
+
+class BasePushTestCase(
+        PushFixtureMixin, UploadFixtureMixin, EnvironmentFixtureMixin,
+        FileFixtureMixin, HTTPTestCaseMixin, EFUTestCase):
+
+    def setUp(self):
+        self.set_env_var(SERVER_URL_VAR, self.httpd.url(''))
+        self.set_env_var(CHUNK_SIZE_VAR, 1)
+        self.product = '0' * 64
+        self.version = '2.0'
+        self.package_uid = '1' * 64
+        self.package = Package(version=self.version, product=self.product)
+        self.package.objects.add_list()
+        for _ in range(3):
+            fn = self.create_file('123')
+            self.package.objects.add(
+                0, fn, 'raw', {'target-device': '/dev/sda'})
 
 
 class BasePullTestCase(EnvironmentFixtureMixin, FileFixtureMixin,

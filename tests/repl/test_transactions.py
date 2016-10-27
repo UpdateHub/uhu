@@ -9,9 +9,9 @@ from efu.repl.repl import EFURepl
 from efu.repl import functions
 from efu.utils import SERVER_URL_VAR
 
-from ..api.test_push import BasePushTestCase
 from ..utils import (
-    HTTPTestCaseMixin, EFUTestCase, EnvironmentFixtureMixin, BasePullTestCase)
+    HTTPTestCaseMixin, EFUTestCase, EnvironmentFixtureMixin,
+    BasePullTestCase, BasePushTestCase)
 
 
 class PackageStatusTestCase(

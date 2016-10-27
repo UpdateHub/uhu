@@ -9,6 +9,7 @@ from collections import OrderedDict
 
 from humanize.filesize import naturalsize
 
+from ..exceptions import DownloadError, UploadError
 from ..http import Request
 from ..utils import (
     call, get_chunk_size, get_server_url, get_uncompressed_size,
@@ -151,7 +152,6 @@ class Object:
         call(callback, 'post_object_load', self)
 
     def upload(self, product_uid, package_uid, callback=None):
-        from ..transactions.exceptions import UploadError
         call(callback, 'pre_object_upload', self)
         url = get_server_url('/products/{}/packages/{}/objects/{}'.format(
             product_uid, package_uid, self.sha256sum))
@@ -184,7 +184,6 @@ class Object:
     def download(self, url):
         if self.exists():
             return
-        from ..transactions.exceptions import DownloadError
         response = Request(url, 'GET', stream=True).send()
         if not response.ok:
             errors = response.json().get('errors', [])

@@ -5,11 +5,11 @@ import hashlib
 import json
 from collections import OrderedDict
 
+from ..exceptions import UploadError
 from ..http.request import Request
-from ..transactions import Push
-from ..utils import call, get_server_url
+from ..utils import call, get_server_url, validate_schema
 
-from .object import ObjectManager
+from .object import ObjectManager, ObjectUploadResult
 
 
 class Package:
@@ -124,11 +124,46 @@ class Package:
         with open(dest, 'w') as fp:
             json.dump(self.template(), fp)
 
+    def upload_metadata(self, callback=None):
+        metadata = self.metadata()
+        validate_schema('metadata.json', metadata)
+        payload = json.dumps(metadata)
+        url = self.get_metadata_upload_url()
+        response = Request(
+            url, method='POST', payload=payload, json=True).send()
+        call(callback, 'push_start', response)
+        response_body = response.json()
+        if response.status_code != 201:
+            errors = '\n'.join(response_body.get('errors', []))
+            error_msg = 'It was not possible to start pushing:\n{}'
+            raise UploadError(error_msg.format(errors))
+        self.uid = response_body['package-uid']
+
+    def upload_objects(self, callback=None):
+        results = []
+        for obj in self.objects.all():
+            results.append(obj.upload(self.product, self.uid, callback))
+        for result in results:
+            if not ObjectUploadResult.is_ok(result):
+                err = 'Some objects has not been fully uploaded'
+                raise UploadError(err)
+
+    def finish_push(self, callback=None):
+        response = Request(self.get_finish_push_url(), 'POST').send()
+        call(callback, 'push_finish', self, response)
+        if response.status_code != 202:
+            errors = '\n'.join(response.json()['errors'])
+            error_msg = 'It was not possible to finish pushing:\n{}'
+            raise UploadError(error_msg.format(errors))
+
+    def get_finish_push_url(self):
+        return get_server_url('/products/{}/packages/{}/finish'.format(
+            self.product, self.uid))
+
     def push(self, callback=None):
-        push = Push(self, callback)
-        push.start_push()
-        push.upload_objects()
-        push.finish_push()
+        self.upload_metadata(callback)
+        self.upload_objects(callback)
+        self.finish_push()
 
     def download_metadata(self):
         path = '/products/{}/packages/{}'.format(self.product, self.uid)
@@ -164,6 +199,10 @@ class Package:
             # is equal to remote object. Therefore, it must be not
             # downloaded.
         return objects
+
+    def get_metadata_upload_url(self):
+        return get_server_url(
+            '/products/{}/packages'.format(self.product))
 
     def get_object_download_url(self, obj):
         path = '/products/{}/packages/{}/objects/{}'.format(

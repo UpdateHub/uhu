@@ -8,8 +8,7 @@ import requests
 
 from ..core import Package
 from ..core.options import MODES
-from ..transactions.exceptions import (
-    StartPushError, UploadError, FinishPushError)
+from ..exceptions import UploadError
 from ..utils import get_local_config_file
 
 from ._object import ClickOptionsParser, CLICK_OPTIONS
@@ -165,18 +164,12 @@ def push_command():
     package.load(callback)
     try:
         package.push(callback)
-    except StartPushError as err:
-        print(err)
-        sys.exit(2)
     except UploadError as err:
         print(err)
-        sys.exit(3)
-    except FinishPushError as err:
-        print(err)
-        sys.exit(4)
+        sys.exit(2)
     except requests.exceptions.ConnectionError:
         print("ERROR: Can't reach server")
-        sys.exit(5)
+        sys.exit(3)
 
 
 @package_cli.command(name='pull')

@@ -5,10 +5,12 @@ import json
 import os
 
 from efu.core import Package
+from efu.exceptions import UploadError
 from efu.utils import CHUNK_SIZE_VAR, SERVER_URL_VAR
 
-from ..utils import (FileFixtureMixin, EnvironmentFixtureMixin,
-                     HTTPTestCaseMixin, EFUTestCase, BasePullTestCase)
+from ..utils import (
+    FileFixtureMixin, EnvironmentFixtureMixin, HTTPTestCaseMixin,
+    BasePullTestCase, BasePushTestCase, EFUTestCase)
 
 
 class PackageTestCase(FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase):
@@ -395,3 +397,88 @@ class PackagePullTestCase(BasePullTestCase):
         self.assertFalse(os.path.exists(self.obj_fn))
         self.package.pull(full=False)
         self.assertFalse(os.path.exists(self.obj_fn))
+
+
+class PushTestCase(BasePushTestCase):
+
+    def test_upload_metadata_returns_None_when_successful(self):
+        self.start_push_url(self.product, self.package_uid)
+        self.package.load()
+        observed = self.package.upload_metadata()
+        self.assertIsNone(observed)
+
+    def test_upload_metadata_raises_exception_when_fail(self):
+        self.start_push_url(self.product, self.package_uid, success=False)
+        self.package.load()
+        with self.assertRaises(UploadError):
+            self.package.upload_metadata()
+
+    def test_upload_metadata_request_is_made_correctly(self):
+        self.start_push_url(self.product, self.package_uid)
+        start_url = self.httpd.url(
+            '/products/{}/packages'.format(self.product))
+        self.package.load()
+        self.package.upload_metadata()
+
+        request = self.httpd.requests[0]
+        self.assertEqual(len(self.httpd.requests), 1)
+        self.assertEqual(request.method, 'POST')
+        self.assertEqual(request.url, start_url)
+        self.assertEqual(request.headers['Content-Type'], 'application/json')
+        metadata = json.loads(request.body.decode())
+        self.assertEqual(metadata, self.package.metadata())
+
+    def test_upload_metadata_updates_package_uid(self):
+        self.start_push_url(self.product, self.package_uid)
+        self.package.load()
+        self.assertIsNone(self.package.uid)
+        self.package.upload_metadata()
+        self.assertEqual(self.package.uid, self.package_uid)
+
+    def test_finish_push_returns_None_when_successful(self):
+        self.package.uid = self.package_uid
+        self.finish_push_url(self.product, self.package.uid)
+        self.assertIsNone(self.package.finish_push())
+
+    def test_finish_push_raises_error_when_fail(self):
+        self.package.uid = self.package_uid
+        self.finish_push_url(self.product, self.package_uid, success=False)
+        with self.assertRaises(UploadError):
+            self.package.finish_push()
+
+    def test_finish_push_request_is_made_correctly(self):
+        self.finish_push_url(self.product, self.package_uid, success=True)
+        path = '/products/{}/packages/{}/finish'.format(
+            self.product, self.package_uid)
+        url = self.httpd.url(path)
+        self.package.uid = self.package_uid
+        self.package.finish_push()
+        request = self.httpd.requests[0]
+        self.assertEqual(len(self.httpd.requests), 1)
+        self.assertEqual(request.method, 'POST')
+        self.assertEqual(request.url, url)
+        self.assertEqual(request.body, b'')
+
+    def test_upload_objects_return_None_when_successful(self):
+        self.set_push(self.package, self.package_uid)
+        self.package.upload_metadata()
+        observed = self.package.upload_objects()
+        self.assertIsNone(observed)
+
+    def test_upload_objects_return_None_when_file_exists(self):
+        self.set_push(self.package, self.package_uid, upload_exists=True)
+
+        self.package.upload_metadata()
+        observed = self.package.upload_objects()
+        self.assertIsNone(observed)
+
+    def test_upload_objects_requests_are_made_correctly(self):
+        self.set_push(self.package, self.package_uid)
+        self.package.upload_metadata()
+        self.package.upload_objects()
+        self.package.finish_push()
+        # 1 request for starting push
+        # 3 * (2 requests per file [get url and upload])
+        # 1 request for finishing push
+        # Total: 8 requests
+        self.assertEqual(len(self.httpd.requests), 8)
