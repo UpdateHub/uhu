@@ -4,6 +4,7 @@
 import click
 
 from ..core.product import Product
+from .utils import error
 
 
 @click.group(name='product')
@@ -19,4 +20,4 @@ def use_command(uid, force):
     try:
         Product.use(uid, force=force)
     except FileExistsError as err:
-        raise click.ClickException(err)
+        error(1, err)

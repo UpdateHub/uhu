@@ -1,18 +1,15 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-import sys
-
 import click
 import requests
 
-from ..core import Package
 from ..core.options import MODES
 from ..exceptions import UploadError
-from ..utils import get_local_config_file
 
 from ._object import ClickOptionsParser, CLICK_OPTIONS
 from ._push import PushCallback
+from .utils import error, open_package
 
 
 @click.group(name='package')
@@ -23,56 +20,32 @@ def package_cli():
 @package_cli.command('new')
 @click.argument('version')
 def new_version_command(version):
-    try:
-        pkg_file = get_local_config_file()
-        package = Package.from_file(pkg_file)
+    with open_package() as package:
         package.version = version
-        package.dump(pkg_file)
-    except FileNotFoundError:
-        print('Package file does not exist. '
-              'Create one with <efu use> command')
-        sys.exit(1)
 
 
 @package_cli.command('show')
 def show_command():
     ''' Shows all configured objects '''
-    try:
-        pkg_file = get_local_config_file()
-        print(Package.from_file(pkg_file))
-    except FileNotFoundError:
-        print('Package file does not exist. '
-              'Create one with <efu use> command')
-        sys.exit(1)
+    with open_package(read_only=True) as package:
+        print(package)
 
 
 @package_cli.command('remove')
 @click.argument('object-id', type=int)
 def remove_object_command(object_id):
     ''' Removes the filename entry within package file '''
-    try:
-        pkg_file = get_local_config_file()
-        package = Package.from_file(pkg_file)
+    with open_package() as package:
         # FIX: Update to support active backup
         package.objects.remove(0, object_id)
-        package.dump(pkg_file)
-    except FileNotFoundError:
-        print('Package file does not exist. '
-              'Create one with <efu use> command.')
-        sys.exit(1)
 
 
 @package_cli.command('export')
 @click.argument('filename', type=click.Path(dir_okay=False))
 def export_command(filename):
     ''' Copy package file to the given filename '''
-    try:
-        pkg_file = get_local_config_file()
-        Package.from_file(pkg_file).dump(filename)
-    except FileNotFoundError:
-        print('Package file does not exist. '
-              'Create one with <efu use> command')
-        sys.exit(1)
+    with open_package() as package:
+        package.dump(filename)
 
 
 @package_cli.command('add')
@@ -82,24 +55,16 @@ def export_command(filename):
     help='How the object will be installed', required=True)
 def add_object_command(filename, mode, **options):
     ''' Adds an entry in the package file for the given artifact '''
-    try:
-        pkg_file = get_local_config_file()
-        package = Package.from_file(pkg_file)
-    except FileNotFoundError:
-        print('Package file does not exist. '
-              'Create one with <efu use> command')
-        sys.exit(1)
-    parser = ClickOptionsParser(mode, options)
-    try:
-        options = parser.clean()
-    except ValueError as err:
-        print(err)
-        sys.exit(2)
-    # FIX: Update to support active backup
-    if len(package.objects) == 0:
-        package.objects.add_list()
-    package.objects.add(0, filename, mode, options)
-    package.dump(pkg_file)
+    with open_package() as package:
+        parser = ClickOptionsParser(mode, options)
+        try:
+            options = parser.clean()
+        except ValueError as err:
+            error(2, err)
+        # FIX: Update to support active backup
+        if len(package.objects) == 0:
+            package.objects.add_list()
+        package.objects.add(0, filename, mode, options)
 
 
 # Adds all object options
@@ -113,38 +78,24 @@ for option in CLICK_OPTIONS.values():
 @click.argument('value')
 def edit_object_command(object_id, key, value):
     ''' Edits an object property within package '''
-    try:
-        pkg_file = get_local_config_file()
-        package = Package.from_file(pkg_file)
+    with open_package() as package:
         # FIX: Update to support active backup
-        package.objects.update(0, object_id, key, value)
-        package.dump(pkg_file)
-    except FileNotFoundError:
-        print('Package file does not exist. '
-              'Create one with <efu use> command')
-        sys.exit(1)
-    except ValueError as err:
-        print(err)
-        sys.exit(2)
+        try:
+            package.objects.update(0, object_id, key, value)
+        except ValueError as err:
+            error(2, err)
 
 
 @package_cli.command(name='status')
 @click.argument('package-uid')
 def status_command(package_uid):
-    '''
-    Prints the status of the given package
-    '''
-    try:
-        pkg_file = get_local_config_file()
-        package = Package.from_file(pkg_file)
+    ''' Prints the status of the given package '''
+    with open_package(read_only=True) as package:
         package.uid = package_uid
-        print(package.get_status())
-    except FileNotFoundError:
-        print('Package file does not exist')
-        sys.exit(1)
-    except ValueError as err:
-        print(err)
-        sys.exit(2)
+        try:
+            print(package.get_status())
+        except ValueError as err:
+            error(2, err)
 
 
 # Transaction commands
@@ -153,23 +104,15 @@ def push_command():
     '''
     Pushes a package file to server with the given version.
     '''
-    try:
-        pkg_file = get_local_config_file()
-        package = Package.from_file(pkg_file)
-    except FileNotFoundError:
-        print('Package file does not exist. '
-              'Create one with <efu use> command')
-        sys.exit(1)
-    callback = PushCallback()
-    package.load(callback)
-    try:
-        package.push(callback)
-    except UploadError as err:
-        print(err)
-        sys.exit(2)
-    except requests.exceptions.ConnectionError:
-        print("ERROR: Can't reach server")
-        sys.exit(3)
+    with open_package(read_only=True) as package:
+        callback = PushCallback()
+        package.load(callback)
+        try:
+            package.push(callback)
+        except UploadError as err:
+            error(2, err)
+        except requests.exceptions.ConnectionError:
+            error(3, 'Can\'t reach server')
 
 
 @package_cli.command(name='pull')
@@ -180,26 +123,16 @@ def pull_command(package_uid, full):
     '''
     Downloads a package from server.
     '''
-    try:
-        pkg_file = get_local_config_file()
-        package = Package.from_file(pkg_file)
+    with open_package() as package:
         package.uid = package_uid
-    except FileNotFoundError:
-        print('ERROR: Package file does not exist. '
-              'Create one with <efu use> command')
-        sys.exit(1)
-    if not package.product:
-        print('ERROR: Product not set')
-        sys.exit(2)
-    if len(package) != 0:
-        print('ERROR: You have a local package that '
-              'would be overwritten by this action.')
-        sys.exit(3)
-    try:
-        package.pull(full=full)
-    except ValueError as err:
-        print(err)
-        sys.exit(4)
-    except FileExistsError as err:
-        print(err)
-        sys.exit(5)
+        if not package.product:
+            error(2, 'Product not set')
+        if len(package) != 0:
+            error(3, ('ERROR: You have a local package that '
+                      'would be overwritten by this action.'))
+        try:
+            package.pull(full=full)
+        except ValueError as err:
+            error(4, err)
+        except FileExistsError as err:
+            error(5, err)

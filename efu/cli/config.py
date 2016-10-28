@@ -1,12 +1,11 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-import sys
-
 import click
 
-from ..utils import remove_local_config
 from ..config import config
+from ..utils import remove_local_config
+from .utils import error
 
 
 @click.group(name='config')
@@ -51,5 +50,4 @@ def cleanup_command():
     try:
         remove_local_config()
     except FileNotFoundError:
-        print('Package file already deleted.')
-        sys.exit(1)
+        error(1, 'Package file already deleted.')
