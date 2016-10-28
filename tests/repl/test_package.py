@@ -75,8 +75,7 @@ class PackageTestCase(unittest.TestCase):
     def test_can_remove_object_using_uid(self):
         functions.prompt.side_effect = ['0']
         self.repl.package.objects.add_list()
-        self.repl.package.objects.add(
-            0, __file__, 'raw', {'target-device': '/'})
+        self.repl.package.objects.add(__file__, 'raw', {'target-device': '/'})
         self.assertEqual(len(list(self.repl.package.objects.all())), 1)
         functions.remove_object(self.repl)
         self.assertEqual(len(list(self.repl.package.objects.all())), 0)
@@ -84,8 +83,7 @@ class PackageTestCase(unittest.TestCase):
     def test_can_remove_object_using_autocompleter_suggestion(self):
         functions.prompt.side_effect = ['0# {}'.format(__file__)]
         self.repl.package.objects.add_list()
-        self.repl.package.objects.add(
-            0, __file__, 'raw', {'target-device': '/'})
+        self.repl.package.objects.add(__file__, 'raw', {'target-device': '/'})
         self.assertEqual(len(list(self.repl.package.objects.all())), 1)
         functions.remove_object(self.repl)
         self.assertEqual(len(list(self.repl.package.objects.all())), 0)
@@ -98,14 +96,14 @@ class PackageTestCase(unittest.TestCase):
     def test_can_edit_object(self):
         functions.prompt.side_effect = ['0', 'skip', '200']
         self.repl.package.objects.add_list()
-        self.repl.package.objects.add(0, __file__, 'raw', {
+        self.repl.package.objects.add(__file__, 'raw', {
             'target-device': '/',
             'skip': 100,
         })
-        obj = self.repl.package.objects.get(0, 0)
+        obj = self.repl.package.objects.get(0)
         self.assertEqual(obj.options['skip'], 100)
         functions.edit_object(self.repl)
-        obj = self.repl.package.objects.get(0, 0)
+        obj = self.repl.package.objects.get(0)
         self.assertEqual(obj.options['skip'], 200)
 
     def test_edit_object_raises_error_if_invalid_uid(self):
@@ -116,8 +114,7 @@ class PackageTestCase(unittest.TestCase):
     def test_edit_object_raises_error_if_invalid_option(self):
         functions.prompt.side_effect = ['1', 'invalid']
         self.repl.package.objects.add_list()
-        self.repl.package.objects.add(
-            0, __file__, 'raw', {'target-device': '/'})
+        self.repl.package.objects.add(__file__, 'raw', {'target-device': '/'})
         with self.assertRaises(ValueError):
             functions.edit_object(self.repl)
 

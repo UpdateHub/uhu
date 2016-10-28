@@ -6,6 +6,7 @@ import json
 import math
 import os
 from collections import OrderedDict
+from copy import deepcopy
 
 from humanize.filesize import naturalsize
 
@@ -263,8 +264,10 @@ class ObjectList:
     def update(self, index, option, value):
         ''' Given an object id, sets obj.option to value '''
         obj = self.get(index)
-        obj.options[option] = value
-        self._objects[index] = Object(obj.filename, obj.mode, obj.options)
+        options = deepcopy(obj.options)
+        options[option] = value
+        options = OptionsParser(obj.mode, options).clean()
+        obj.options = options
 
     def remove(self, index):
         ''' Removes an object '''
@@ -304,12 +307,20 @@ class ObjectManager:
 
     def add_list(self):
         ''' Creates a new object list '''
-        objects = ObjectList()
-        self._lists.append(objects)
-        return objects
+        if self.is_single():
+            objects = ObjectList()
+            self._lists.append(objects)
+            return objects
+        raise ValueError('It is not possible to have more than 2 lists')
 
-    def get_list(self, index):
+    def get_list(self, index=None):
         ''' Returns an object list'''
+        if index is None:
+            if self.is_single():
+                index = 0
+            else:
+                err = 'You need to specify an index in non single mode'
+                raise TypeError(err)
         try:
             return self._lists[index]
         except IndexError:
@@ -322,22 +333,22 @@ class ObjectManager:
         except IndexError:
             raise ValueError('Object List not found')
 
-    def add(self, index, *args, **kw):
+    def add(self, *args, index=None, **kw):
         ''' Adds a new object in a given object list '''
         objects = self.get_list(index)
         return objects.add(*args, **kw)
 
-    def get(self, index, *args, **kw):
+    def get(self, *args, index=None, **kw):
         ''' Retrives an object '''
         objects = self.get_list(index)
         return objects.get(*args, **kw)
 
-    def update(self, index, *args, **kw):
+    def update(self, *args, index=None, **kw):
         ''' Updates an object option '''
         objects = self.get_list(index)
         objects.update(*args, **kw)
 
-    def remove(self, index, *args, **kw):
+    def remove(self, *args, index=None, **kw):
         ''' Removes an object '''
         objects = self.get_list(index)
         objects.remove(*args, **kw)
@@ -345,6 +356,12 @@ class ObjectManager:
     def all(self):
         ''' Returns all objects from all lists '''
         return (obj for objects in self for obj in objects)
+
+    def is_single(self):
+        ''' Checks if it is single mode or active-backup mode '''
+        if len(self) < 2:
+            return True
+        return False
 
     def metadata(self):
         return [objects.metadata() for objects in self]

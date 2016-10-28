@@ -37,7 +37,7 @@ def remove_object_command(object_id):
     ''' Removes the filename entry within package file '''
     with open_package() as package:
         # FIX: Update to support active backup
-        package.objects.remove(0, object_id)
+        package.objects.remove(object_id)
 
 
 @package_cli.command('export')
@@ -64,7 +64,7 @@ def add_object_command(filename, mode, **options):
         # FIX: Update to support active backup
         if len(package.objects) == 0:
             package.objects.add_list()
-        package.objects.add(0, filename, mode, options)
+        package.objects.add(filename, mode, options)
 
 
 # Adds all object options
@@ -79,9 +79,9 @@ for option in CLICK_OPTIONS.values():
 def edit_object_command(object_id, key, value):
     ''' Edits an object property within package '''
     with open_package() as package:
-        # FIX: Update to support active backup
         try:
-            package.objects.update(0, object_id, key, value)
+            # FIX: Update to support active backup
+            package.objects.update(object_id, key, value)
         except ValueError as err:
             error(2, err)
 

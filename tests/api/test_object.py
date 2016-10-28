@@ -339,9 +339,9 @@ class ObjectManagerTestCase(unittest.TestCase):
         self.objects0 = self.manager.add_list()
         self.objects1 = self.manager.add_list()
         self.obj0 = self.manager.add(
-            0, __file__, 'raw', {'target-device': '/dev/sda'})
+            __file__, 'raw', {'target-device': '/dev/sda'}, index=0)
         self.obj1 = self.manager.add(
-            1, __file__, 'raw', {'target-device': '/dev/sdb'})
+            __file__, 'raw', {'target-device': '/dev/sdb'}, index=1)
 
     def test_object_list_as_metadata(self):
         metadata = self.manager.metadata()
@@ -355,14 +355,36 @@ class ObjectManagerTestCase(unittest.TestCase):
         self.assertEqual(template[0], self.objects0.template())
         self.assertEqual(template[1], self.objects1.template())
 
-    def test_can_get_all_objects(self):
-        objects = list(self.manager.all())
-        self.assertEqual(len(objects), 2)
-        self.assertEqual(objects[0], self.obj0)
-        self.assertEqual(objects[1], self.obj1)
+    def test_object_manager_as_string(self):
+        cwd = os.getcwd()
+        os.chdir('tests/fixtures/object')
+        self.addCleanup(os.chdir, cwd)
+
+        manager = ObjectManager()
+        args = ['object_manager.txt', 'raw', {'target-device': '/dev/sda'}]
+        for i in range(2):
+            manager.add_list()
+            for _ in range(2):
+                manager.add(*args, index=i)
+        with open('object_manager.txt') as fp:
+            expected = fp.read()
+        observed = str(manager)
+        self.assertEqual(observed, expected)
 
 
 class ObjectManagerListManagementTestCase(unittest.TestCase):
+
+    def test_is_single_returns_True_when_has_less_than_2_lists(self):
+        manager = ObjectManager()
+        self.assertTrue(manager.is_single())
+        manager.add_list()
+        self.assertTrue(manager.is_single())
+
+    def test_is_single_returns_False_when_has_less_than_2_lists(self):
+        manager = ObjectManager()
+        manager.add_list()
+        manager.add_list()
+        self.assertFalse(manager.is_single())
 
     def test_can_add_list(self):
         manager = ObjectManager()
@@ -370,6 +392,14 @@ class ObjectManagerListManagementTestCase(unittest.TestCase):
         manager.add_list()
         self.assertIsInstance(manager.get_list(0), ObjectList)
         self.assertEqual(len(manager), 1)
+
+    def test_cannot_add_more_than_2_lists(self):
+        manager = ObjectManager()
+        self.assertEqual(len(manager), 0)
+        manager.add_list()
+        manager.add_list()
+        with self.assertRaises(ValueError):
+            manager.add_list()
 
     def test_can_get_list(self):
         manager = ObjectManager()
@@ -381,6 +411,19 @@ class ObjectManagerListManagementTestCase(unittest.TestCase):
         manager = ObjectManager()
         with self.assertRaises(ValueError):
             manager.get_list(100)
+
+    def test_get_list_returns_first_list_when_single_mode(self):
+        manager = ObjectManager()
+        expected = manager.add_list()
+        observed = manager.get_list()
+        self.assertEqual(observed, expected)
+
+    def test_get_list_raises_if_not_single_and_not_index(self):
+        manager = ObjectManager()
+        manager.add_list()
+        manager.add_list()
+        with self.assertRaises(TypeError):
+            manager.get_list()
 
     def test_can_remove_list(self):
         manager = ObjectManager()
@@ -395,18 +438,16 @@ class ObjectManagerListManagementTestCase(unittest.TestCase):
             manager.remove_list(100)
 
 
-class ObjectManagerObjectManagementTestCase(unittest.TestCase):
+class SingleModeObjectManagerTestCase(unittest.TestCase):
 
     def setUp(self):
         self.manager = ObjectManager()
         self.objects = self.manager.add_list()
-        self.index = 0
 
     def test_can_add_object(self):
         self.assertEqual(len(self.objects), 0)
         obj = self.manager.add(
-            self.index, __file__, mode='raw',
-            options={'target-device': '/dev/sda'})
+            __file__, mode='raw', options={'target-device': '/dev/sda'})
         self.assertEqual(len(self.objects), 1)
         self.assertEqual(obj.filename, __file__)
         self.assertEqual(obj.mode, 'raw')
@@ -414,9 +455,8 @@ class ObjectManagerObjectManagementTestCase(unittest.TestCase):
 
     def test_can_get_object(self):
         expected = self.manager.add(
-            self.index, __file__, mode='raw',
-            options={'target-device': '/dev/sda'})
-        observed = self.manager.get(self.index, 0)
+            __file__, mode='raw', options={'target-device': '/dev/sda'})
+        observed = self.manager.get(0)
         self.assertEqual(observed, expected)
         self.assertEqual(observed.filename, __file__)
         self.assertEqual(observed.mode, 'raw')
@@ -424,32 +464,115 @@ class ObjectManagerObjectManagementTestCase(unittest.TestCase):
 
     def test_can_update_object(self):
         obj = self.manager.add(
-            self.index, __file__, mode='raw',
-            options={'target-device': '/dev/sda'})
+            __file__, mode='raw', options={'target-device': '/dev/sda'})
         self.assertEqual(obj.options['target-device'], '/dev/sda')
-        self.manager.update(self.index, 0, 'target-device', '/dev/sdb')
+        self.manager.update(0, 'target-device', '/dev/sdb')
         self.assertEqual(obj.options['target-device'], '/dev/sdb')
 
     def test_can_remove_object(self):
         self.manager.add(
-            self.index, __file__, mode='raw',
-            options={'target-device': '/dev/sda'})
+            __file__, mode='raw', options={'target-device': '/dev/sda'})
         self.assertEqual(len(self.objects), 1)
-        self.manager.remove(self.index, 0)
+        self.manager.remove(0)
         self.assertEqual(len(self.objects), 0)
 
-    def test_object_manager_as_string(self):
-        cwd = os.getcwd()
-        os.chdir('tests/fixtures/object')
-        self.addCleanup(os.chdir, cwd)
+    def test_can_get_all_objects(self):
+        expected = []
+        for _ in range(2):
+            expected.append(self.manager.add(
+                __file__, mode='raw', options={'target-device': '/dev/sda'}))
+        observed = list(self.manager.all())
+        self.assertEqual(expected, observed)
 
-        manager = ObjectManager()
-        args = ['object_manager.txt', 'raw', {'target-device': '/dev/sda'}]
+
+class ActiveBackupModeObjectManagerTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.manager = ObjectManager()
+        self.manager.add_list()
+        self.manager.add_list()
+        self.obj_fn = __file__
+        self.obj_mode = 'raw'
+        self.obj_options = {'target-device': '/dev/sda'}
+
+    def test_can_add_object(self):
+        for objects in self.manager:
+            self.assertEqual(len(objects), 0)
+        observed = []
         for i in range(2):
-            manager.add_list()
-            for _ in range(2):
-                manager.add(i, *args)
-        with open('object_manager.txt') as fp:
-            expected = fp.read()
-        observed = str(manager)
-        self.assertEqual(observed, expected)
+            observed.append(self.manager.add(
+                self.obj_fn, self.obj_mode, options=self.obj_options, index=i))
+        for objects in self.manager:
+            self.assertEqual(len(objects), 1)
+        for obj in observed:
+            self.assertEqual(obj.filename, self.obj_fn)
+            self.assertEqual(obj.mode, self.obj_mode)
+            self.assertEqual(obj.options, self.obj_options)
+
+    def test_add_object_raises_error_if_index_is_not_specified(self):
+        with self.assertRaises(TypeError):
+            self.manager.add(
+                self.obj_fn, self.obj_mode, options=self.obj_options)
+
+    def test_can_get_object(self):
+        expected = []
+        for i in range(2):
+            expected.append(self.manager.add(
+                self.obj_fn, self.obj_mode, options=self.obj_options, index=i))
+        observed = []
+        for i in range(2):
+            observed.append(self.manager.get(0, index=i))
+        for obj in observed:
+            self.assertEqual(obj.filename, self.obj_fn)
+            self.assertEqual(obj.mode, self.obj_mode)
+            self.assertEqual(obj.options, self.obj_options)
+
+    def test_get_object_raises_error_if_index_is_not_specified(self):
+        for i in range(2):
+            self.manager.add(
+                self.obj_fn, self.obj_mode, options=self.obj_options, index=i)
+        with self.assertRaises(TypeError):
+            self.manager.get(0)
+
+    def test_can_update_object(self):
+        objects = []
+        for i in range(2):
+            objects.append(self.manager.add(
+                self.obj_fn, self.obj_mode, options=self.obj_options, index=i))
+        for index, obj in enumerate(objects):
+            self.assertEqual(obj.options['target-device'], '/dev/sda')
+            self.manager.update(0, 'target-device', '/dev/sdb', index=index)
+            self.assertEqual(obj.options['target-device'], '/dev/sdb')
+
+    def test_update_object_raises_error_if_index_is_not_specified(self):
+        for i in range(2):
+            self.manager.add(
+                self.obj_fn, self.obj_mode, options=self.obj_options, index=i)
+        with self.assertRaises(TypeError):
+            self.manager.update(0, 'target-device', '/dev/sdb')
+
+    def test_can_remove_object(self):
+        for i in range(2):
+            self.manager.add(
+                self.obj_fn, self.obj_mode, options=self.obj_options, index=i)
+        for objects in self.manager:
+            self.assertEqual(len(objects), 1)
+        for i in range(2):
+            self.manager.remove(0, index=i)
+        for objects in self.manager:
+            self.assertEqual(len(objects), 0)
+
+    def test_remove_object_raises_error_if_index_is_not_specified(self):
+        for i in range(2):
+            self.manager.add(
+                self.obj_fn, self.obj_mode, options=self.obj_options, index=i)
+        with self.assertRaises(TypeError):
+            self.manager.remove(0)
+
+    def test_can_get_all_objects(self):
+        expected = []
+        for i in range(2):
+            expected.append(self.manager.add(
+                self.obj_fn, self.obj_mode, options=self.obj_options, index=i))
+        observed = list(self.manager.all())
+        self.assertEqual(expected, observed)

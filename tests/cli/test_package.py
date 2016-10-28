@@ -44,7 +44,7 @@ class AddObjectCommandTestCase(PackageTestCase):
         self.assertEqual(result.exit_code, 0)
         package = Package.from_file(self.pkg_fn)
         self.assertEqual(len(package.objects), 1)
-        obj = package.objects.get(0, 0)
+        obj = package.objects.get(0)
         self.assertEqual(obj.filename, self.obj_fn)
         self.assertEqual(obj.mode, 'raw')
         self.assertEqual(obj.options['target-device'], '/dev/sda')
@@ -178,14 +178,14 @@ class EditObjectCommandTestCase(PackageTestCase):
         super().setUp()
         pkg = Package(product=self.product)
         pkg.objects.add_list()
-        pkg.objects.add(0, self.obj_fn, mode='raw', options=self.obj_options)
+        pkg.objects.add(self.obj_fn, mode='raw', options=self.obj_options)
         pkg.dump(self.pkg_fn)
 
     def test_can_edit_object_with_edit_object_command(self):
         args = ['0', 'target-device', '/dev/sdb']
         self.runner.invoke(edit_object_command, args=args)
         pkg = Package.from_file(self.pkg_fn)
-        obj = pkg.objects.get(0, 0)
+        obj = pkg.objects.get(0)
         self.assertEqual(obj.options['target-device'], '/dev/sdb')
 
     def test_edit_command_returns_0_if_successful(self):
@@ -211,7 +211,7 @@ class RemoveObjectCommandTestCase(PackageTestCase):
         super().setUp()
         pkg = Package(product=self.product)
         pkg.objects.add_list()
-        pkg.objects.add(0, self.obj_fn, mode='raw', options=self.obj_options)
+        pkg.objects.add(self.obj_fn, mode='raw', options=self.obj_options)
         pkg.dump(self.pkg_fn)
 
     def test_can_remove_object_with_remove_command(self):
@@ -237,7 +237,7 @@ class ShowCommandTestCase(PackageTestCase):
     def test_show_command_returns_0_if_successful(self):
         pkg = Package(product=self.product)
         pkg.objects.add_list()
-        pkg.objects.add(0, self.obj_fn, mode='raw', options=self.obj_options)
+        pkg.objects.add(self.obj_fn, mode='raw', options=self.obj_options)
         pkg.dump(self.pkg_fn)
         result = self.runner.invoke(show_command)
         self.assertEqual(result.exit_code, 0)
@@ -254,7 +254,7 @@ class ExportCommandTestCase(PackageTestCase):
         super().setUp()
         pkg = Package(product=self.product)
         pkg.objects.add_list()
-        pkg.objects.add(0, self.obj_fn, mode='raw', options=self.obj_options)
+        pkg.objects.add(self.obj_fn, mode='raw', options=self.obj_options)
         pkg.dump(self.pkg_fn)
         self.dest_pkg_fn = '/tmp/pkg-dump'
         self.addCleanup(self.remove_file, self.dest_pkg_fn)

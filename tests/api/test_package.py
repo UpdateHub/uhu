@@ -68,7 +68,7 @@ class PackageConstructorsTestCase(PackageTestCase):
         self.assertEqual(pkg.product, self.product)
         self.assertEqual(pkg.supported_hardware, self.supported_hardware)
         self.assertEqual(len(pkg), 1)
-        obj = pkg.objects.get(0, 0)
+        obj = pkg.objects.get(0)
         self.assertEqual(obj.filename, self.obj_fn)
         self.assertEqual(obj.mode, 'copy')
         self.assertFalse(obj.compressed)
@@ -98,7 +98,7 @@ class PackageConstructorsTestCase(PackageTestCase):
         self.assertEqual(pkg.version, self.version)
         self.assertEqual(pkg.product, self.product)
         self.assertEqual(len(pkg), 1)
-        obj = pkg.objects.get(0, 0)
+        obj = pkg.objects.get(0)
         self.assertEqual(obj.filename, self.obj_fn)
         self.assertEqual(obj.mode, 'copy')
         self.assertEqual(obj.options['target-device'], '/dev/sda')
@@ -111,7 +111,7 @@ class PackageRepresentationsTestCase(PackageTestCase):
     def test_can_represent_package_as_metadata(self):
         pkg = Package(version=self.version, product=self.product)
         pkg.objects.add_list()
-        pkg.objects.add(0, self.obj_fn, self.obj_mode, self.obj_options)
+        pkg.objects.add(self.obj_fn, self.obj_mode, self.obj_options)
         pkg.add_supported_hardware(
             name=self.hardware, revisions=self.hardware_revision)
         pkg.load()
@@ -132,7 +132,7 @@ class PackageRepresentationsTestCase(PackageTestCase):
     def test_can_represent_package_as_template(self):
         pkg = Package(version=self.version, product=self.product)
         pkg.objects.add_list()
-        pkg.objects.add(0, self.obj_fn, self.obj_mode, self.obj_options)
+        pkg.objects.add(self.obj_fn, self.obj_mode, self.obj_options)
         pkg.add_supported_hardware(
             name=self.hardware, revisions=self.hardware_revision)
         template = pkg.template()
@@ -153,7 +153,7 @@ class PackageRepresentationsTestCase(PackageTestCase):
         self.addCleanup(self.remove_file, dest)
         pkg = Package(version=self.version, product=self.product)
         pkg.objects.add_list()
-        pkg.objects.add(0, self.obj_fn, self.obj_mode, self.obj_options)
+        pkg.objects.add(self.obj_fn, self.obj_mode, self.obj_options)
         self.assertFalse(os.path.exists(dest))
         pkg.dump(dest)
         self.assertTrue(os.path.exists(dest))
@@ -177,13 +177,13 @@ class PackageRepresentationsTestCase(PackageTestCase):
             version='2.0',
             product='e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')  # nopep8
         package.objects.add_list()
-        package.objects.add(0, 'files/pkg.json', mode='raw', options={
+        package.objects.add('files/pkg.json', mode='raw', options={
             'target-device': '/dev/sda',
             'chunk-size': 1234,
             'skip': 0,
             'count': -1
         })
-        package.objects.add(0, 'files/setup.py', mode='raw', options={
+        package.objects.add('files/setup.py', mode='raw', options={
             'target-device': '/dev/sda',
             'seek': 5,
             'truncate': True,
@@ -191,7 +191,7 @@ class PackageRepresentationsTestCase(PackageTestCase):
             'skip': 19,
             'count': 3
         })
-        package.objects.add(0, 'files/tox.ini', mode='copy', options={
+        package.objects.add('files/tox.ini', mode='copy', options={
             'target-device': '/dev/sda3',
             'target-path': '/dev/null',
             'filesystem': 'ext4',
@@ -199,16 +199,14 @@ class PackageRepresentationsTestCase(PackageTestCase):
             'format-options': '-i 100 -J size=500',
             'mount-options': '--all --fstab=/etc/fstab2'
         })
-        package.objects.add(
-            0, 'files/archive.tar.gz', mode='tarball', options={
-                'target-device': '/dev/sda3',
-                'target-path': '/dev/null',
-                'filesystem': 'ext4',
-                'format?': True,
-                'format-options': '-i 100 -J size=500',
-                'mount-options': '--all --fstab=/etc/fstab2'
-            }
-        )
+        package.objects.add('files/archive.tar.gz', mode='tarball', options={
+            'target-device': '/dev/sda3',
+            'target-path': '/dev/null',
+            'filesystem': 'ext4',
+            'format?': True,
+            'format-options': '-i 100 -J size=500',
+            'mount-options': '--all --fstab=/etc/fstab2'
+        })
         observed = str(package)
         self.assertEqual(observed, expected)
 

@@ -113,7 +113,7 @@ def add_object(ctx):
     # FIX: Update to support active backup
     if len(ctx.package.objects) == 0:
         ctx.package.objects.add_list()
-    ctx.package.objects.add(0, fn, mode, options)
+    ctx.package.objects.add(fn, mode, options)
 
 
 def remove_object(ctx):
@@ -122,7 +122,8 @@ def remove_object(ctx):
     uid = prompt('  Choose a file to remove: ', completer=completer)
     if uid:
         uid = parse_prompt_object_uid(uid)
-        ctx.package.objects.remove(0, uid)
+        # FIX: Update to support active backup
+        ctx.package.objects.remove(uid)
 
 
 def edit_object(ctx):
@@ -131,7 +132,8 @@ def edit_object(ctx):
     uid = prompt('  Choose a file to edit: ', completer=completer)
     if uid:
         uid = parse_prompt_object_uid(uid)
-        obj = ctx.package.objects.get(0, uid)
+        # FIX: Update to support active backup
+        obj = ctx.package.objects.get(uid)
 
     mode = MODES[obj.mode]
     options = [option.metadata for option in mode]
@@ -140,7 +142,8 @@ def edit_object(ctx):
     if option not in options:
         raise ValueError('"{}" is not a valid option.'.format(option))
     value = prompt('  Set new value for "{}": '.format(option))
-    ctx.package.objects.update(0, uid, option, value)
+    # FIX: Update to support active backup
+    ctx.package.objects.update(uid, option, value)
 
 
 def get_package_status(ctx):
