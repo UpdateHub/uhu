@@ -7,69 +7,47 @@
     "type": "object",
 
     "properties": {
+        "mode": {
+            "$ref": "definitions.json#/mode"
+        },
         "filename": {
-            "description": "file name used by client to rebuild the commit",
-            "type": "string",
-            "minLength": 1
+            "$ref": "definitions.json#/filename"
         },
         "size": {
-            "description": "Total size of the object in bytes",
-            "type": "integer",
-            "minimum": 0
+            "$ref": "definitions.json#/size"
         },
         "sha256sum": {
-            "descsription": "SHA256 sum of the object data",
             "$ref": "definitions.json#/sha256sum"
         },
-        "mode": {
-            "description": "Represents the install mode for the object data",
-            "type": "string",
-            "enum": [
-                "copy"
-            ]
-        },
         "install-if-different": {
-            "description": "Conditions to install object",
             "$ref": "install-if-different.json"
         },
         "target-device": {
-            "description": "Target device for the object (e.g. /dev/sda1)",
-            "type": "string"
+            "$ref": "definitions.json#/target-device"
         },
         "compressed": {
-            "description": "If the object is a compressed file or not",
-            "type": "boolean"
+            "$ref": "definitions.json#/compressed"
         },
         "required-uncompressed-size": {
-            "description": "Number of bytes required for installing the object",
-            "type": "integer",
-            "minimum": 0
+            "$ref": "definitions.json#/required-uncompressed-size"
         },
         "post-update-hook": {
-            "description": "Hook to be runned after object update is completed",
             "$ref": "post-update-hook.json"
         },
         "filesystem": {
-            "description": "Filesystem type that must be used to mount the target-device",
-            "type": "string",
-            "enum": ["ext2", "ext3", "ext4", "btrfs", "xfs", "fsfs", "jffs2", "ubifs"]
+            "$ref": "definitions.json#/filesystem"
         },
         "target-path": {
-            "description": "Target path on which the object must be installed to (e.g., /vmlinuz). This is relative to the mount point. Field present when mode equals to copy or tarball",
-            "type": "string"
+            "$ref": "definitions.json#/target-path"
         },
         "format?": {
-            "description": "Specifies whether the target device (target-device) should be formatted",
-            "type": "boolean",
-            "default": false
+            "$ref": "definitions.json#/format?"
         },
         "format-options": {
-            "description": "Options to format target-device",
-            "type": "string"
+            "$ref": "definitions.json#/format-options"
         },
         "mount-options": {
-            "description": "Options to mount the filesystem in target-device",
-            "type": "string"
+            "$ref": "definitions.json#/mount-options"
         }
     },
 
@@ -83,5 +61,23 @@
         "target-path"
     ],
 
-    "additionalProperties": false
+    "additionalProperties": false,
+
+    "dependencies": {
+        "mode": {
+            "properties": {
+                "mode": {
+                    "enum": ["copy"]
+                }
+            }
+        },
+        "format-options": {
+            "properties": {
+                "format?": {
+                    "enum": [true]
+                }
+            },
+            "required": ["format?"]
+        }
+    }
 }

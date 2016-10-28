@@ -59,5 +59,16 @@
         "version"
     ],
 
-    "additionalProperties": false
+    "additionalProperties": false,
+
+    "dependencies": {
+        "active-backup-backend": {
+            "properties": {
+                "objects": {
+                    "minItems": 2,
+                    "maxItems": 2
+                }
+            }
+        }
+    }
 }
