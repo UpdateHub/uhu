@@ -7,8 +7,10 @@ import os
 from click.testing import CliRunner
 
 from efu.cli.package import (
-    add_object_command, edit_object_command, export_command,
-    new_version_command, remove_object_command, status_command, show_command)
+    add_installation_set_command, remove_installation_set_command,
+    add_object_command, edit_object_command, remove_object_command,
+    export_command, show_command,
+    new_version_command, status_command)
 from efu.core import Package
 from efu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
@@ -28,6 +30,52 @@ class PackageTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
         self.set_env_var(LOCAL_CONFIG_VAR, self.pkg_fn)
         self.obj_fn = __file__
         self.obj_options = {'target-device': '/dev/sda'}
+
+
+class AddInstallationSetCommandTestCase(PackageTestCase):
+
+    def setUp(self):
+        super().setUp()
+        pkg = Package(product=self.product)
+        pkg.dump(self.pkg_fn)
+
+    def test_can_add_installation_set(self):
+        package = Package.from_file(self.pkg_fn)
+        self.assertEqual(len(package.objects), 0)
+        result = self.runner.invoke(add_installation_set_command)
+        self.assertEqual(result.exit_code, 0)
+        package = Package.from_file(self.pkg_fn)
+        self.assertEqual(len(package.objects), 1)
+
+    def test_add_installation_set_returns_2_if_adding_more_than_2_sets(self):
+        expected = [0, 0, 2]  # 2 succesful runs, 1 with error
+        results = []
+        for _ in range(3):
+            result = self.runner.invoke(add_installation_set_command)
+            results.append(result.exit_code)
+        self.assertEqual(results, expected)
+
+
+class RemoveInstallationSetCommandTestCase(PackageTestCase):
+
+    def setUp(self):
+        super().setUp()
+        pkg = Package(product=self.product)
+        pkg.objects.add_list()
+        pkg.objects.add_list()
+        pkg.dump(self.pkg_fn)
+
+    def test_can_remove_installation_set(self):
+        package = Package.from_file(self.pkg_fn)
+        self.assertEqual(len(package.objects), 2)
+        result = self.runner.invoke(remove_installation_set_command, ['0'])
+        package = Package.from_file(self.pkg_fn)
+        self.assertEqual(len(package.objects), 1)
+
+    def test_remove_installation_set_returns_2_if_index_is_not_found(self):
+        result = self.runner.invoke(remove_installation_set_command, ['10'])
+        package = Package.from_file(self.pkg_fn)
+        self.assertEqual(len(package.objects), 2)
 
 
 class AddObjectCommandTestCase(PackageTestCase):
@@ -157,7 +205,7 @@ class AddObjectCommandTestCase(PackageTestCase):
             [self.obj_fn,
              '--mode', 'tarball',
              '--target-device', '/dev/sda',
-             '--target-path', 'path'],
+             '--target-path', '/path'],
             [self.obj_fn,
              '--mode', 'tarball',
              '--target-device', '/dev/sda',
@@ -170,6 +218,33 @@ class AddObjectCommandTestCase(PackageTestCase):
         for cmd in cmds:
             result = self.runner.invoke(add_object_command, cmd)
             self.assertEqual(result.exit_code, 2)
+
+    def test_can_add_object_within_specific_index(self):
+        self.runner.invoke(add_installation_set_command)
+        self.runner.invoke(add_installation_set_command)
+        cmd = [self.obj_fn,
+               '-m', 'raw',
+               '-td', '/dev/sda',
+               '--installation-set', '1']
+        result = self.runner.invoke(add_object_command, cmd)
+        self.assertEqual(result.exit_code, 0)
+
+    def test_add_object_within_specific_index_returns_3_if_index_error(self):
+        cmd = [self.obj_fn,
+               '-m', 'raw',
+               '-td', '/dev/sda',
+               '--installation-set', '1']
+        result = self.runner.invoke(add_object_command, cmd)
+        self.assertEqual(result.exit_code, 3)
+
+    def test_add_object_within_specific_index_returns_4_if_missing_index(self):
+        self.runner.invoke(add_installation_set_command)
+        self.runner.invoke(add_installation_set_command)
+        cmd = [self.obj_fn,
+               '-m', 'raw',
+               '-td', '/dev/sda']
+        result = self.runner.invoke(add_object_command, cmd)
+        self.assertEqual(result.exit_code, 4)
 
 
 class EditObjectCommandTestCase(PackageTestCase):
