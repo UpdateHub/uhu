@@ -34,6 +34,6 @@ class ProductTestCase(unittest.TestCase):
         functions.set_product_uid(self.repl)
         self.assertEqual(self.repl.prompt, '[123456] efu> ')
         self.assertEqual(self.repl.package.product, '123456789')
-        functions.cleanup(self.repl)
+        functions.clean_package(self.repl)
         self.assertIsNone(self.repl.package.product)
         self.assertEqual(self.repl.prompt, 'efu> ')

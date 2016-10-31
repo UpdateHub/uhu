@@ -1,37 +1,28 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-import os
-
 from prompt_toolkit import prompt
-from prompt_toolkit.contrib.completers import PathCompleter, WordCompleter
 
 from ..core import Package
-from ..core.options import MODES
+
+from . import helpers
 
 
-def get_objects_completer(ctx):
-    ''' Generates a prompt completer based on package objects. '''
-    objects = enumerate(ctx.package.objects.all())
-    return WordCompleter(['{}# {}'.format(index, obj.filename)
-                          for index, obj in objects])
-
-
-def parse_prompt_object_uid(value):
-    ''' Parses value passed to a prompt using get_objects_completer '''
-    try:
-        return int(value.split('#')[0].strip())
-    except ValueError:
-        err = '"{}" is not a valid object UID.'
-        raise ValueError(err.format(value))
-
+# Product
 
 def set_product_uid(ctx):
     ''' Set product UID '''
-    if ctx.arg is None:
-        raise ValueError('You need to pass a product id')
+    helpers.check_arg(ctx, 'You need to pass a product id')
     ctx.package.product = ctx.arg
     ctx.prompt = '[{}] efu> '.format(ctx.arg[:6])
+
+
+# Package
+
+def set_package_version(ctx):
+    ''' Sets the current package version '''
+    helpers.check_arg(ctx, 'You need to pass a version number')
+    ctx.package.version = ctx.arg
 
 
 def show_package(ctx):
@@ -41,75 +32,23 @@ def show_package(ctx):
 
 def save_package(ctx):
     ''' Save a local package file based in current package '''
-    if ctx.arg is None:
-        raise ValueError('You need to pass a filename')
+    helpers.check_arg(ctx, 'You need to pass a filename')
     ctx.package.dump(ctx.arg)
 
 
-def cleanup(ctx):
+def clean_package(ctx):
     ''' Removes current package and set a new empty one '''
     ctx.package = Package()
     ctx.prompt = 'efu> '
 
 
-def set_package_version(ctx):
-    ''' Sets the current package version '''
-    if ctx.arg is None:
-        raise ValueError('You need to pass a version number')
-    ctx.package.version = ctx.arg
-
+# Objects
 
 def add_object(ctx):
     ''' Add an object into the current package '''
-    # File
-    fn = prompt(
-        'Choose a file to add into your package: ',
-        completer=PathCompleter()).strip()
-    if not fn:
-        raise ValueError('You must specify a file.')
-    if not os.path.exists(fn):
-        raise ValueError('"{}" does not exist.'.format(fn))
-    if os.path.isdir(fn):
-        raise ValueError('Only files are allowed.')
-
-    # Mode
-    mode = prompt(
-        'Choose a mode: ', completer=WordCompleter(sorted(MODES)))
-    if not mode:
-        raise ValueError('You must specify a mode.')
-    if mode not in MODES:
-        raise ValueError('You must specify a valid mode.')
-
-    # Options
-    print()
-    print('Options')
-    print('-------')
-    options = {}
-    for option in MODES[mode]:
-        try:
-            option.validate_requirements(options)
-        except ValueError:
-            break  # requirements not satisfied, skip this option
-        if option.default is not None:
-            default = option.default
-            if option.type == 'bool':
-                if default:
-                    default = 'Y/n'
-                else:
-                    default = 'y/N'
-            msg = '{} [{}]: '.format(option.verbose_name.title(), default)
-        else:
-            msg = '{}: '.format(option.verbose_name.title())
-        if option.choices:
-            completer = WordCompleter(option.choices)
-        elif option.type == 'bool':
-            completer = WordCompleter(['yes', 'no'])
-        else:
-            completer = WordCompleter([])
-        value = prompt(msg, completer=completer).strip()
-        value = value if value != '' else option.default
-        cleaned_value = option.convert(value)
-        options[option.metadata] = cleaned_value
+    fn = helpers.prompt_object_filename()
+    mode = helpers.prompt_object_mode()
+    options = helpers.prompt_object_options(mode)
     # FIX: Update to support active backup
     if len(ctx.package.objects) == 0:
         ctx.package.objects.add_list()
@@ -118,50 +57,30 @@ def add_object(ctx):
 
 def remove_object(ctx):
     ''' Removes an object from the current package '''
-    completer = get_objects_completer(ctx)
-    uid = prompt('  Choose a file to remove: ', completer=completer)
-    if uid:
-        uid = parse_prompt_object_uid(uid)
-        # FIX: Update to support active backup
-        ctx.package.objects.remove(uid)
+    msg = '  Choose a file to remove: '
+    uid = helpers.prompt_object_uid(ctx, msg)
+    # FIX: Update to support active backup
+    ctx.package.objects.remove(uid)
 
 
 def edit_object(ctx):
     ''' Edit an object within the current package '''
-    completer = get_objects_completer(ctx)
-    uid = prompt('  Choose a file to edit: ', completer=completer)
-    if uid:
-        uid = parse_prompt_object_uid(uid)
-        # FIX: Update to support active backup
-        obj = ctx.package.objects.get(uid)
-
-    mode = MODES[obj.mode]
-    options = [option.metadata for option in mode]
-    completer = WordCompleter(options)
-    option = prompt('  Choose an option: ', completer=completer)
-    if option not in options:
-        raise ValueError('"{}" is not a valid option.'.format(option))
-    value = prompt('  Set new value for "{}": '.format(option))
+    msg = '  Choose a file to edit: '
+    uid = helpers.prompt_object_uid(ctx, msg)
+    # FIX: Update to support active backup
+    obj = ctx.package.objects.get(uid)
+    option = helpers.prompt_object_option(obj)
+    value = helpers.prompt_object_option_value(option)
     # FIX: Update to support active backup
     ctx.package.objects.update(uid, option, value)
 
 
-def get_package_status(ctx):
-    ''' Get the status from a package already pushed to server '''
-    if ctx.package.product is None:
-        raise ValueError('You need to set a product first')
-    if ctx.arg is None:
-        raise ValueError('You need to pass a package id')
-    ctx.package.uid = ctx.arg
-    print(ctx.package.get_status())
-
+# Transactions
 
 def push_package(ctx):
     ''' Uploade the current package to server '''
-    if ctx.package.product is None:
-        raise ValueError('You need to set a product first')
-    if ctx.package.version is None:
-        raise ValueError('You need to set a version first')
+    helpers.check_product(ctx)
+    helpers.check_version(ctx)
     from ..cli._push import PushCallback
     callback = PushCallback()
     ctx.package.load(callback)
@@ -170,26 +89,21 @@ def push_package(ctx):
 
 def pull_package(ctx):
     ''' Download and load a package from server '''
-    if ctx.package.product is None:
-        raise ValueError('You need to set a product first')
-    # package uid
-    uid = prompt('Type the package UID: ').strip()
-    if not uid:
-        raise ValueError('You need to specify a package UID')
-    ctx.package.uid = uid
-
-    # pull mode (full or only metadata)
-    completer = WordCompleter(['yes', 'no'])
-    full = prompt('Should we download all files? [Y/n]', completer=completer)
-    full = full.strip().lower()
-    if full in ['yes', 'y'] or full == '':
-        full = True
-    elif full in ['no', 'n']:
-        full = False
-    else:
-        raise ValueError('Only yes or no values are allowed')
+    helpers.check_product(ctx)
+    ctx.package.uid = helpers.prompt_package_uid()
+    full = helpers.prompt_pull()
     ctx.package.pull(full)
 
+
+def get_package_status(ctx):
+    ''' Get the status from a package already pushed to server '''
+    helpers.check_product(ctx)
+    helpers.check_arg(ctx, 'You need to pass a package id')
+    ctx.package.uid = ctx.arg
+    print(ctx.package.get_status())
+
+
+# Hardwares
 
 def add_hardware(ctx):
     ''' Adds a supported hardware/revision into current package '''

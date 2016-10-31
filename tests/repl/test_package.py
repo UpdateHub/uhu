@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import Mock
 
 from efu.repl.repl import EFURepl
-from efu.repl import functions
+from efu.repl import functions, helpers
 
 
 class PackageTestCase(unittest.TestCase):
@@ -14,6 +14,7 @@ class PackageTestCase(unittest.TestCase):
     def setUp(self):
         self.repl = EFURepl()
         functions.prompt = Mock()
+        helpers.prompt = Mock()
 
     def test_can_save_package(self):
         self.repl.arg = '/tmp/efu_dump.json'
@@ -42,38 +43,38 @@ class PackageTestCase(unittest.TestCase):
 
     def test_can_add_object(self):
         values = [__file__, 'copy', '/', '/', 'ext4', '', '', '']
-        functions.prompt.side_effect = values
+        helpers.prompt.side_effect = values
         self.assertEqual(len(self.repl.package), 0)
         functions.add_object(self.repl)
         self.assertEqual(len(self.repl.package), 1)
 
     def test_add_object_raises_error_if_missing_filename(self):
-        functions.prompt.side_effect = ['']
+        helpers.prompt.side_effect = ['']
         with self.assertRaises(ValueError):
             functions.add_object(self.repl)
 
     def test_add_object_raises_error_if_file_does_not_exist(self):
-        functions.prompt.side_effect = ['not-exist']
+        helpers.prompt.side_effect = ['not-exist']
         with self.assertRaises(ValueError):
             functions.add_object(self.repl)
 
     def test_add_object_raises_error_if_filename_is_a_dir(self):
-        functions.prompt.side_effect = ['/']
+        helpers.prompt.side_effect = ['/']
         with self.assertRaises(ValueError):
             functions.add_object(self.repl)
 
     def test_add_object_raises_error_if_missing_mode(self):
-        functions.prompt.side_effect = [__file__, '']
+        helpers.prompt.side_effect = [__file__, '']
         with self.assertRaises(ValueError):
             functions.add_object(self.repl)
 
     def test_add_object_raises_error_if_invalid_mode(self):
-        functions.prompt.side_effect = [__file__, 'bad-mode']
+        helpers.prompt.side_effect = [__file__, 'bad-mode']
         with self.assertRaises(ValueError):
             functions.add_object(self.repl)
 
     def test_can_remove_object_using_uid(self):
-        functions.prompt.side_effect = ['0']
+        helpers.prompt.side_effect = ['0']
         self.repl.package.objects.add_list()
         self.repl.package.objects.add(__file__, 'raw', {'target-device': '/'})
         self.assertEqual(len(list(self.repl.package.objects.all())), 1)
@@ -81,7 +82,7 @@ class PackageTestCase(unittest.TestCase):
         self.assertEqual(len(list(self.repl.package.objects.all())), 0)
 
     def test_can_remove_object_using_autocompleter_suggestion(self):
-        functions.prompt.side_effect = ['0# {}'.format(__file__)]
+        helpers.prompt.side_effect = ['0# {}'.format(__file__)]
         self.repl.package.objects.add_list()
         self.repl.package.objects.add(__file__, 'raw', {'target-device': '/'})
         self.assertEqual(len(list(self.repl.package.objects.all())), 1)
@@ -89,12 +90,12 @@ class PackageTestCase(unittest.TestCase):
         self.assertEqual(len(list(self.repl.package.objects.all())), 0)
 
     def test_remove_object_raises_error_if_invalid_uid(self):
-        functions.prompt.side_effect = ['invalid']
+        helpers.prompt.side_effect = ['invalid']
         with self.assertRaises(ValueError):
             functions.remove_object(self.repl)
 
     def test_can_edit_object(self):
-        functions.prompt.side_effect = ['0', 'skip', '200']
+        helpers.prompt.side_effect = ['0', 'skip', '200']
         self.repl.package.objects.add_list()
         self.repl.package.objects.add(__file__, 'raw', {
             'target-device': '/',
@@ -107,12 +108,12 @@ class PackageTestCase(unittest.TestCase):
         self.assertEqual(obj.options['skip'], 200)
 
     def test_edit_object_raises_error_if_invalid_uid(self):
-        functions.prompt.side_effect = ['23']
+        helpers.prompt.side_effect = ['23']
         with self.assertRaises(ValueError):
             functions.edit_object(self.repl)
 
     def test_edit_object_raises_error_if_invalid_option(self):
-        functions.prompt.side_effect = ['1', 'invalid']
+        helpers.prompt.side_effect = ['1', 'invalid']
         self.repl.package.objects.add_list()
         self.repl.package.objects.add(__file__, 'raw', {'target-device': '/'})
         with self.assertRaises(ValueError):

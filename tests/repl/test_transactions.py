@@ -6,7 +6,7 @@ import copy
 from unittest.mock import Mock, patch
 
 from efu.repl.repl import EFURepl
-from efu.repl import functions
+from efu.repl import functions, helpers
 from efu.utils import SERVER_URL_VAR
 
 from ..utils import (
@@ -81,19 +81,19 @@ class PullTestCase(BasePullTestCase):
     def setUp(self):
         super().setUp()
         self.repl = EFURepl()
-        functions.prompt = Mock()
+        helpers.prompt = Mock()
 
     def test_can_pull_package_fully(self):
         self.repl.package.product = self.product
         self.repl.package.pull = Mock()
-        functions.prompt.side_effect = [self.pkg_uid, 'yes']
+        helpers.prompt.side_effect = [self.pkg_uid, 'yes']
         functions.pull_package(self.repl)
         self.repl.package.pull.assert_called_once_with(True)
 
     def test_can_pull_package_metadata_only(self):
         self.repl.package.product = self.product
         self.repl.package.pull = Mock()
-        functions.prompt.side_effect = [self.pkg_uid, 'no']
+        helpers.prompt.side_effect = [self.pkg_uid, 'no']
         functions.pull_package(self.repl)
         self.repl.package.pull.assert_called_once_with(False)
 

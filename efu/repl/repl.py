@@ -14,7 +14,7 @@ from . import functions
 
 
 commands = {
-    'cleanup': functions.cleanup,
+    'cleanup': functions.clean_package,
     'show': functions.show_package,
     'save': functions.save_package,
 }
