@@ -85,9 +85,9 @@ def prompt_object_options(mode):
     return options
 
 
-def get_objects_completer(ctx):
+def get_objects_completer(ctx, index):
     ''' Generates a prompt completer based on package objects. '''
-    objects = enumerate(ctx.package.objects.all())
+    objects = enumerate(ctx.package.objects.get_list(index))
     return WordCompleter(['{}# {}'.format(index, obj.filename)
                           for index, obj in objects])
 
@@ -101,9 +101,9 @@ def parse_prompt_object_uid(value):
         raise ValueError(err.format(value))
 
 
-def prompt_object_uid(ctx, msg):
+def prompt_object_uid(ctx, msg, index):
     ''' Prompts user for an object UID '''
-    completer = get_objects_completer(ctx)
+    completer = get_objects_completer(ctx, index)
     value = prompt(msg, completer=completer)
     return parse_prompt_object_uid(value)
 
@@ -146,3 +146,43 @@ def prompt_pull():
     else:
         raise ValueError('Only yes or no values are allowed')
     return full
+
+
+def prompt_installation_set(ctx, msg=None, empty=True):
+    '''
+    Prompts user for a valid installation set.
+    If not empty is True, only sets with objects are valid.
+    '''
+    if ctx.package.objects.is_single():
+        return None
+    objects = [(index, objs) for index, objs in enumerate(ctx.package.objects)]
+    if not empty:
+        objects = [(index, objs) for index, objs in objects if objs]
+        if len(objects) == 0:
+            raise ValueError('There is no object to operate.')
+        if len(objects) == 1:
+            index, _ = objects[0]
+            return index
+    msg = msg if msg is not None else 'Select an installation set: '
+    indexes = [str(i) for i, _ in objects]
+    completer = WordCompleter(indexes)
+    index = prompt(msg, completer=completer).strip()
+    try:
+        if index not in indexes:
+            raise ValueError
+        index = int(index)
+    except (ValueError, TypeError):
+        raise ValueError('"{}" is not a valid installation set.'.format(index))
+    return index
+
+
+def prompt_package_mode():
+    ''' Prompts for a valid package mode '''
+    modes = ['single', 'active-backup']
+    completer = WordCompleter(modes)
+    mode = prompt(
+        'Choose a package mode [single/active-backup]: ',
+        completer=completer).strip().lower()
+    if mode not in modes:
+        raise ValueError('you need to specify a valid package mode')
+    return mode

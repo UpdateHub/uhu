@@ -3,7 +3,7 @@
 
 import os
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from efu.repl.repl import EFURepl
 from efu.repl import functions, helpers
@@ -48,6 +48,16 @@ class PackageTestCase(unittest.TestCase):
         functions.add_object(self.repl)
         self.assertEqual(len(self.repl.package), 1)
 
+    @patch('efu.repl.helpers.prompt')
+    def test_can_add_object_within_index(self, prompt):
+        self.repl.package.objects.add_list()
+        self.repl.package.objects.add_list()
+        values = ['0', __file__, 'copy', '/', '/', 'ext4', '', '', '']
+        prompt.side_effect = values
+        self.assertEqual(len(self.repl.package.objects.get_list(0)), 0)
+        functions.add_object(self.repl)
+        self.assertEqual(len(self.repl.package.objects.get_list(0)), 1)
+
     def test_add_object_raises_error_if_missing_filename(self):
         helpers.prompt.side_effect = ['']
         with self.assertRaises(ValueError):
@@ -72,6 +82,16 @@ class PackageTestCase(unittest.TestCase):
         helpers.prompt.side_effect = [__file__, 'bad-mode']
         with self.assertRaises(ValueError):
             functions.add_object(self.repl)
+
+    @patch('efu.repl.helpers.prompt')
+    def test_can_remove_object_using_uid(self, prompt):
+        prompt.side_effect = ['1', '0']
+        self.repl.package.objects.add_list()
+        self.repl.package.objects.add_list()
+        self.repl.package.objects.add(__file__, 'raw', {'target-device': '/'})
+        self.assertEqual(len(list(self.repl.package.objects.all())), 1)
+        functions.remove_object(self.repl)
+        self.assertEqual(len(list(self.repl.package.objects.all())), 0)
 
     def test_can_remove_object_using_uid(self):
         helpers.prompt.side_effect = ['0']
@@ -105,6 +125,21 @@ class PackageTestCase(unittest.TestCase):
         self.assertEqual(obj.options['skip'], 100)
         functions.edit_object(self.repl)
         obj = self.repl.package.objects.get(0)
+        self.assertEqual(obj.options['skip'], 200)
+
+    @patch('efu.repl.helpers.prompt')
+    def test_can_edit_object_within_index(self, prompt):
+        prompt.side_effect = ['1', '0', 'skip', '200']
+        self.repl.package.objects.add_list()
+        self.repl.package.objects.add_list()
+        self.repl.package.objects.add(__file__, 'raw', {
+            'target-device': '/', 'skip': 100}, index=0)
+        self.repl.package.objects.add(__file__, 'raw', {
+            'target-device': '/', 'skip': 100}, index=1)
+        obj = self.repl.package.objects.get(0, index=1)
+        self.assertEqual(obj.options['skip'], 100)
+        functions.edit_object(self.repl)
+        obj = self.repl.package.objects.get(0, index=1)
         self.assertEqual(obj.options['skip'], 200)
 
     def test_edit_object_raises_error_if_invalid_uid(self):
@@ -183,3 +218,39 @@ class PackageTestCase(unittest.TestCase):
         functions.remove_hardware(self.repl)
         self.assertEqual(len(self.repl.package.supported_hardware), 1)
         self.assertEqual(len(hardware['revisions']), 0)
+
+    @patch('efu.repl.helpers.prompt_package_mode')
+    def test_can_set_package_single_mode(self, prompt):
+        prompt.return_value = 'single'
+        self.assertEqual(len(self.repl.package.objects), 0)
+        functions.set_package_mode(self.repl)
+        self.assertEqual(len(self.repl.package.objects), 1)
+
+    @patch('efu.repl.helpers.prompt_package_mode')
+    def test_can_set_package_active_backup_mode(self, prompt):
+        prompt.return_value = 'active-backup'
+        self.assertEqual(len(self.repl.package.objects), 0)
+        functions.set_package_mode(self.repl)
+        self.assertEqual(len(self.repl.package.objects), 2)
+
+    @patch('efu.repl.helpers.prompt_package_mode')
+    def test_package_mode_raises_if_overwriting_active_backup(self, prompt):
+        prompt.return_value = 'single'
+        self.repl.package.objects.add_list()
+        self.repl.package.objects.add_list()
+        with self.assertRaises(ValueError):
+            functions.set_package_mode(self.repl)
+
+    def test_can_add_installation_set(self):
+        self.assertEqual(len(self.repl.package.objects), 0)
+        functions.add_installation_set(self.repl)
+        self.assertEqual(len(self.repl.package.objects), 1)
+
+    @patch('efu.repl.helpers.prompt_installation_set')
+    def test_can_remove_installation_set(self, prompt):
+        prompt.return_value = 1
+        self.repl.package.objects.add_list()
+        self.repl.package.objects.add_list()
+        self.assertEqual(len(self.repl.package.objects), 2)
+        functions.remove_installation_set(self.repl)
+        self.assertEqual(len(self.repl.package.objects), 1)

@@ -24,12 +24,18 @@ groups = {
         'use': functions.set_product_uid,
     },
     'package': {
+        # package
+        'mode': functions.set_package_mode,
         'version': functions.set_package_version,
+        # objects
         'add': functions.add_object,
-        'remove': functions.remove_object,
         'edit': functions.edit_object,
-        'push': functions.push_package,
+        'remove': functions.remove_object,
+        'add-set': functions.add_installation_set,
+        'remove-set': functions.remove_installation_set,
+        # transactions
         'pull': functions.pull_package,
+        'push': functions.push_package,
         'status': functions.get_package_status,
     },
     'hardware': {
@@ -46,8 +52,8 @@ grammar = compiler.compile(r'''
 (\s* (?P<group>hardware) \s+ (?P<hardware>[a-z]+) \s+ (?P<arg>.+?) \s*) |
 (\s* (?P<group>hardware) \s+ (?P<hardware>[a-z]+) \s*) |
 
-(\s* (?P<group>package) \s+ (?P<package>[a-z]+) \s+ (?P<arg>.+?) \s*) |
-(\s* (?P<group>package) \s+ (?P<package>[a-z]+) \s*) |
+(\s* (?P<group>package) \s+ (?P<package>[a-z-]+) \s+ (?P<arg>.+?) \s*) |
+(\s* (?P<group>package) \s+ (?P<package>[a-z-]+) \s*) |
 
 (\s* (?P<command>[a-z]+) \s*) |
 (\s* (?P<command>[a-z]+) \s+ (?P<arg>.+?) \s*) |

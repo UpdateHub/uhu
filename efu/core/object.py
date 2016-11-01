@@ -330,7 +330,7 @@ class ObjectManager:
         ''' Removes an object list '''
         try:
             self._lists.pop(index)
-        except IndexError:
+        except (IndexError, TypeError):
             raise ValueError('Object List not found')
 
     def add(self, *args, index=None, **kw):
@@ -360,6 +360,12 @@ class ObjectManager:
     def is_single(self):
         ''' Checks if it is single mode or active-backup mode '''
         if len(self) < 2:
+            return True
+        return False
+
+    def is_empty(self):
+        ''' Checks if there is any object list '''
+        if len(self) == 0:
             return True
         return False
 

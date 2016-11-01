@@ -25,6 +25,33 @@ def set_package_version(ctx):
     ctx.package.version = ctx.arg
 
 
+def set_package_mode(ctx):
+    ''' Sets a package to be in Single or Active-backup mode '''
+    mode = helpers.prompt_package_mode()
+    if mode == 'active-backup':
+        while ctx.package.objects.is_single():
+            ctx.package.objects.add_list()
+    elif mode == 'single':
+        if ctx.package.objects.is_empty():
+            ctx.package.objects.add_list()
+        if not ctx.package.objects.is_single():
+            raise ValueError(
+                ('Your package already has an active-backup set. '
+                 'You can delete one installation set to enable single mode'))
+
+
+def add_installation_set(ctx):
+    ''' Adds an installation set '''
+    ctx.package.objects.add_list()
+
+
+def remove_installation_set(ctx):
+    ''' Removes an installation set '''
+    msg = 'Select an installation set to remove: '
+    index = helpers.prompt_installation_set(ctx, msg)
+    ctx.package.objects.remove_list(index)
+
+
 def show_package(ctx):
     ''' Prints package content '''
     print(ctx.package)
@@ -46,33 +73,32 @@ def clean_package(ctx):
 
 def add_object(ctx):
     ''' Add an object into the current package '''
+    index = helpers.prompt_installation_set(ctx)
     fn = helpers.prompt_object_filename()
     mode = helpers.prompt_object_mode()
     options = helpers.prompt_object_options(mode)
-    # FIX: Update to support active backup
     if len(ctx.package.objects) == 0:
         ctx.package.objects.add_list()
-    ctx.package.objects.add(fn, mode, options)
+    ctx.package.objects.add(fn, mode, options, index=index)
 
 
 def remove_object(ctx):
     ''' Removes an object from the current package '''
-    msg = '  Choose a file to remove: '
-    uid = helpers.prompt_object_uid(ctx, msg)
-    # FIX: Update to support active backup
-    ctx.package.objects.remove(uid)
+    index = helpers.prompt_installation_set(ctx, empty=False)
+    msg = 'Choose a object to remove: '
+    uid = helpers.prompt_object_uid(ctx, msg, index)
+    ctx.package.objects.remove(uid, index=index)
 
 
 def edit_object(ctx):
     ''' Edit an object within the current package '''
-    msg = '  Choose a file to edit: '
-    uid = helpers.prompt_object_uid(ctx, msg)
-    # FIX: Update to support active backup
-    obj = ctx.package.objects.get(uid)
+    index = helpers.prompt_installation_set(ctx, empty=False)
+    msg = 'Choose a file to edit: '
+    uid = helpers.prompt_object_uid(ctx, msg, index)
+    obj = ctx.package.objects.get(uid, index=index)
     option = helpers.prompt_object_option(obj)
     value = helpers.prompt_object_option_value(option)
-    # FIX: Update to support active backup
-    ctx.package.objects.update(uid, option, value)
+    ctx.package.objects.update(uid, option, value, index=index)
 
 
 # Transactions
