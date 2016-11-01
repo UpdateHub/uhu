@@ -6,7 +6,7 @@ import os
 from prompt_toolkit import prompt
 from prompt_toolkit.contrib.completers import PathCompleter, WordCompleter
 
-from ..core.options import MODES
+from ..core.options import MODES, PACKAGE_MODE_BACKENDS
 
 
 def check_arg(ctx, msg):
@@ -184,5 +184,15 @@ def prompt_package_mode():
         'Choose a package mode [single/active-backup]: ',
         completer=completer).strip().lower()
     if mode not in modes:
-        raise ValueError('you need to specify a valid package mode')
+        raise ValueError('You need to specify a valid package mode.')
     return mode
+
+
+def prompt_active_backup_backend():
+    ''' Prompts for a valid active backup backend '''
+    completer = WordCompleter(PACKAGE_MODE_BACKENDS)
+    msg = 'Choose an active backup backend: '
+    backend = prompt(msg, completer=completer).strip().lower()
+    if backend not in PACKAGE_MODE_BACKENDS:
+        raise ValueError('"{}" is not a valid backend.'.format(backend))
+    return backend

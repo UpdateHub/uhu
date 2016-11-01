@@ -4,7 +4,7 @@
 import click
 import requests
 
-from ..core.options import MODES
+from ..core.options import MODES, PACKAGE_MODE_BACKENDS
 from ..exceptions import UploadError
 
 from ._object import ClickOptionsParser, CLICK_OPTIONS
@@ -37,6 +37,14 @@ def export_command(filename):
     ''' Copy package file to the given filename '''
     with open_package() as package:
         package.dump(filename)
+
+
+@package_cli.command('active-backup-backend')
+@click.argument('backend', type=click.Choice(PACKAGE_MODE_BACKENDS))
+def set_active_backup_backend(backend):
+    ''' Sets active backup backend '''
+    with open_package() as package:
+        package.active_backup_backend = backend
 
 
 # Installtion set commands

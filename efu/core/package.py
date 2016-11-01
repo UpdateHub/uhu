@@ -10,6 +10,7 @@ from ..http.request import Request
 from ..utils import call, get_server_url, validate_schema
 
 from .object import ObjectManager, ObjectUploadResult
+from .options import PACKAGE_MODE_BACKENDS
 
 
 class Package:
@@ -21,6 +22,7 @@ class Package:
         self.product = product
         self.objects = ObjectManager()
         self.supported_hardware = {}
+        self._active_backup_backend = None
 
     @classmethod
     def from_file(cls, fn):
@@ -30,6 +32,7 @@ class Package:
         package = Package(
             version=dump.get('version'), product=dump.get('product'))
         package.supported_hardware = dump.get('supported-hardware', {})
+        package.active_backup_backend = dump.get('active-backup-backend')
 
         file_object_set = dump.get('objects', [])
         for file_object_list in file_object_set:
@@ -45,6 +48,7 @@ class Package:
         ''' Creates a package from a metadata object '''
         package = Package(
             product=metadata['product'], version=metadata['version'])
+        package.active_backup_backend = metadata.get('active-backup-backend')
 
         for metadata_object_list in metadata['objects']:
             object_list = package.objects.add_list()
@@ -58,6 +62,17 @@ class Package:
                 obj.size = metadata_obj['size']
                 obj.sha256sum = metadata_obj['sha256sum']
         return package
+
+    @property
+    def active_backup_backend(self):
+        return self._active_backup_backend
+
+    @active_backup_backend.setter
+    def active_backup_backend(self, backend):
+        if backend not in PACKAGE_MODE_BACKENDS and backend is not None:
+            err = '"{}" is not a valid active-backup backend mode'
+            raise ValueError(err.format(backend))
+        self._active_backup_backend = backend
 
     def add_supported_hardware(self, name, revisions=None):
         revisions = revisions if revisions is not None else []
@@ -108,6 +123,8 @@ class Package:
         }
         if self.supported_hardware:
             metadata['supported-hardware'] = self.supported_hardware
+        if self.active_backup_backend:
+            metadata['active-backup-backend'] = self.active_backup_backend
         return metadata
 
     def template(self):
@@ -117,6 +134,7 @@ class Package:
             'product': self.product,
             'supported-hardware': self.supported_hardware,
             'objects': self.objects.template(),
+            'active-backup-backend': self.active_backup_backend,
         }
 
     def dump(self, dest):

@@ -9,8 +9,8 @@ from click.testing import CliRunner
 from efu.cli.package import (
     add_installation_set_command, remove_installation_set_command,
     add_object_command, edit_object_command, remove_object_command,
-    export_command, show_command,
-    new_version_command, status_command)
+    export_command, show_command, new_version_command, status_command,
+    set_active_backup_backend)
 from efu.core import Package
 from efu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
@@ -30,6 +30,27 @@ class PackageTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
         self.set_env_var(LOCAL_CONFIG_VAR, self.pkg_fn)
         self.obj_fn = __file__
         self.obj_options = {'target-device': '/dev/sda'}
+
+
+class SetActiveBackupBackendTestCase(PackageTestCase):
+
+    def setUp(self):
+        super().setUp()
+        pkg = Package()
+        pkg.dump(self.pkg_fn)
+
+    def test_can_set_active_backup_backend(self):
+        pkg = Package.from_file(self.pkg_fn)
+        self.assertIsNone(pkg.active_backup_backend)
+        result = self.runner.invoke(set_active_backup_backend, ['grub2'])
+        self.assertEqual(result.exit_code, 0)
+        pkg = Package.from_file(self.pkg_fn)
+        self.assertEqual(pkg.active_backup_backend, 'grub2')
+
+    def test_set_active_backup_backend_returns_2_if_invalid_backend(self):
+        pkg = Package.from_file(self.pkg_fn)
+        result = self.runner.invoke(set_active_backup_backend, ['invalid'])
+        self.assertEqual(result.exit_code, 2)
 
 
 class AddInstallationSetCommandTestCase(PackageTestCase):
@@ -330,6 +351,7 @@ class ExportCommandTestCase(PackageTestCase):
         pkg = Package(product=self.product)
         pkg.objects.add_list()
         pkg.objects.add(self.obj_fn, mode='raw', options=self.obj_options)
+        pkg.active_backup_backend = 'grub2'
         pkg.dump(self.pkg_fn)
         self.dest_pkg_fn = '/tmp/pkg-dump'
         self.addCleanup(self.remove_file, self.dest_pkg_fn)
@@ -339,6 +361,7 @@ class ExportCommandTestCase(PackageTestCase):
             'product': self.product,
             'version': None,
             'supported-hardware': {},
+            'active-backup-backend': 'grub2',
             'objects': [
                 [
                     {

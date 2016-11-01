@@ -7,6 +7,9 @@ import re
 from collections import OrderedDict
 
 
+PACKAGE_MODE_BACKENDS = ['grub2', 'u-boot']
+
+
 class Option:
     ''' A wrapper over each option within options.json '''
 

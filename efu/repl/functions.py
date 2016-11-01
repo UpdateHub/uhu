@@ -31,6 +31,8 @@ def set_package_mode(ctx):
     if mode == 'active-backup':
         while ctx.package.objects.is_single():
             ctx.package.objects.add_list()
+        backend = helpers.prompt_active_backup_backend()
+        ctx.package.active_backup_backend = backend
     elif mode == 'single':
         if ctx.package.objects.is_empty():
             ctx.package.objects.add_list()

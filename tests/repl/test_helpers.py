@@ -111,3 +111,15 @@ class PromptsTestCase(unittest.TestCase):
         prompt.return_value = 'invalid-mode'
         with self.assertRaises(ValueError):
             helpers.prompt_package_mode()
+
+    @patch('efu.repl.helpers.prompt')
+    def test_can_prompt_active_backup_backend(self, prompt):
+        prompt.return_value = 'grub2'
+        observed = helpers.prompt_active_backup_backend()
+        self.assertEqual(observed, 'grub2')
+
+    @patch('efu.repl.helpers.prompt')
+    def test_prompt_active_backup_backend_raises_if_invalid(self, prompt):
+        prompt.return_value = 'invalid-backend'
+        with self.assertRaises(ValueError):
+            helpers.prompt_active_backup_backend()
