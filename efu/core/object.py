@@ -16,7 +16,7 @@ from ..utils import (
     call, get_chunk_size, get_server_url, get_uncompressed_size,
     get_compressor_format, indent, yes_or_no)
 
-from .options import OptionsParser
+from .options import OptionsParser, INSTALL_CONDITION_BACKENDS
 from .storages import STORAGES
 
 
@@ -92,6 +92,9 @@ class Object:
         self.mode = mode
         self.options = OptionsParser(self.mode, options).clean()
 
+        keys = [opt for opt in self.options if 'install-condition' in opt]
+        self.install_condition = {key: self.options.pop(key) for key in keys}
+
         self.size = None
         self.sha256sum = None
         self.md5 = None
@@ -116,6 +119,49 @@ class Object:
         if self.compressed:
             return get_uncompressed_size(self.filename, self.compressor)
 
+    @property
+    def install_if_different(self):
+        condition = self.install_condition.get('install-condition')
+        if condition == 'always' or condition is None:
+            iid = None
+        elif condition == 'content-diverges':
+            iid = 'sha256sum'
+        elif condition == 'version-diverges':
+            iid = {
+                'version': self.install_condition['install-condition-version']
+            }
+            backend = self.install_condition['install-condition-pattern-type']
+            if backend in INSTALL_CONDITION_BACKENDS:
+                iid['pattern'] = backend
+            else:
+                iid['pattern'] = {
+                    'regexp': self.install_condition['install-condition-pattern'],  # nopep8
+                    'seek': self.install_condition['install-condition-seek'],
+                    'buffer-size': self.install_condition['install-condition-buffer-size'],  # nopep8
+                }
+        return iid
+
+    @classmethod
+    def to_install_condition(cls, metadata):
+        iid = metadata.get('install-if-different')
+        if iid is None:
+            return {'install-condition': 'always'}
+        elif iid == 'sha256sum':
+            return {'install-condition': 'content-diverges'}
+        condition = {
+            'install-condition': 'version-diverges',
+            'install-condition-version': iid.get('version'),
+        }
+        pattern = iid.get('pattern')
+        if pattern in INSTALL_CONDITION_BACKENDS:
+            condition['install-condition-pattern-type'] = pattern
+        else:
+            condition['install-condition-pattern-type'] = 'regexp'
+            condition['install-condition-pattern'] = pattern.get('regexp')
+            condition['install-condition-seek'] = pattern.get('seek', 0)
+            condition['install-condition-buffer-size'] = pattern.get('buffer-size', -1)  # nopep8
+        return condition
+
     def metadata(self):
         ''' Serialize object as metadata '''
         metadata = {
@@ -127,16 +173,20 @@ class Object:
         }
         if self.compressed:
             metadata['required-uncompressed-size'] = self.uncompressed_size
+        if self.install_if_different is not None:
+            metadata['install-if-different'] = self.install_if_different
         metadata.update(self.options)
         return metadata
 
     def template(self):
         ''' Serialize object for dumping to a file '''
+        options = deepcopy(self.options)
+        options.update(self.install_condition)
         return {
             'filename': self.filename,
             'mode': self.mode,
             'compressed': self.compressed,
-            'options': self.options,
+            'options': options,
         }
 
     def load(self, callback=None):

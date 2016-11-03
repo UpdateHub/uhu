@@ -61,7 +61,7 @@ def prompt_object_options(mode):
         try:
             option.validate_requirements(options)
         except ValueError:
-            break  # requirements not satisfied, skip this option
+            continue  # requirements not satisfied, skip this option
         if option.default is not None:
             default = option.default
             if option.type == 'bool':

@@ -374,7 +374,8 @@ class ExportCommandTestCase(PackageTestCase):
                             'seek': 0,
                             'skip': 0,
                             'target-device': '/dev/sda',
-                            'truncate': False
+                            'truncate': False,
+                            'install-condition': 'always',
                         }
                     }
                 ]

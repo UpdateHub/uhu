@@ -42,7 +42,7 @@ class PackageTestCase(unittest.TestCase):
             functions.set_package_version(self.repl)
 
     def test_can_add_object(self):
-        values = [__file__, 'copy', '/', '/', 'ext4', '', '', '']
+        values = [__file__, 'copy', '', '/', '/', 'ext4', '', '', '']
         helpers.prompt.side_effect = values
         self.assertEqual(len(self.repl.package), 0)
         functions.add_object(self.repl)
@@ -52,7 +52,7 @@ class PackageTestCase(unittest.TestCase):
     def test_can_add_object_within_index(self, prompt):
         self.repl.package.objects.add_list()
         self.repl.package.objects.add_list()
-        values = ['0', __file__, 'copy', '/', '/', 'ext4', '', '', '']
+        values = ['0', __file__, 'copy', '', '/', '/', 'ext4', '', '', '']
         prompt.side_effect = values
         self.assertEqual(len(self.repl.package.objects.get_list(0)), 0)
         functions.add_object(self.repl)

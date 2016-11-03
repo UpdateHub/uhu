@@ -5,9 +5,11 @@ import json
 import os
 import re
 from collections import OrderedDict
+from copy import deepcopy
 
 
 PACKAGE_MODE_BACKENDS = ['grub2', 'u-boot']
+INSTALL_CONDITION_BACKENDS = ['linux-kernel', 'u-boot']
 
 
 class Option:
@@ -92,7 +94,7 @@ class Option:
         for requirement, conf in self.requirements.items():
             if conf['type'] == 'value':
                 if values.get(requirement) != conf['value']:
-                    err = '"{}" must be equal to {} when using "{}" option'
+                    err = '"{}" must be equal to {} when using "{}" option.'
                     raise ValueError(err.format(
                         requirement, conf['value'], self.verbose_name))
 
@@ -154,7 +156,34 @@ class OptionsParser:
         for option in self.options:
             if option.metadata not in self.values:
                 if option.default is not None:
-                    self.values[option.metadata] = option.default
+                    # We must only inject possible options (eg. if an
+                    # option with default value requires a non
+                    # required option without default value, we MUST
+                    # NOT insert this option).
+                    if self._can_inject(option):
+                        self.values[option.metadata] = option.default
+
+    def _can_inject(self, option):
+        '''
+        Method used during value injection step.
+
+        It validates an option (which has a default value)
+        requirements.
+
+        It is necessary since we must only add default values if
+        requirements are satisfied.
+        '''
+        requirements = [req for req in self.options
+                        if req.metadata in option.requirements]
+        values = deepcopy(self.values)
+        for req in requirements:
+            if req.metadata not in self.values and option.default is not None:
+                values[req.metadata] = req.default
+            try:
+                option.validate_requirements(values)
+            except ValueError:
+                return False
+        return True
 
     def check_allowed_options(self):
         ''' Verifies if there are invalid options for the given mode. '''

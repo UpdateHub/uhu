@@ -183,13 +183,14 @@ class ObjectSerializationTestCase(unittest.TestCase):
         self.assertEqual(template['mode'], 'raw')
         self.assertFalse(template['compressed'])
         options = template['options']
-        self.assertEqual(len(options), 6)
+        self.assertEqual(len(options), 7)
         self.assertEqual(options['target-device'], '/dev/sda')
         self.assertFalse(options['truncate'])
         self.assertEqual(options['seek'], 0)
         self.assertEqual(options['skip'], 0)
         self.assertEqual(options['count'], -1)
         self.assertEqual(options['chunk-size'], 131072)
+        self.assertEqual(options['install-condition'], 'always')
 
 
 class CompressedObjectTestCase(unittest.TestCase):
@@ -248,6 +249,305 @@ class CompressedObjectTestCase(unittest.TestCase):
         template = obj.template()
         self.assertTrue(template['compressed'])
         self.assertIsNone(template.get('required-uncompressed-size'))
+
+
+class InstallIfDifferentObjectTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.options = {'target-device': '/dev/sda'}
+        self.options_always = {'install-condition': 'always'}
+        self.options_content = {'install-condition': 'content-diverges'}
+        self.options_known = {
+            'install-condition': 'version-diverges',
+            'install-condition-pattern-type': 'linux-kernel',
+            'install-condition-version': '0.1'
+        }
+        self.options_custom = {
+            'install-condition': 'version-diverges',
+            'install-condition-pattern-type': 'regexp',
+            'install-condition-pattern': '.+',
+            'install-condition-version': '0.1',
+            'install-condition-seek': 100,
+            'install-condition-buffer-size': 200,
+        }
+        self.fn = '/tmp/efu-object'
+        self.content = b'spam'
+        self.sha256sum = hashlib.sha256(self.content).hexdigest()
+        self.size = len(self.content)
+        with open(self.fn, 'bw') as fp:
+            fp.write(self.content)
+        self.addCleanup(os.remove, self.fn)
+
+    def test_can_create_object_with_condition_always(self):
+        self.options.update(self.options_always)
+        obj = Object(__file__, mode='raw', options=self.options)
+        self.assertEqual(obj.install_condition['install-condition'], 'always')
+
+    def test_install_if_different_when_condition_always(self):
+        self.options.update(self.options_always)
+        obj = Object(__file__, mode='raw', options=self.options)
+        self.assertIsNone(obj.install_if_different)
+
+    def test_can_create_object_with_condition_content_diverges(self):
+        self.options.update(self.options_content)
+        obj = Object(__file__, mode='raw', options=self.options)
+        self.assertEqual(
+            obj.install_condition['install-condition'], 'content-diverges')
+
+    def test_install_if_different_when_condition_content_diverges(self):
+        self.options.update(self.options_content)
+        obj = Object(__file__, mode='raw', options=self.options)
+        self.assertEqual(obj.install_if_different, 'sha256sum')
+
+    def test_can_create_object_with_condition_known_version_diverges(self):
+        self.options.update(self.options_known)
+        obj = Object(__file__, mode='raw', options=self.options)
+        self.assertEqual(
+            obj.install_condition['install-condition'], 'version-diverges')
+        self.assertEqual(
+            obj.install_condition['install-condition-pattern-type'],
+            'linux-kernel')
+        self.assertEqual(
+            obj.install_condition['install-condition-version'], '0.1')
+
+    def test_install_if_different_when_condition_known_version_diverges(self):
+        self.options.update(self.options_known)
+        obj = Object(__file__, mode='raw', options=self.options)
+        expected = {'version': '0.1', 'pattern': 'linux-kernel'}
+        self.assertEqual(obj.install_if_different, expected)
+
+    def test_can_create_object_with_condition_custom_version_diverges(self):
+        self.options.update(self.options_custom)
+        obj = Object(__file__, mode='raw', options=self.options)
+        self.assertEqual(
+            obj.install_condition['install-condition'], 'version-diverges')
+        self.assertEqual(
+            obj.install_condition['install-condition-pattern-type'], 'regexp')
+        self.assertEqual(
+            obj.install_condition['install-condition-pattern'], '.+')
+        self.assertEqual(
+            obj.install_condition['install-condition-version'], '0.1')
+        self.assertEqual(
+            obj.install_condition['install-condition-seek'], 100)
+        self.assertEqual(
+            obj.install_condition['install-condition-buffer-size'], 200)
+
+    def test_install_if_different_when_condition_custom_version_diverges(self):
+        self.options.update(self.options_custom)
+        obj = Object(__file__, mode='raw', options=self.options)
+        expected = {
+            'version': '0.1',
+            'pattern': {
+                'regexp': '.+',
+                'seek': 100,
+                'buffer-size': 200,
+            }
+        }
+        self.assertEqual(obj.install_if_different, expected)
+
+    def test_install_if_different_default_value(self):
+        obj = Object(__file__, mode='raw', options={'target-device': '/'})
+        self.assertIsNone(obj.install_if_different)
+
+    def test_install_if_different_custom_pattern_default_values(self):
+        self.options.update({
+            'install-condition': 'version-diverges',
+            'install-condition-pattern-type': 'regexp',
+            'install-condition-pattern': '.+',
+            'install-condition-version': '0.1',
+        })
+        obj = Object(__file__, mode='raw', options=self.options)
+        expected = {
+            'version': '0.1',
+            'pattern': {
+                'regexp': '.+',
+                'seek': 0,
+                'buffer-size': -1,
+            }
+        }
+        self.assertEqual(obj.install_if_different, expected)
+
+    def test_can_represent_always_as_template(self):
+        self.options.update(self.options_always)
+        obj = Object(__file__, 'raw', self.options)
+        expected = {
+            'compressed': False,
+            'filename': __file__,
+            'mode': 'raw',
+            'options': {
+                'chunk-size': 131072,
+                'count': -1,
+                'seek': 0,
+                'skip': 0,
+                'target-device': '/dev/sda',
+                'truncate': False,
+                'install-condition': 'always',
+            }
+        }
+        observed = obj.template()
+        self.assertEqual(observed, expected)
+
+    def test_can_represent_content_diverges_as_template(self):
+        self.options.update(self.options_content)
+        obj = Object(__file__, 'raw', self.options)
+        expected = {
+            'compressed': False,
+            'filename': __file__,
+            'mode': 'raw',
+            'options': {
+                'chunk-size': 131072,
+                'count': -1,
+                'seek': 0,
+                'skip': 0,
+                'target-device': '/dev/sda',
+                'truncate': False,
+                'install-condition': 'content-diverges',
+            }
+        }
+        observed = obj.template()
+        self.assertEqual(observed, expected)
+
+    def test_can_represent_known_version_diverges_as_template(self):
+        self.options.update(self.options_known)
+        obj = Object(__file__, 'raw', self.options)
+        expected = {
+            'compressed': False,
+            'filename': __file__,
+            'mode': 'raw',
+            'options': {
+                'chunk-size': 131072,
+                'count': -1,
+                'seek': 0,
+                'skip': 0,
+                'target-device': '/dev/sda',
+                'truncate': False,
+                'install-condition': 'version-diverges',
+                'install-condition-pattern-type': 'linux-kernel',
+                'install-condition-version': '0.1',
+            }
+        }
+        observed = obj.template()
+        self.assertEqual(observed, expected)
+
+    def test_can_represent_custom_version_diverges_as_template(self):
+        self.options.update(self.options_custom)
+        obj = Object(__file__, 'raw', self.options)
+        expected = {
+            'compressed': False,
+            'filename': __file__,
+            'mode': 'raw',
+            'options': {
+                'chunk-size': 131072,
+                'count': -1,
+                'seek': 0,
+                'skip': 0,
+                'target-device': '/dev/sda',
+                'truncate': False,
+                'install-condition': 'version-diverges',
+                'install-condition-pattern-type': 'regexp',
+                'install-condition-pattern': '.+',
+                'install-condition-version': '0.1',
+                'install-condition-seek': 100,
+                'install-condition-buffer-size': 200,
+            }
+        }
+        observed = obj.template()
+        self.assertEqual(observed, expected)
+
+    def test_can_represent_always_as_metadata(self):
+        self.options.update(self.options_always)
+        obj = Object(self.fn, 'raw', self.options)
+        obj.load()
+        expected = {
+            'compressed': False,
+            'filename': self.fn,
+            'mode': 'raw',
+            'chunk-size': 131072,
+            'count': -1,
+            'seek': 0,
+            'skip': 0,
+            'target-device': '/dev/sda',
+            'truncate': False,
+            'size': self.size,
+            'sha256sum': self.sha256sum
+        }
+        observed = obj.metadata()
+        self.assertEqual(observed, expected)
+
+    def test_can_represent_content_diverges_as_metadata(self):
+        self.options.update(self.options_content)
+        obj = Object(self.fn, 'raw', self.options)
+        obj.load()
+        expected = {
+            'compressed': False,
+            'filename': self.fn,
+            'mode': 'raw',
+            'chunk-size': 131072,
+            'count': -1,
+            'seek': 0,
+            'skip': 0,
+            'target-device': '/dev/sda',
+            'truncate': False,
+            'size': self.size,
+            'sha256sum': self.sha256sum,
+            'install-if-different': 'sha256sum'
+        }
+        observed = obj.metadata()
+        self.assertEqual(observed, expected)
+
+    def test_can_represent_known_version_diverges_as_metadata(self):
+        self.options.update(self.options_known)
+        obj = Object(self.fn, 'raw', self.options)
+        obj.load()
+        expected = {
+            'compressed': False,
+            'filename': self.fn,
+            'mode': 'raw',
+            'chunk-size': 131072,
+            'count': -1,
+            'seek': 0,
+            'skip': 0,
+            'target-device': '/dev/sda',
+            'truncate': False,
+            'size': self.size,
+            'sha256sum': self.sha256sum,
+            'install-if-different': {
+                'version': '0.1',
+                'pattern': 'linux-kernel',
+            }
+        }
+        observed = obj.metadata()
+        self.assertEqual(observed, expected)
+
+    def test_can_represent_custom_version_diverges_as_metadata(self):
+        self.options.update(self.options_custom)
+        obj = Object(self.fn, 'raw', self.options)
+        obj.load()
+        expected = {
+            'compressed': False,
+            'filename': self.fn,
+            'mode': 'raw',
+            'chunk-size': 131072,
+            'count': -1,
+            'seek': 0,
+            'skip': 0,
+            'target-device': '/dev/sda',
+            'truncate': False,
+            'size': self.size,
+            'sha256sum': self.sha256sum,
+            'install-if-different': {
+                'version': '0.1',
+                'pattern': {
+                    'regexp': '.+',
+                    'seek': 100,
+                    'buffer-size': 200,
+                }
+            }
+        }
+        observed = obj.metadata()
+        print(observed)
+        print(expected)
+        self.assertEqual(observed, expected)
 
 
 class ObjectListTestCase(unittest.TestCase):

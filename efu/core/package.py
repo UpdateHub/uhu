@@ -9,7 +9,7 @@ from ..exceptions import UploadError
 from ..http.request import Request
 from ..utils import call, get_server_url, validate_schema
 
-from .object import ObjectManager, ObjectUploadResult
+from .object import ObjectManager, ObjectUploadResult, Object
 from .options import PACKAGE_MODE_BACKENDS
 
 
@@ -53,9 +53,12 @@ class Package:
         for metadata_object_list in metadata['objects']:
             object_list = package.objects.add_list()
             for metadata_obj in metadata_object_list:
+                settings = (
+                    'filename', 'mode', 'compressed', 'install-if-different')
                 options = {option: value
                            for option, value in metadata_obj.items()
-                           if option not in ('filename', 'mode', 'compressed')}
+                           if option not in settings}
+                options.update(Object.to_install_condition(metadata_obj))
                 obj = object_list.add(
                     fn=metadata_obj['filename'], mode=metadata_obj['mode'],
                     options=options)

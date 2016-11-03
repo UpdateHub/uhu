@@ -1,5 +1,89 @@
 [
     {
+        "metadata": "install-condition",
+        "modes":  ["copy", "raw", "tarball"],
+        "required_in": ["copy", "raw", "tarball"],
+        "type": "str",
+        "choices": ["always", "content-diverges", "version-diverges"],
+        "default": "always",
+        "help": "When object should be installed",
+        "cli": ["--install-condition"],
+        "verbose-name": "install condition"
+    },
+    {
+        "metadata": "install-condition-version",
+        "modes":  ["copy", "raw", "tarball"],
+        "type": "str",
+        "help": "Which version triggers installation",
+        "cli": ["--install-condition-version"],
+        "verbose-name": "install condition version",
+        "requirements": {
+            "install-condition": {
+                "type": "value",
+                "value": "version-diverges"
+            }
+        }
+    },
+    {
+        "metadata": "install-condition-pattern-type",
+        "modes":  ["copy", "raw", "tarball"],
+        "type": "str",
+        "choices": ["linux-kernel", "u-boot", "regexp"],
+        "help": "What type of pattern to use to retrive version from object",
+        "cli": ["--install-condition-pattern-type"],
+        "verbose-name": "install condition pattern type",
+        "requirements": {
+            "install-condition": {
+                "type": "value",
+                "value": "version-diverges"
+            }
+        }
+    },
+    {
+        "metadata": "install-condition-pattern",
+        "modes":  ["copy", "raw", "tarball"],
+        "type": "str",
+        "help": "Regular expression to use when retriving version from object",
+        "cli": ["--install-condition-pattern"],
+        "verbose-name": "install condition pattern",
+        "requirements": {
+            "install-condition-pattern-type": {
+                "type": "value",
+                "value": "regexp"
+            }
+        }
+    },
+    {
+        "metadata": "install-condition-seek",
+        "modes":  ["copy", "raw", "tarball"],
+        "type": "int",
+        "default": 0,
+        "help": "Place to start reading object to retrive version",
+        "cli": ["--install-condition-seek"],
+        "verbose-name": "install condition seek",
+        "requirements": {
+            "install-condition-pattern-type": {
+                "type": "value",
+                "value": "regexp"
+            }
+        }
+    },
+    {
+        "metadata": "install-condition-buffer-size",
+        "modes":  ["copy", "raw", "tarball"],
+        "type": "int",
+        "default": -1,
+        "help": "How much bytes to read object to retrive version",
+        "cli": ["--install-condition-buffer-size"],
+        "verbose-name": "install condition buffer size",
+        "requirements": {
+            "install-condition-pattern-type": {
+                "type": "value",
+                "value": "regexp"
+            }
+        }
+    },
+    {
         "metadata": "target-device",
         "modes": ["copy", "raw", "tarball"],
         "required_in": ["copy", "raw", "tarball"],

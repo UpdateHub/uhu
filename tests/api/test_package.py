@@ -137,6 +137,211 @@ class PackageConstructorsTestCase(PackageTestCase):
         self.assertEqual(obj.options['filesystem'], 'ext4')
 
 
+class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
+
+    def setUp(self):
+        super().setUp()
+        fn = self.create_file(json.dumps({
+            'product': '0' * 64,
+            'version': '2.0',
+            'objects': [
+                [
+                    {
+                        'filename': __file__,
+                        'mode': 'raw',
+                        'compressed': False,
+                        'options': {
+                            'target-device': '/dev/sda',
+                            'install-condition': 'always',
+                        }
+                    },
+                    {
+                        'filename': __file__,
+                        'mode': 'raw',
+                        'compressed': False,
+                        'options': {
+                            'target-device': '/dev/sda',
+                            'install-condition': 'content-diverges'
+                        }
+                    },
+                    {
+                        'filename': __file__,
+                        'mode': 'raw',
+                        'compressed': False,
+                        'options': {
+                            'target-device': '/dev/sda',
+                            'install-condition': 'version-diverges',
+                            'install-condition-version': '0.1',
+                            'install-condition-pattern-type': 'u-boot',
+                        }
+                    },
+                    {
+                        'filename': __file__,
+                        'mode': 'raw',
+                        'compressed': False,
+                        'options': {
+                            'target-device': '/dev/sda',
+                            'install-condition': 'version-diverges',
+                            'install-condition-version': '0.1',
+                            'install-condition-pattern-type': 'regexp',
+                            'install-condition-pattern': '.+',
+                        }
+                    },
+                ]
+            ]
+        }))
+        self.pkg = Package.from_file(fn)
+        self.metadata = {
+            'product': '0' * 64,
+            'version': '2.0',
+            'objects': [
+                [
+                    {
+                        'filename': self.obj_fn,
+                        'mode': 'raw',
+                        'size': self.obj_size,
+                        'sha256sum': self.obj_sha256,
+                        'target-device': '/dev/sda',
+                    },
+                    {
+                        'filename': self.obj_fn,
+                        'mode': 'raw',
+                        'size': self.obj_size,
+                        'sha256sum': self.obj_sha256,
+                        'target-device': '/dev/sda',
+                        'install-if-different': 'sha256sum'
+                    },
+                    {
+                        'filename': self.obj_fn,
+                        'mode': 'raw',
+                        'size': self.obj_size,
+                        'sha256sum': self.obj_sha256,
+                        'target-device': '/dev/sda',
+                        'install-if-different': {
+                            'version': '0.1',
+                            'pattern': 'linux-kernel',
+                        }
+                    },
+                    {
+                        'filename': self.obj_fn,
+                        'mode': 'raw',
+                        'size': self.obj_size,
+                        'sha256sum': self.obj_sha256,
+                        'target-device': '/dev/sda',
+                        'install-if-different': {
+                            'version': '0.1',
+                            'pattern': {
+                                'regexp': '.+',
+                                'seek': 100,
+                                'buffer-size': 200,
+                            },
+                        }
+                    },
+                    {
+                        'filename': self.obj_fn,
+                        'mode': 'raw',
+                        'size': self.obj_size,
+                        'sha256sum': self.obj_sha256,
+                        'target-device': '/dev/sda',
+                        'install-if-different': {
+                            'version': '0.1',
+                            'pattern': {'regexp': '.+'},
+                        }
+                    }
+                ]
+            ]
+        }
+
+    def test_can_load_from_file_always_object(self):
+        obj = self.pkg.objects.get(0)
+        self.assertEqual(obj.filename, __file__)
+        self.assertEqual(obj.mode, 'raw')
+        self.assertEqual(obj.options['target-device'], '/dev/sda')
+        self.assertEqual(obj.install_condition['install-condition'], 'always')
+
+    def test_can_load_from_file_content_diverges_object(self):
+        obj = self.pkg.objects.get(1)
+        self.assertEqual(obj.filename, __file__)
+        self.assertEqual(obj.mode, 'raw')
+        self.assertEqual(obj.options['target-device'], '/dev/sda')
+        self.assertEqual(
+            obj.install_condition['install-condition'], 'content-diverges')
+
+    def test_can_load_from_file_known_version_diverges_object(self):
+        obj = self.pkg.objects.get(2)
+        self.assertEqual(obj.filename, __file__)
+        self.assertEqual(obj.mode, 'raw')
+        self.assertEqual(obj.options['target-device'], '/dev/sda')
+        self.assertEqual(
+            obj.install_condition['install-condition'], 'version-diverges')
+        self.assertEqual(
+            obj.install_condition['install-condition-version'], '0.1')
+        self.assertEqual(
+            obj.install_condition['install-condition-pattern-type'], 'u-boot')
+
+    def test_can_load_from_file_custom_version_diverges_object(self):
+        obj = self.pkg.objects.get(3)
+        self.assertEqual(obj.filename, __file__)
+        self.assertEqual(obj.mode, 'raw')
+        self.assertEqual(obj.options['target-device'], '/dev/sda')
+        self.assertEqual(
+            obj.install_condition['install-condition'], 'version-diverges')
+        self.assertEqual(
+            obj.install_condition['install-condition-version'], '0.1')
+        self.assertEqual(
+            obj.install_condition['install-condition-pattern-type'], 'regexp')
+        self.assertEqual(
+            obj.install_condition['install-condition-pattern'], '.+')
+
+    def test_can_load_from_metadata_always_object(self):
+        pkg = Package.from_metadata(self.metadata)
+        obj = pkg.objects.get(0)
+        expected = {'install-condition': 'always'}
+        self.assertEqual(obj.install_condition, expected)
+
+    def test_can_load_from_metadata_content_diverges_object(self):
+        pkg = Package.from_metadata(self.metadata)
+        obj = pkg.objects.get(1)
+        expected = {'install-condition': 'content-diverges'}
+        self.assertEqual(obj.install_condition, expected)
+
+    def test_can_load_from_metadata_known_version_diverges_object(self):
+        pkg = Package.from_metadata(self.metadata)
+        obj = pkg.objects.get(2)
+        expected = {
+            'install-condition': 'version-diverges',
+            'install-condition-version': '0.1',
+            'install-condition-pattern-type': 'linux-kernel',
+        }
+        self.assertEqual(obj.install_condition, expected)
+
+    def test_can_load_from_metadata_custom_version_diverges_object(self):
+        pkg = Package.from_metadata(self.metadata)
+        obj = pkg.objects.get(3)
+        expected = {
+            'install-condition': 'version-diverges',
+            'install-condition-version': '0.1',
+            'install-condition-pattern-type': 'regexp',
+            'install-condition-pattern': '.+',
+            'install-condition-seek': 100,
+            'install-condition-buffer-size': 200,
+        }
+        self.assertEqual(obj.install_condition, expected)
+
+    def test_can_load_from_metadata_custom_version_object_with_default(self):
+        pkg = Package.from_metadata(self.metadata)
+        obj = pkg.objects.get(4)
+        expected = {
+            'install-condition': 'version-diverges',
+            'install-condition-version': '0.1',
+            'install-condition-pattern-type': 'regexp',
+            'install-condition-pattern': '.+',
+            'install-condition-seek': 0,
+            'install-condition-buffer-size': -1,
+        }
+        self.assertEqual(obj.install_condition, expected)
+
+
 class PackageRepresentationsTestCase(PackageTestCase):
 
     def test_can_represent_package_as_metadata(self):
@@ -163,7 +368,8 @@ class PackageRepresentationsTestCase(PackageTestCase):
     def test_can_represent_package_as_template(self):
         pkg = Package(version=self.version, product=self.product)
         pkg.objects.add_list()
-        pkg.objects.add(self.obj_fn, self.obj_mode, self.obj_options)
+        obj = pkg.objects.add(self.obj_fn, self.obj_mode, self.obj_options)
+        expected_obj_template = obj.template()
         pkg.add_supported_hardware(
             name=self.hardware, revisions=self.hardware_revision)
         template = pkg.template()
@@ -174,17 +380,15 @@ class PackageRepresentationsTestCase(PackageTestCase):
             template['supported-hardware'], self.supported_hardware)
         objects = template['objects'][0]
         self.assertEqual(len(objects), 1)
-        obj = objects[0]
-        self.assertEqual(obj['mode'], self.obj_mode)
-        self.assertEqual(obj['filename'], self.obj_fn)
-        self.assertEqual(obj['options'], self.obj_options)
+        self.assertEqual(objects[0], expected_obj_template)
 
     def test_can_represent_package_as_file(self):
         dest = '/tmp/efu-dump.json'
         self.addCleanup(self.remove_file, dest)
         pkg = Package(version=self.version, product=self.product)
         pkg.objects.add_list()
-        pkg.objects.add(self.obj_fn, self.obj_mode, self.obj_options)
+        obj = pkg.objects.add(self.obj_fn, self.obj_mode, self.obj_options)
+        expected_obj_dump = obj.template()
         self.assertFalse(os.path.exists(dest))
         pkg.dump(dest)
         self.assertTrue(os.path.exists(dest))
@@ -194,9 +398,7 @@ class PackageRepresentationsTestCase(PackageTestCase):
         self.assertEqual(dump['product'], self.product)
         self.assertEqual(len(dump['objects']), 1)
         dump_obj = dump['objects'][0][0]
-        self.assertEqual(dump_obj['mode'], self.obj_mode)
-        self.assertEqual(dump_obj['filename'], self.obj_fn)
-        self.assertEqual(dump_obj['options'], self.obj_options)
+        self.assertEqual(dump_obj, expected_obj_dump)
 
     def test_can_represent_package_as_string(self):
         cwd = os.getcwd()
