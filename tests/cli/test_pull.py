@@ -21,7 +21,6 @@ class PullCommandTestCase(BasePullTestCase):
     def test_pull_command_full_returns_0_if_successful(self):
         result = self.runner.invoke(
             pull_command, args=[self.pkg_uid, '--full'])
-        print(result.output)
         self.assertEqual(result.exit_code, 0)
 
     def test_pull_command_metadata_returns_0_if_successful(self):

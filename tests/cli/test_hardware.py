@@ -29,7 +29,6 @@ class SupportedHardwareCommandsTestCase(PackageTestCase):
         pkg = Package.from_file(self.pkg_fn)
         hardware = pkg.supported_hardware.get('PowerX')
         self.assertIsNotNone(hardware)
-        print(hardware)
         self.assertEqual(hardware['name'], 'PowerX')
         self.assertEqual(len(hardware['revisions']), 0)
 

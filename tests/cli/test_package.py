@@ -199,7 +199,6 @@ class AddObjectCommandTestCase(PackageTestCase):
     def test_cannot_add_raw_object_without_required_options(self):
         cmd = [self.obj_fn, '--mode', 'raw']
         result = self.runner.invoke(add_object_command, cmd)
-        print(result.output)
         self.assertEqual(result.exit_code, 2)
 
     def test_cannot_add_copy_object_without_required_options(self):
