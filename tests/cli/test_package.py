@@ -15,7 +15,7 @@ from efu.core import Package
 from efu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 
-from ..utils import (
+from utils import (
     EFUTestCase, FileFixtureMixin, EnvironmentFixtureMixin, HTTPTestCaseMixin)
 
 

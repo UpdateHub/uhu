@@ -4,7 +4,7 @@
 from efu.config.config import Config, Sections
 from efu.utils import GLOBAL_CONFIG_VAR
 
-from ..utils import EFUTestCase, EnvironmentFixtureMixin, FileFixtureMixin
+from utils import EFUTestCase, EnvironmentFixtureMixin, FileFixtureMixin
 
 
 class ConfigTestCase(FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase):

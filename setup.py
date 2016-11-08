@@ -13,7 +13,10 @@ setup(
     version=__version__,
     packages=find_packages(exclude=['tests*']),
     package_data={
-        'efu': ['metadata/*.json']
+        'efu': [
+            'schemas/*.json',
+            'core/*.json',
+        ],
     },
     entry_points={
         'console_scripts': ['efu=efu.cli:cli']

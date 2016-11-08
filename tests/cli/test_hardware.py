@@ -6,7 +6,7 @@ from efu.cli.hardware import (
 from efu.core import Package
 from efu.utils import LOCAL_CONFIG_VAR
 
-from .test_package import PackageTestCase
+from cli.test_package import PackageTestCase
 
 
 class SupportedHardwareCommandsTestCase(PackageTestCase):

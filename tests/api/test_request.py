@@ -9,7 +9,7 @@ from unittest.mock import patch
 from efu.http.auth import EFOTAV1Signature
 from efu.http.request import Request
 
-from ..utils import HTTPTestCaseMixin, EFUTestCase
+from utils import HTTPTestCaseMixin, EFUTestCase
 
 
 class RequestTestCase(HTTPTestCaseMixin, EFUTestCase):

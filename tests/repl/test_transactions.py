@@ -9,7 +9,7 @@ from efu.repl.repl import EFURepl
 from efu.repl import functions, helpers
 from efu.utils import SERVER_URL_VAR
 
-from ..utils import (
+from utils import (
     HTTPTestCaseMixin, EFUTestCase, EnvironmentFixtureMixin,
     BasePullTestCase, BasePushTestCase)
 

@@ -4,7 +4,7 @@
 from efu.core import Product
 from efu.utils import LOCAL_CONFIG_VAR
 
-from ..utils import FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase
+from utils import FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase
 
 
 class ProductTestCase(FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase):

@@ -10,7 +10,7 @@ from efu.core import Object
 from efu.exceptions import DownloadError
 from efu.utils import SERVER_URL_VAR
 
-from ..utils import (
+from utils import (
     EFUTestCase, HTTPTestCaseMixin, FileFixtureMixin, EnvironmentFixtureMixin)
 
 

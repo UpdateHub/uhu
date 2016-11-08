@@ -9,7 +9,7 @@ from jsonschema.exceptions import ValidationError
 
 from efu import utils
 
-from ..utils import EFUTestCase, FileFixtureMixin, EnvironmentFixtureMixin
+from utils import EFUTestCase, FileFixtureMixin, EnvironmentFixtureMixin
 
 
 class UtilsTestCase(EnvironmentFixtureMixin, EFUTestCase):

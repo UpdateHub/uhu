@@ -6,7 +6,7 @@ from click.testing import CliRunner
 from efu.cli.package import push_command
 from efu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
-from ..utils import BasePushTestCase
+from utils import BasePushTestCase
 
 
 class PushCommandMixin:

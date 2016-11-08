@@ -8,7 +8,7 @@ from click.testing import CliRunner
 
 from efu.cli.package import pull_command
 
-from ..utils import BasePullTestCase
+from utils import BasePullTestCase
 
 
 class PullCommandTestCase(BasePullTestCase):

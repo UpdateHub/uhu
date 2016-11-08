@@ -12,7 +12,7 @@ from uuid import uuid4
 from efu.core import Package
 from efu.utils import CHUNK_SIZE_VAR, LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
-from .httpmock.httpd import HTTPMockServer
+from httpmock.httpd import HTTPMockServer
 
 
 class HTTPTestCaseMixin:

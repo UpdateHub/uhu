@@ -8,7 +8,7 @@ from efu.core import Package
 from efu.exceptions import UploadError
 from efu.utils import CHUNK_SIZE_VAR, SERVER_URL_VAR
 
-from ..utils import (
+from utils import (
     FileFixtureMixin, EnvironmentFixtureMixin, HTTPTestCaseMixin,
     BasePullTestCase, BasePushTestCase, EFUTestCase)
 

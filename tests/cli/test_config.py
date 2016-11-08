@@ -13,7 +13,7 @@ from efu.cli.config import (
     cleanup_command, get_command, set_command, init_command)
 from efu.utils import GLOBAL_CONFIG_VAR
 
-from ..utils import FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase
+from utils import FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase
 
 
 class ConfigCommandTestCase(

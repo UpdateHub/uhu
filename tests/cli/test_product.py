@@ -8,7 +8,7 @@ from click.testing import CliRunner
 from efu.cli.product import use_command
 from efu.utils import LOCAL_CONFIG_VAR
 
-from ..utils import EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase
+from utils import EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase
 
 
 class ProductTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):

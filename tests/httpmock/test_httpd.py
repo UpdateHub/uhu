@@ -6,14 +6,13 @@ from unittest.mock import patch
 
 import requests
 
-from ..utils import HTTPTestCaseMixin, EFUTestCase
-
-from . import httpd
+from httpmock import httpd
+from utils import HTTPTestCaseMixin, EFUTestCase
 
 
 class HTTPServerTestCase(HTTPTestCaseMixin, EFUTestCase):
 
-    @patch('tests.httpmock.httpd.sleep')
+    @patch('httpmock.httpd.sleep')
     def test_does_not_simulate_application_by_default(self, sleep):
         server = httpd.HTTPMockServer()
         server.register_response('/app', 'GET')
@@ -25,7 +24,7 @@ class HTTPServerTestCase(HTTPTestCaseMixin, EFUTestCase):
         server.clear_requests()
         server.shutdown()
 
-    @patch('tests.httpmock.httpd.sleep')
+    @patch('httpmock.httpd.sleep')
     def test_can_simulate_application(self, sleep):
         server = httpd.HTTPMockServer(simulate_application=True)
         server.register_response('/app', 'GET')

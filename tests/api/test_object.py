@@ -9,7 +9,7 @@ from efu.core import Object
 from efu.core.object import ObjectList, ObjectManager
 from efu.utils import CHUNK_SIZE_VAR
 
-from ..utils import EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase
+from utils import EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase
 
 
 class ObjectTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
@@ -545,8 +545,6 @@ class InstallIfDifferentObjectTestCase(unittest.TestCase):
             }
         }
         observed = obj.metadata()
-        print(observed)
-        print(expected)
         self.assertEqual(observed, expected)
 
 
