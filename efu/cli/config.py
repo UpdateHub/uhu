@@ -13,7 +13,7 @@ def config_cli():
     ''' Configures efu utility '''
 
 
-@config_cli.command()
+@config_cli.command(name='init')
 def init_command():
     ''' Sets efu required initial configuration. '''
     access_id = input('EasyFOTA Access Key ID: ')
