@@ -16,6 +16,8 @@ from ..utils import (
     call, get_chunk_size, get_server_url, get_uncompressed_size,
     get_compressor_format, indent, yes_or_no)
 
+from .install_condition import (
+    get_kernel_version, get_uboot_version, get_object_version)
 from .options import OptionsParser, INSTALL_CONDITION_BACKENDS
 from .storages import STORAGES
 
@@ -92,8 +94,7 @@ class Object:
         self.mode = mode
         self.options = OptionsParser(self.mode, options).clean()
 
-        keys = [opt for opt in self.options if 'install-condition' in opt]
-        self.install_condition = {key: self.options.pop(key) for key in keys}
+        self.install_condition = self._init_install_condition()
 
         self.size = None
         self.sha256sum = None
@@ -103,6 +104,27 @@ class Object:
         self._compressed = compressed
 
         self.chunk_size = get_chunk_size()
+
+    def _init_install_condition(self):
+        condition = self.options.pop('install-condition')
+        if condition in ['always', 'content-diverges']:
+            return {'install-condition': condition}
+        type_ = self.options.pop('install-condition-pattern-type')
+        if type_ != 'regexp':
+            return {
+                'install-condition': condition,
+                'install-condition-pattern-type': type_,
+            }
+        pattern = self.options.pop('install-condition-pattern', None)
+        seek = self.options.pop('install-condition-seek', 0)
+        buffer_size = self.options.pop('install-condition-buffer-size', -1)
+        return {
+            'install-condition': condition,
+            'install-condition-pattern': pattern,
+            'install-condition-pattern-type': type_,
+            'install-condition-seek': seek,
+            'install-condition-buffer-size': buffer_size,
+        }
 
     @property
     def compressed(self):
@@ -150,10 +172,9 @@ class Object:
             return {'install-condition': 'content-diverges'}
         condition = {
             'install-condition': 'version-diverges',
-            'install-condition-version': iid.get('version'),
         }
         pattern = iid.get('pattern')
-        if pattern in INSTALL_CONDITION_BACKENDS:
+        if pattern in ['linux-kernel', 'u-boot']:
             condition['install-condition-pattern-type'] = pattern
         else:
             condition['install-condition-pattern-type'] = 'regexp'
@@ -200,7 +221,28 @@ class Object:
             call(callback, 'object_load', self)
         self.sha256sum = sha256sum.hexdigest()
         self.md5 = md5.hexdigest()
+        version = self.get_version()
+        self.install_condition['install-condition-version'] = version
         call(callback, 'post_object_load', self)
+
+    def get_version(self):
+        version_absent = ['always', 'content-diverges']
+        if self.install_condition['install-condition'] in version_absent:
+            return None
+        with open(self.filename, 'rb') as fp:
+            type_ = self.install_condition['install-condition-pattern-type']
+            if type_ == 'linux-kernel':
+                return get_kernel_version(fp)
+            elif type_ == 'u-boot':
+                return get_uboot_version(fp)
+            elif type_ == 'regexp':
+                pattern = self.install_condition['install-condition-pattern']
+                return get_object_version(
+                    fp,
+                    pattern.encode(),
+                    self.install_condition['install-condition-seek'],
+                    self.install_condition['install-condition-buffer-size'],
+                )
 
     def upload(self, product_uid, package_uid, callback=None):
         call(callback, 'pre_object_upload', self)

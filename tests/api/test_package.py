@@ -141,7 +141,7 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
 
     def setUp(self):
         super().setUp()
-        fn = self.create_file(json.dumps({
+        self.fn = self.create_file(json.dumps({
             'product': '0' * 64,
             'version': '2.0',
             'objects': [
@@ -171,7 +171,6 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
                         'options': {
                             'target-device': '/dev/sda',
                             'install-condition': 'version-diverges',
-                            'install-condition-version': '0.1',
                             'install-condition-pattern-type': 'u-boot',
                         }
                     },
@@ -182,15 +181,13 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
                         'options': {
                             'target-device': '/dev/sda',
                             'install-condition': 'version-diverges',
-                            'install-condition-version': '0.1',
                             'install-condition-pattern-type': 'regexp',
-                            'install-condition-pattern': '.+',
+                            'install-condition-pattern': '\d+\.\d+',
                         }
                     },
                 ]
             ]
         }))
-        self.pkg = Package.from_file(fn)
         self.metadata = {
             'product': '0' * 64,
             'version': '2.0',
@@ -253,14 +250,16 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
         }
 
     def test_can_load_from_file_always_object(self):
-        obj = self.pkg.objects.get(0)
+        pkg = Package.from_file(self.fn)
+        obj = pkg.objects.get(0)
         self.assertEqual(obj.filename, __file__)
         self.assertEqual(obj.mode, 'raw')
         self.assertEqual(obj.options['target-device'], '/dev/sda')
         self.assertEqual(obj.install_condition['install-condition'], 'always')
 
     def test_can_load_from_file_content_diverges_object(self):
-        obj = self.pkg.objects.get(1)
+        pkg = Package.from_file(self.fn)
+        obj = pkg.objects.get(1)
         self.assertEqual(obj.filename, __file__)
         self.assertEqual(obj.mode, 'raw')
         self.assertEqual(obj.options['target-device'], '/dev/sda')
@@ -268,30 +267,28 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
             obj.install_condition['install-condition'], 'content-diverges')
 
     def test_can_load_from_file_known_version_diverges_object(self):
-        obj = self.pkg.objects.get(2)
+        pkg = Package.from_file(self.fn)
+        obj = pkg.objects.get(2)
         self.assertEqual(obj.filename, __file__)
         self.assertEqual(obj.mode, 'raw')
         self.assertEqual(obj.options['target-device'], '/dev/sda')
         self.assertEqual(
             obj.install_condition['install-condition'], 'version-diverges')
-        self.assertEqual(
-            obj.install_condition['install-condition-version'], '0.1')
         self.assertEqual(
             obj.install_condition['install-condition-pattern-type'], 'u-boot')
 
     def test_can_load_from_file_custom_version_diverges_object(self):
-        obj = self.pkg.objects.get(3)
+        pkg = Package.from_file(self.fn)
+        obj = pkg.objects.get(3)
         self.assertEqual(obj.filename, __file__)
         self.assertEqual(obj.mode, 'raw')
         self.assertEqual(obj.options['target-device'], '/dev/sda')
         self.assertEqual(
             obj.install_condition['install-condition'], 'version-diverges')
         self.assertEqual(
-            obj.install_condition['install-condition-version'], '0.1')
-        self.assertEqual(
             obj.install_condition['install-condition-pattern-type'], 'regexp')
         self.assertEqual(
-            obj.install_condition['install-condition-pattern'], '.+')
+            obj.install_condition['install-condition-pattern'], '\d+\.\d+')
 
     def test_can_load_from_metadata_always_object(self):
         pkg = Package.from_metadata(self.metadata)
@@ -310,7 +307,6 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
         obj = pkg.objects.get(2)
         expected = {
             'install-condition': 'version-diverges',
-            'install-condition-version': '0.1',
             'install-condition-pattern-type': 'linux-kernel',
         }
         self.assertEqual(obj.install_condition, expected)
@@ -320,7 +316,6 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
         obj = pkg.objects.get(3)
         expected = {
             'install-condition': 'version-diverges',
-            'install-condition-version': '0.1',
             'install-condition-pattern-type': 'regexp',
             'install-condition-pattern': '.+',
             'install-condition-seek': 100,
@@ -333,7 +328,6 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
         obj = pkg.objects.get(4)
         expected = {
             'install-condition': 'version-diverges',
-            'install-condition-version': '0.1',
             'install-condition-pattern-type': 'regexp',
             'install-condition-pattern': '.+',
             'install-condition-seek': 0,

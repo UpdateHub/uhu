@@ -1,11 +1,23 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+import hashlib
 import os
 import tempfile
 import unittest
 
 from efu.core import install_condition as ic
+from efu.core.object import Object
+
+from utils import FileFixtureMixin, EFUTestCase
+
+
+def create_u_boot_file():
+    with tempfile.NamedTemporaryFile(delete=False) as fp:
+        # U-Boot 13.08.1988 (13/08/1988)
+        fp.write(bytearray.fromhex(
+            '01552d426f6f742031332e30382e31393838202831332f30382f313938382902'))  # nopep8
+    return fp.name
 
 
 class KernelVersionTestCase(unittest.TestCase):
@@ -99,13 +111,11 @@ class KernelVersionTestCase(unittest.TestCase):
 class UBootVersionTestCase(unittest.TestCase):
 
     def test_can_get_uboot_version(self):
-        fp = tempfile.TemporaryFile()
-        self.addCleanup(fp.close)
-        # U-Boot 13.08.1988 (13/08/1988)
-        fp.write(bytearray.fromhex(
-            '01552d426f6f742031332e30382e31393838202831332f30382f313938382902'))  # nopep8
+        fn = create_u_boot_file()
+        self.addCleanup(os.remove, fn)
         expected = '13.08.1988'
-        observed = ic.get_uboot_version(fp)
+        with open(fn, 'br') as fp:
+            observed = ic.get_uboot_version(fp)
         self.assertEqual(observed, expected)
 
     def test_get_uboot_version_raises_error_if_cant_find_version(self):
@@ -128,3 +138,397 @@ class CustomObjectVersionTestCase(unittest.TestCase):
         with tempfile.TemporaryFile() as fp:
             with self.assertRaises(ValueError):
                 ic.get_object_version(fp, br'^unfindable$')
+
+
+class AlwaysObjectIntegrationTestCase(FileFixtureMixin, EFUTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.options = {
+            'install-condition': 'always',
+            'target-device': '/dev/sda',
+        }
+        self.fn = self.create_file(b'spam')
+
+    def test_can_create_object(self):
+        obj = Object(self.fn, mode='raw', options=self.options)
+        self.assertEqual(obj.install_condition['install-condition'], 'always')
+
+    def test_can_represent_as_template(self):
+        obj = Object(self.fn, 'raw', self.options)
+        expected = {
+            'compressed': False,
+            'filename': self.fn,
+            'mode': 'raw',
+            'options': {
+                'chunk-size': 131072,
+                'count': -1,
+                'seek': 0,
+                'skip': 0,
+                'target-device': '/dev/sda',
+                'truncate': False,
+                'install-condition': 'always',
+            }
+        }
+        observed = obj.template()
+        self.assertEqual(observed, expected)
+
+    def test_can_represent_as_metadata(self):
+        obj = Object(self.fn, 'raw', self.options)
+        obj.load()
+        expected = {
+            'compressed': False,
+            'filename': self.fn,
+            'mode': 'raw',
+            'chunk-size': 131072,
+            'count': -1,
+            'seek': 0,
+            'skip': 0,
+            'target-device': '/dev/sda',
+            'truncate': False,
+            'size': 4,
+            'sha256sum': hashlib.sha256(b'spam').hexdigest(),
+        }
+        observed = obj.metadata()
+        self.assertEqual(observed, expected)
+
+    def test_install_if_different(self):
+        obj = Object(self.fn, mode='raw', options=self.options)
+        self.assertIsNone(obj.install_if_different)
+
+    def test_install_if_different_default_value(self):
+        obj = Object(self.fn, mode='raw', options={'target-device': '/'})
+        self.assertIsNone(obj.install_if_different)
+
+
+class ContentDivergesObjectIntegrationTestCase(FileFixtureMixin, EFUTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.fn = self.create_file(b'spam')
+        self.options = {
+            'install-condition': 'content-diverges',
+            'target-device': '/dev/sda',
+        }
+
+    def test_can_create_object(self):
+        obj = Object(__file__, mode='raw', options=self.options)
+        self.assertEqual(
+            obj.install_condition['install-condition'], 'content-diverges')
+
+    def test_can_represent_as_template(self):
+        obj = Object(__file__, 'raw', self.options)
+        expected = {
+            'compressed': False,
+            'filename': __file__,
+            'mode': 'raw',
+            'options': {
+                'chunk-size': 131072,
+                'count': -1,
+                'seek': 0,
+                'skip': 0,
+                'target-device': '/dev/sda',
+                'truncate': False,
+                'install-condition': 'content-diverges',
+            }
+        }
+        observed = obj.template()
+        self.assertEqual(observed, expected)
+
+    def test_can_represent_as_metadata(self):
+        obj = Object(self.fn, 'raw', self.options)
+        obj.load()
+        expected = {
+            'compressed': False,
+            'filename': self.fn,
+            'mode': 'raw',
+            'chunk-size': 131072,
+            'count': -1,
+            'seek': 0,
+            'skip': 0,
+            'target-device': '/dev/sda',
+            'truncate': False,
+            'size': 4,
+            'sha256sum': hashlib.sha256(b'spam').hexdigest(),
+            'install-if-different': 'sha256sum'
+        }
+        observed = obj.metadata()
+        self.assertEqual(observed, expected)
+
+    def test_install_if_different(self):
+        obj = Object(__file__, mode='raw', options=self.options)
+        self.assertEqual(obj.install_if_different, 'sha256sum')
+
+
+class KnownVersionPatternObjectIntegrationTestCase(unittest.TestCase):
+
+    def setUp(self):
+        current_dir = os.getcwd()
+        self.addCleanup(os.chdir, current_dir)
+        os.chdir(os.path.join(os.path.dirname(__file__), '../fixtures/kernel'))
+
+        self.images = [
+            ('arm-zImage', '4.4.1'),
+            ('arm-uImage', '4.1.15-1.2.0+g274a055'),
+            ('x86-bzImage', '4.1.30-1-MANJARO'),
+            ('x86-zImage', '4.1.30-1-MANJARO'),
+        ]
+        self.options = {
+            'install-condition': 'version-diverges',
+            'install-condition-pattern-type': None,  # to be replaced by tests
+            'target-device': '/dev/sda'
+        }
+        self.template = {
+            'compressed': False,
+            'filename': None,  # to be replaced by tests
+            'mode': 'raw',
+            'options': {
+                'chunk-size': 131072,
+                'count': -1,
+                'seek': 0,
+                'skip': 0,
+                'target-device': '/dev/sda',
+                'truncate': False,
+                'install-condition': 'version-diverges',
+                # to be replaced by tests
+                'install-condition-pattern-type': None,
+            }
+        }
+        self.metadata = {
+            'compressed': False,
+            'filename': None,  # to be replaced by tests
+            'mode': 'raw',
+            'chunk-size': 131072,
+            'count': -1,
+            'seek': 0,
+            'skip': 0,
+            'target-device': '/dev/sda',
+            'truncate': False,
+            'size': None,  # to be replaced by tests
+            'sha256sum': None,  # to be replaced by tests
+            'install-if-different': {
+                'version': None,  # to be replaced by tests
+                'pattern': None,  # to be replaced by tests
+            }
+        }
+
+    def test_can_create_linux_kernel_object(self):
+        self.options['install-condition-pattern-type'] = 'linux-kernel'
+        obj = Object(__file__, mode='raw', options=self.options)
+        self.assertEqual(
+            obj.install_condition['install-condition'], 'version-diverges')
+        self.assertEqual(
+            obj.install_condition['install-condition-pattern-type'],
+            'linux-kernel')
+        self.assertIsNone(
+            obj.install_condition.get('install-condition-version'))
+
+    def test_can_create_uboot_object(self):
+        self.options['install-condition-pattern-type'] = 'u-boot'
+        obj = Object(__file__, mode='raw', options=self.options)
+        self.assertEqual(
+            obj.install_condition['install-condition'], 'version-diverges')
+        self.assertEqual(
+            obj.install_condition['install-condition-pattern-type'], 'u-boot')
+        self.assertIsNone(
+            obj.install_condition.get('install-condition-version'))
+
+    def test_can_load_linux_kernel_versions(self):
+        for image, version in self.images:
+            self.options['install-condition-pattern-type'] = 'linux-kernel'
+            self.options['install-condition'] = 'version-diverges'
+            obj = Object(image, mode='raw', options=self.options)
+            obj.load()
+            self.assertEqual(
+                obj.install_condition['install-condition-version'], version)
+
+    def test_can_load_u_boot_version(self):
+        self.options['install-condition-pattern-type'] = 'u-boot'
+        fn = create_u_boot_file()
+        obj = Object(fn, mode='raw', options=self.options)
+        obj.load()
+        self.assertEqual(
+            obj.install_condition['install-condition-version'], '13.08.1988')
+
+    def test_can_represent_linux_kernel_object_as_template(self):
+        self.options['install-condition-pattern-type'] = 'linux-kernel'
+        self.template['options']['install-condition-pattern-type'] = 'linux-kernel'  # nopep8
+        self.template['filename'] = __file__
+        obj = Object(__file__, 'raw', self.options)
+        self.assertEqual(obj.template(), self.template)
+
+    def test_can_represent_u_boot_object_as_template(self):
+        self.options['install-condition-pattern-type'] = 'u-boot'
+        self.template['options']['install-condition-pattern-type'] = 'u-boot'
+        self.template['filename'] = __file__
+        obj = Object(__file__, 'raw', self.options)
+        self.assertEqual(obj.template(), self.template)
+
+    def test_can_represent_linux_kernel_object_as_metadata(self):
+        self.metadata['install-if-different']['pattern'] = 'linux-kernel'
+        for image, version in self.images:
+            self.options['install-condition'] = 'version-diverges'
+            self.options['install-condition-pattern-type'] = 'linux-kernel'
+            self.metadata['install-if-different']['version'] = version
+            self.metadata['filename'] = image
+            self.metadata['size'] = os.path.getsize(image)
+            with open(image, 'rb') as fp:
+                sha256sum = hashlib.sha256(fp.read()).hexdigest()
+                self.metadata['sha256sum'] = sha256sum
+            obj = Object(image, 'raw', self.options)
+            obj.load()
+            self.assertEqual(obj.metadata(), self.metadata)
+
+    def test_can_represent_u_boot_object_as_metadata(self):
+        self.options['install-condition-pattern-type'] = 'u-boot'
+        self.metadata['install-if-different']['pattern'] = 'u-boot'
+        self.metadata['install-if-different']['version'] = '13.08.1988'
+        fn = create_u_boot_file()
+        self.metadata['filename'] = fn
+        self.metadata['size'] = os.path.getsize(fn)
+        with open(fn, 'rb') as fp:
+            sha256sum = hashlib.sha256(fp.read()).hexdigest()
+            self.metadata['sha256sum'] = sha256sum
+
+        obj = Object(fn, 'raw', self.options)
+        obj.load()
+        self.assertEqual(obj.metadata(), self.metadata)
+
+    def test_linux_kernel_object_install_if_different(self):
+        for image, version in self.images:
+            self.options['install-condition'] = 'version-diverges'
+            self.options['install-condition-pattern-type'] = 'linux-kernel'
+            obj = Object(image, mode='raw', options=self.options)
+            obj.load()
+            expected = {
+                'version': version,
+                'pattern': 'linux-kernel'
+            }
+            self.assertEqual(obj.install_if_different, expected)
+
+    def test_u_boot_object_install_if_different(self):
+        self.options['install-condition-pattern-type'] = 'u-boot'
+        fn = create_u_boot_file()
+        obj = Object(fn, mode='raw', options=self.options)
+        obj.load()
+        expected = {'version': '13.08.1988', 'pattern': 'u-boot'}
+        self.assertEqual(obj.install_if_different, expected)
+
+
+class CustomVersionPatternObjectIntegrationTestCase(
+        FileFixtureMixin, EFUTestCase):
+
+    def setUp(self):
+        super().setUp()
+        version = '5f5f5f312e305f5f5f'  # ___1.0___
+        self.content = bytes(bytearray.fromhex(version))
+        self.fn = self.create_file(self.content)
+        self.options = {
+            'install-condition': 'version-diverges',
+            'install-condition-pattern-type': 'regexp',
+            'install-condition-pattern': '\d+\.\d+',
+            'install-condition-seek': 3,
+            'install-condition-buffer-size': 5,
+            'target-device': '/dev/sda',
+        }
+        self.template = {
+            'compressed': False,
+            'filename': self.fn,
+            'mode': 'raw',
+            'options': {
+                'chunk-size': 131072,
+                'count': -1,
+                'seek': 0,
+                'skip': 0,
+                'target-device': '/dev/sda',
+                'truncate': False,
+                'install-condition': 'version-diverges',
+                'install-condition-pattern-type': 'regexp',
+                'install-condition-pattern': '\d+\.\d+',
+                'install-condition-seek': 3,
+                'install-condition-buffer-size': 5,
+            }
+        }
+        self.metadata = {
+            'compressed': False,
+            'filename': self.fn,
+            'mode': 'raw',
+            'chunk-size': 131072,
+            'count': -1,
+            'seek': 0,
+            'skip': 0,
+            'target-device': '/dev/sda',
+            'truncate': False,
+            'size': len(self.content),
+            'sha256sum': hashlib.sha256(self.content).hexdigest(),
+            'install-if-different': {
+                'version': '1.0',
+                'pattern': {
+                    'regexp': '\d+\.\d+',
+                    'seek': 3,
+                    'buffer-size': 5,
+                }
+            }
+        }
+
+    def test_can_create_object(self):
+        obj = Object(self.fn, mode='raw', options=self.options)
+        self.assertEqual(
+            obj.install_condition['install-condition'], 'version-diverges')
+        self.assertEqual(
+            obj.install_condition['install-condition-pattern-type'], 'regexp')
+        self.assertEqual(
+            obj.install_condition['install-condition-pattern'], '\d+\.\d+')
+        self.assertEqual(
+            obj.install_condition['install-condition-seek'], 3)
+        self.assertEqual(
+            obj.install_condition['install-condition-buffer-size'], 5)
+        self.assertIsNone(
+            obj.install_condition.get('install-condition-version'))
+
+    def test_can_load_custom_object_version(self):
+        obj = Object(self.fn, mode='raw', options=self.options)
+        obj.load()
+        self.assertEqual(
+            obj.install_condition['install-condition-version'], '1.0')
+
+    def test_can_represent_as_template(self):
+        obj = Object(self.fn, 'raw', self.options)
+        self.assertEqual(obj.template(), self.template)
+
+    def test_can_represent_as_metadata(self):
+        obj = Object(self.fn, 'raw', self.options)
+        obj.load()
+        self.assertEqual(obj.metadata(), self.metadata)
+
+    def test_install_if_different(self):
+        obj = Object(self.fn, mode='raw', options=self.options)
+        expected = {
+            'version': '1.0',
+            'pattern': {
+                'regexp': '\d+\.\d+',
+                'seek': 3,
+                'buffer-size': 5,
+            }
+        }
+        obj.load()
+        self.assertEqual(obj.install_if_different, expected)
+
+    def test_install_if_different_default_values(self):
+        options = {
+            'install-condition': 'version-diverges',
+            'install-condition-pattern-type': 'regexp',
+            'install-condition-pattern': '\d+\.\d+',
+            'target-device': '/dev/sda',
+        }
+        obj = Object(self.fn, mode='raw', options=options)
+        expected = {
+            'version': '1.0',
+            'pattern': {
+                'regexp': '\d+\.\d+',
+                'seek': 0,
+                'buffer-size': -1,
+            }
+        }
+        obj.load()
+        self.assertEqual(obj.install_if_different, expected)

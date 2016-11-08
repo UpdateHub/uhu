@@ -11,20 +11,6 @@
         "verbose-name": "install condition"
     },
     {
-        "metadata": "install-condition-version",
-        "modes":  ["copy", "raw", "tarball"],
-        "type": "str",
-        "help": "Which version triggers installation",
-        "cli": ["--install-condition-version"],
-        "verbose-name": "install condition version",
-        "requirements": {
-            "install-condition": {
-                "type": "value",
-                "value": "version-diverges"
-            }
-        }
-    },
-    {
         "metadata": "install-condition-pattern-type",
         "modes":  ["copy", "raw", "tarball"],
         "type": "str",

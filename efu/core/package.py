@@ -54,7 +54,8 @@ class Package:
             object_list = package.objects.add_list()
             for metadata_obj in metadata_object_list:
                 settings = (
-                    'filename', 'mode', 'compressed', 'install-if-different')
+                    'filename', 'mode', 'compressed',
+                    'install-if-different')
                 options = {option: value
                            for option, value in metadata_obj.items()
                            if option not in settings}
