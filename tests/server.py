@@ -28,7 +28,7 @@ def push_cmd(cmd):
         pkg.objects.add_list()
         for _ in range(3):
             fn = self.create_file('spam')
-            pkg.objects.add(0, fn, 'raw', {'target-device': '/'})
+            pkg.objects.add(fn, 'raw', {'target-device': '/'})
         pkg.dump(pkg_fn)
         kwargs = cmd(self)
         self.set_push(pkg, '100',  **kwargs)

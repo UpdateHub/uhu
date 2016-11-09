@@ -212,18 +212,18 @@ class Object:
 
     def load(self, callback=None):
         self.size = os.path.getsize(self.filename)
-        call(callback, 'pre_object_load', self)
+        call(callback, 'pre_object_read', self)
         sha256sum = hashlib.sha256()
         md5 = hashlib.md5()
         for chunk in self:
             sha256sum.update(chunk)
             md5.update(chunk)
-            call(callback, 'object_load', self)
+            call(callback, 'object_read')
         self.sha256sum = sha256sum.hexdigest()
         self.md5 = md5.hexdigest()
         version = self.get_version()
         self.install_condition['install-condition-version'] = version
-        call(callback, 'post_object_load', self)
+        call(callback, 'post_object_read')
 
     def get_version(self):
         version_absent = ['always', 'content-diverges']
@@ -256,10 +256,9 @@ class Object:
             return ObjectUploadResult.EXISTS
         elif response.status_code == 201:
             body = response.json()
-            storage = STORAGES[body['storage']](self, callback=callback)
-            upload_url = body['url']
-            storage.upload(upload_url)
-            if storage.success:
+            upload = STORAGES[body['storage']]
+            success = upload(self, body['url'], callback)
+            if success:
                 call(callback, 'post_object_upload',
                      self, ObjectUploadResult.SUCCESS)
                 return ObjectUploadResult.SUCCESS
@@ -329,6 +328,23 @@ class Object:
                     conf['display'], value, self._str_children(conf))
                 s.append(line.rstrip())
         return '\n'.join(s)
+
+
+class ObjectReader:
+
+    def __init__(self, obj, callback=None):
+        self.obj = obj
+        self.callback = callback
+
+    def __len__(self):
+        return os.path.getsize(self.obj.filename)
+
+    def __iter__(self):
+        call(self.callback, 'pre_object_read', self.obj)
+        for chunk in self.obj:
+            call(self.callback, 'object_read')
+            yield chunk
+        call(self.callback, 'post_object_read')
 
 
 class ObjectList:

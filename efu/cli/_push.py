@@ -19,7 +19,7 @@ FAIL_MSG = '{}FAIL{}'.format(RED, END)
 class PushCallback:
 
     def __init__(self):
-        self.object_bar = None
+        self.progress = None
 
     def pre_package_load(self, package):  # pylint: disable=W0613
         print('Start Reading package')
@@ -30,26 +30,20 @@ class PushCallback:
     def post_package_load(self, package):  # pylint: disable=W0613
         print('Finish reading package')
 
-    def pre_object_load(self, obj):
+    def pre_object_read(self, obj):
         size = ceil(obj.size / obj.chunk_size)
-        self.object_bar = Bar(obj.filename, max=size)
+        self.progress = Bar(obj.filename, max=size)
 
-    def object_load(self, obj):  # pylint: disable=W0613
-        self.object_bar.next()
+    def object_read(self):
+        self.progress.next()
 
-    def post_object_load(self, obj):  # pylint: disable=W0613
-        self.object_bar.finish()
-
-    def pre_object_upload(self, obj):
-        self.object_bar = Bar(obj.filename, max=len(obj))
-
-    def object_upload(self, obj):  # pylint: disable=W0613
-        self.object_bar.next()
+    def post_object_read(self):
+        self.progress.finish()
 
     def post_object_upload(self, obj, status):
         if status == ObjectUploadResult.EXISTS:
             print(obj.filename, 'already uploaded', flush=True, end='')
-        self.object_bar.finish()
+            self.progress.finish()
 
     def push_start(self, response):
         print('Starting push: ', end='')

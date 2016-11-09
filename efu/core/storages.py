@@ -3,32 +3,19 @@
 
 import requests
 
-from ..utils import call
+
+def dummy_object_upload(obj, url, callback=None):
+    from .object import ObjectReader
+    data = ObjectReader(obj, callback)
+    response = requests.put(url, data=data)
+    return response.ok
 
 
-class BaseStorageBackend:
-
-    def __init__(self, obj, callback=None):
-        self.object = obj
-        self.success = False
-        self.callback = callback
-
-    def _upload(self):
-        for chunk in self.object:
-            call(self.callback, 'object_upload', self.object)
-            yield chunk
-
-    def upload(self, url):
-        response = requests.put(url, data=self._upload())
-        if response.ok:
-            self.success = True
-
-
-class SwiftStorageBackend(BaseStorageBackend):
-    pass
+def swift_object_upload(*args, **kw):
+    return dummy_object_upload(*args, **kw)
 
 
 STORAGES = {
-    'dummy': BaseStorageBackend,
-    'swift': SwiftStorageBackend
+    'dummy': dummy_object_upload,
+    'swift': swift_object_upload,
 }
