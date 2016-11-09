@@ -15,7 +15,12 @@ def swift_object_upload(*args, **kw):
     return dummy_object_upload(*args, **kw)
 
 
+def s3_object_upload(*args, **kw):
+    return dummy_object_upload(*args, **kw)
+
+
 STORAGES = {
     'dummy': dummy_object_upload,
     'swift': swift_object_upload,
+    's3': s3_object_upload,
 }
