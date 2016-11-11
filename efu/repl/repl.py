@@ -1,6 +1,8 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+import os
+
 from prompt_toolkit import prompt
 from prompt_toolkit.contrib.completers import WordCompleter
 from prompt_toolkit.history import InMemoryHistory
@@ -9,6 +11,7 @@ from prompt_toolkit.contrib.regular_languages import compiler
 
 from .. import __version__
 from ..core import Package
+from ..utils import get_local_config_file
 
 from . import functions
 from .helpers import set_product_prompt
@@ -72,8 +75,12 @@ class EFURepl:
     })
 
     def __init__(self, package_fn=None):
+        self.local_config = get_local_config_file()
+
         if package_fn is not None:
             self.package = Package.from_file(package_fn)
+        elif os.path.exists(self.local_config):
+            self.package = Package.from_file(self.local_config)
         else:
             self.package = Package()
 
@@ -124,6 +131,8 @@ class EFURepl:
             command(self)
         except Exception as err:  # pylint: disable=broad-except
             print('ERROR: {}'.format(err))
+        else:  # save package in every successful command
+            self.package.dump(self.local_config)
 
 
 def efu_interactive(package):
