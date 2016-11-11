@@ -1,11 +1,9 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-from prompt_toolkit import prompt
-
 from ..core import Package
 
-from . import helpers
+from . import helpers, prompt
 
 
 # Product

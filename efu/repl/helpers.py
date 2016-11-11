@@ -3,10 +3,11 @@
 
 import os
 
-from prompt_toolkit import prompt
 from prompt_toolkit.contrib.completers import PathCompleter, WordCompleter
 
 from ..core.options import MODES, PACKAGE_MODE_BACKENDS
+
+from . import prompt
 
 
 def check_arg(ctx, msg):

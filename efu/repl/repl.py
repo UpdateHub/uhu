@@ -2,8 +2,8 @@
 # This software is released under the MIT License
 
 import os
+import sys
 
-from prompt_toolkit import prompt
 from prompt_toolkit.contrib.completers import WordCompleter
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter  # nopep8
@@ -13,7 +13,7 @@ from .. import __version__
 from ..core import Package
 from ..utils import get_local_config_file
 
-from . import functions
+from . import functions, prompt
 from .helpers import set_product_prompt
 
 
@@ -21,6 +21,7 @@ commands = {
     'cleanup': functions.clean_package,
     'show': functions.show_package,
     'save': functions.save_package,
+    'quit': lambda ctx: sys.exit(0),
 }
 
 groups = {
