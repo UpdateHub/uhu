@@ -27,6 +27,11 @@ def check_product(ctx):
         raise ValueError('You need to set a product first')
 
 
+def set_product_prompt(product):
+    ''' Sets prompt to be 'efu [product]' '''
+    return '[{}] efu> '.format(product[:6])
+
+
 def prompt_object_filename():
     ''' Prompts user for a valid filename '''
     msg = 'Choose a file to add into your package: '

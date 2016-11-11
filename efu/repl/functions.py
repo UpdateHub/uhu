@@ -14,7 +14,7 @@ def set_product_uid(ctx):
     ''' Set product UID '''
     helpers.check_arg(ctx, 'You need to pass a product id')
     ctx.package.product = ctx.arg
-    ctx.prompt = '[{}] efu> '.format(ctx.arg[:6])
+    ctx.prompt = helpers.set_product_prompt(ctx.arg)
 
 
 # Package

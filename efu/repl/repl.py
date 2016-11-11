@@ -11,6 +11,7 @@ from .. import __version__
 from ..core import Package
 
 from . import functions
+from .helpers import set_product_prompt
 
 
 commands = {
@@ -75,7 +76,12 @@ class EFURepl:
             self.package = Package.from_file(package_fn)
         else:
             self.package = Package()
-        self.prompt = 'efu> '
+
+        if self.package.product:
+            self.prompt = set_product_prompt(self.package.product)
+        else:
+            self.prompt = 'efu> '
+
         self.arg = None
         self.history = InMemoryHistory()
 

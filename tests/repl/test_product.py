@@ -1,8 +1,11 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+import os
+import tempfile
 import unittest
 
+from efu.core.package import Package
 from efu.repl.repl import EFURepl
 from efu.repl import functions
 
@@ -23,6 +26,14 @@ class ProductTestCase(unittest.TestCase):
         self.repl.arg = '123456789'
         functions.set_product_uid(self.repl)
         # only the first 6 chars must appears
+        self.assertEqual(self.repl.prompt, '[123456] efu> ')
+
+    def test_start_prompt_with_package_updates_prompt(self):
+        _, fn = tempfile.mkstemp()
+        self.addCleanup(os.remove, fn)
+        pkg = Package(product='123456789')
+        pkg.dump(fn)
+        self.repl = EFURepl(fn)
         self.assertEqual(self.repl.prompt, '[123456] efu> ')
 
     def test_set_product_raises_error_if_missing_product(self):
