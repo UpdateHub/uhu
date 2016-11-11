@@ -10,6 +10,7 @@ from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter
 from prompt_toolkit.contrib.regular_languages import compiler
 
 from .. import __version__
+from ..config import config, Sections
 from ..core import Package
 from ..utils import get_local_config_file
 
@@ -137,4 +138,10 @@ class EFURepl:
 
 
 def efu_interactive(package):
+    access = config.get('access_id', Sections.AUTH)
+    secret = config.get('access_secret', Sections.AUTH)
+    if not all([access, secret]):
+        access = prompt('EasyFOTA Access Key ID: ')
+        secret = prompt('EasyFota Systems Secret Access Key: ')
+        config.set_initial(access, secret)
     return EFURepl(package).repl()
