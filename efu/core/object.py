@@ -203,6 +203,7 @@ class Object:
         ''' Serialize object for dumping to a file '''
         options = deepcopy(self.options)
         options.update(self.install_condition)
+        options.pop('install-condition-version', None)
         return {
             'filename': self.filename,
             'mode': self.mode,

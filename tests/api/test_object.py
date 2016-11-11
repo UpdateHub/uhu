@@ -192,6 +192,13 @@ class ObjectSerializationTestCase(unittest.TestCase):
         self.assertEqual(options['chunk-size'], 131072)
         self.assertEqual(options['install-condition'], 'always')
 
+    def test_template_serializations_keeps_equal_after_object_load(self):
+        obj = Object(self.fn, 'raw', {'target-device': '/dev/sda'})
+        expected = obj.template()
+        obj.load()
+        observed = obj.template()
+        self.assertEqual(expected, observed)
+
 
 class CompressedObjectTestCase(unittest.TestCase):
 
