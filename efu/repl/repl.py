@@ -88,31 +88,42 @@ class EFURepl:
     def repl(self):
         print('EasyFOTA Utils {}'.format(__version__))
         while True:
-            input_ = prompt(
+            expression = prompt(
                 self.prompt, completer=self.completer, history=self.history)
-            expression = grammar.match(input_)
-            if expression is None:
+            try:
+                command = self.get_command(expression)
+            except TypeError:  # Invalid expression
                 print('ERROR: Invalid command')
                 continue
-            vars_ = expression.variables()
-            cmd = vars_.get('command')
-            cmd_group = vars_.get('group')
-            self.arg = vars_.get('arg')
-            if cmd is not None:
-                f = commands.get(cmd)
-            elif cmd_group is not None:
-                group = groups.get(cmd_group)
-                cmd = vars_.get(cmd_group)
-                f = group.get(cmd)
-            else:
+            except ValueError:  # Empty prompt
                 continue
-            if f is not None:
-                try:
-                    f(self)
-                except Exception as err:  # pylint: disable=broad-except
-                    print('ERROR: {}'.format(err))
             else:
-                print('ERROR: Invalid command')
+                self.run_command(command)
+
+    def get_command(self, expression):
+        expression = grammar.match(expression)
+
+        if expression is None:
+            raise TypeError
+
+        vars_ = expression.variables()
+        cmd, cmd_group = vars_.get('command'), vars_.get('group')
+        self.arg = vars_.get('arg')
+
+        if cmd is not None:
+            f = commands.get(cmd)
+        elif cmd_group is not None:
+            group, cmd = groups.get(cmd_group), vars_.get(cmd_group)
+            f = group.get(cmd)
+        else:
+            raise ValueError
+        return f
+
+    def run_command(self, command):
+        try:
+            command(self)
+        except Exception as err:  # pylint: disable=broad-except
+            print('ERROR: {}'.format(err))
 
 
 def efu_interactive(package):
