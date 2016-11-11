@@ -21,14 +21,14 @@ class PushCallback:
     def __init__(self):
         self.progress = None
 
-    def pre_package_load(self, package):  # pylint: disable=W0613
-        print('Start Reading package')
+    def pre_package_load(self):
+        print('Calculating objects checksums:')
 
-    def package_load(self, package):  # pylint: disable=W0613
+    def package_load(self):
         pass
 
-    def post_package_load(self, package):  # pylint: disable=W0613
-        print('Finish reading package')
+    def post_package_load(self):
+        pass
 
     def pre_object_read(self, obj):
         size = ceil(obj.size / obj.chunk_size)

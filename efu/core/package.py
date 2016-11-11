@@ -112,11 +112,11 @@ class Package:
             raise ValueError(err.format(revision, hardware))
 
     def load(self, callback=None):
-        call(callback, 'pre_package_load', self)
+        call(callback, 'pre_package_load')
         for obj in self.objects.all():
             obj.load(callback)
-            call(callback, 'package_load', self)
-        call(callback, 'post_package_load', self)
+            call(callback, 'package_load')
+        call(callback, 'post_package_load')
 
     def metadata(self):
         ''' Serialize package as metadata '''
@@ -185,7 +185,7 @@ class Package:
     def push(self, callback=None):
         self.upload_metadata(callback)
         self.upload_objects(callback)
-        self.finish_push()
+        self.finish_push(callback)
 
     def download_metadata(self):
         path = '/products/{}/packages/{}'.format(self.product, self.uid)
