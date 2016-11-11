@@ -7,7 +7,7 @@ from configparser import ConfigParser
 
 from click.testing import CliRunner
 
-from efu.config.config import Config, Sections
+from efu.config import Config, Sections
 from efu.utils import LOCAL_CONFIG_VAR
 from efu.cli.config import (
     cleanup_command, get_command, set_command, init_command)

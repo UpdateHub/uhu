@@ -1,7 +1,7 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-from efu.config.config import Config, Sections
+from efu.config import Config, Sections
 from efu.utils import GLOBAL_CONFIG_VAR
 
 from utils import EFUTestCase, EnvironmentFixtureMixin, FileFixtureMixin

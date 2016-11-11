@@ -4,7 +4,7 @@
 import configparser
 import os
 
-from ..utils import get_global_config_file
+from .utils import get_global_config_file
 
 
 class Sections:
@@ -12,7 +12,7 @@ class Sections:
     AUTH = 'auth'
 
 
-class Config(object):
+class Config:
     ''' This is the wrapper to manage ~/.efu configuration file. '''
 
     def __new__(cls):
@@ -59,3 +59,6 @@ class Config(object):
             section = Sections.MAIN
         value = self._config.get(section, key, fallback=None)
         return value
+
+
+config = Config()
