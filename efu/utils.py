@@ -81,6 +81,13 @@ def yes_or_no(value):
     return 'no'
 
 
+def str_wrapper(value, start='"', end='"'):
+    '''
+    Helper function to wrap a string between two strings.
+    '''
+    return '{}{}{}'.format(start, value, end)
+
+
 def indent(value, n):
     ''' Indent a multline string to right by n '''
     lines = value.split('\n')

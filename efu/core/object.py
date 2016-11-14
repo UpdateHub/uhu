@@ -14,7 +14,7 @@ from ..exceptions import DownloadError, UploadError
 from ..http import Request
 from ..utils import (
     call, get_chunk_size, get_server_url, get_uncompressed_size,
-    get_compressor_format, indent, yes_or_no)
+    get_compressor_format, indent, yes_or_no, str_wrapper)
 
 from .install_condition import (
     get_kernel_version, get_uboot_version, get_object_version)
@@ -31,7 +31,7 @@ OBJECT_STRING_TEMPLATE = OrderedDict([
             ])),
             ('truncate', OrderedDict([
                 ('display', 'truncate:'),
-                ('bool', True),
+                ('formatter', yes_or_no),
             ])),
             ('filesystem', OrderedDict([
                 ('display', 'filesystem:'),
@@ -40,24 +40,24 @@ OBJECT_STRING_TEMPLATE = OrderedDict([
     ])),
     ('format?', OrderedDict([
         ('display', 'Format device:'),
-        ('bool', True),
+        ('formatter', yes_or_no),
         ('children', OrderedDict([
             ('format-options', OrderedDict([
                 ('display', 'options:'),
-                ('wrap', True),
+                ('formatter', str_wrapper),
             ])),
         ])),
     ])),
     ('mount-options', OrderedDict([
         ('display', 'Mount options:'),
-        ('wrap', True),
+        ('formatter', str_wrapper),
     ])),
     ('target-path', OrderedDict([
         ('display', 'Target path:'),
     ])),
     ('chunk-size', OrderedDict([
         ('display', 'Chunk size:'),
-        ('bytes', True),
+        ('formatter', lambda value: naturalsize(value, binary=True)),
     ])),
     ('skip', OrderedDict([
         ('display', 'Skip from source:'),
@@ -304,12 +304,9 @@ class Object:
 
     def _str_value(self, option, conf):
         value = self.options.get(option)
-        if conf.get('bool', False):
-            value = yes_or_no(value)
-        if conf.get('wrap', False):
-            value = '"{}"'.format(value)
-        if conf.get('bytes', False):
-            value = naturalsize(value, binary=True)
+        formatter = conf.get('formatter', False)
+        if formatter:
+            value = formatter(value)
         return value
 
     def _str_children(self, conf):
