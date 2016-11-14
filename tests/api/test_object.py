@@ -36,6 +36,18 @@ class ObjectTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
         with self.assertRaises(RuntimeError):
             len(obj)
 
+    def test_can_update_object(self):
+        obj = Object(__file__, 'raw', {'target-device': '/dev/sda'})
+        self.assertEqual(obj.options['target-device'], '/dev/sda')
+        obj.update('target-device', '/dev/sdb')
+        self.assertEqual(obj.options['target-device'], '/dev/sdb')
+
+    def test_update_object_raises_error_if_invalid_option(self):
+        obj = Object(__file__, 'raw', {'target-device': '/dev/sda'})
+        with self.assertRaises(ValueError):
+            obj.update('target-path', '/')  # invalid in raw mode
+        self.assertIsNone(obj.options.get('target-path'))
+
 
 class LoadObjectTestCase(unittest.TestCase):
 

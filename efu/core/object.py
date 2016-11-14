@@ -211,6 +211,12 @@ class Object:
             'options': options,
         }
 
+    def update(self, option, value):
+        ''' Updates an object option '''
+        options = deepcopy(self.options)
+        options[option] = value
+        self.options = OptionsParser(self.mode, options).clean()
+
     def load(self, callback=None):
         self.size = os.path.getsize(self.filename)
         call(callback, 'pre_object_read', self)
@@ -370,13 +376,10 @@ class ObjectList:
         except IndexError:
             raise ValueError('Object not found')
 
-    def update(self, index, option, value):
+    def update(self, index, *args, **kwargs):
         ''' Given an object id, sets obj.option to value '''
         obj = self.get(index)
-        options = deepcopy(obj.options)
-        options[option] = value
-        options = OptionsParser(obj.mode, options).clean()
-        obj.options = options
+        obj.update(*args, **kwargs)
 
     def remove(self, index):
         ''' Removes an object '''
