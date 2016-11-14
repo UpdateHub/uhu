@@ -32,7 +32,8 @@ class PushCallback:
 
     def pre_object_read(self, obj):
         size = ceil(obj.size / obj.chunk_size)
-        self.progress = Bar(obj.filename, max=size)
+        suffix = '%(percent).0f%%'
+        self.progress = Bar(obj.filename, max=size, suffix=suffix)
 
     def object_read(self):
         self.progress.next()
