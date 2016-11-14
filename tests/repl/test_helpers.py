@@ -17,9 +17,9 @@ class PromptsTestCase(unittest.TestCase):
     @patch('efu.repl.helpers.prompt')
     def test_can_prompt_object_option(self, prompt):
         obj = Object(__file__, 'raw', {'target-device': '/'})
-        prompt.return_value = 'target-device'
-        observed = helpers.prompt_object_option(obj)
-        self.assertEqual(observed, 'target-device')
+        prompt.return_value = 'target device'
+        option = helpers.prompt_object_option(obj)
+        self.assertEqual(option.metadata, 'target-device')
 
     @patch('efu.repl.helpers.prompt')
     def test_prompt_object_option_raises_error_if_invalid_option(self, prompt):

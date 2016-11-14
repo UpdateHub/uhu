@@ -6,6 +6,7 @@ import os
 from prompt_toolkit.contrib.completers import PathCompleter, WordCompleter
 
 from ..core.options import MODES, PACKAGE_MODE_BACKENDS
+from ..utils import indent
 
 from . import prompt
 
@@ -68,26 +69,7 @@ def prompt_object_options(mode):
             option.validate_requirements(options)
         except ValueError:
             continue  # requirements not satisfied, skip this option
-        if option.default is not None:
-            default = option.default
-            if option.type == 'bool':
-                if default:
-                    default = 'Y/n'
-                else:
-                    default = 'y/N'
-            msg = '{} [{}]: '.format(option.verbose_name.title(), default)
-        else:
-            msg = '{}: '.format(option.verbose_name.title())
-        if option.choices:
-            completer = WordCompleter(option.choices)
-        elif option.type == 'bool':
-            completer = WordCompleter(['yes', 'no'])
-        else:
-            completer = WordCompleter([])
-        value = prompt(msg, completer=completer).strip()
-        value = value if value != '' else option.default
-        cleaned_value = option.convert(value)
-        options[option.metadata] = cleaned_value
+        options[option.metadata] = prompt_object_option_value(option)
     return options
 
 
@@ -117,18 +99,36 @@ def prompt_object_uid(ctx, msg, index):
 def prompt_object_option(obj):
     ''' Prompts user for an object option '''
     mode = MODES[obj.mode]
-    options = [option.metadata for option in mode]
-    completer = WordCompleter(options)
-    option = prompt('  Choose an option: ', completer=completer)
-    if option not in options:
+    options = {option.verbose_name: option for option in mode}
+    completer = WordCompleter(sorted(options))
+    option = options.get(prompt('  Choose an option: ', completer=completer))
+    if option is None:
         raise ValueError('"{}" is not a valid option.'.format(option))
     return option
 
 
-def prompt_object_option_value(option):
+def prompt_object_option_value(option, indent_level=0):
     ''' Prompts user for object option value '''
-    # Option validation could be made here
-    return prompt('  Set new value for "{}": '.format(option))
+    if option.default is not None:
+        default = option.default
+        if option.type == 'bool':
+            if default:
+                default = 'Y/n'
+            else:
+                default = 'y/N'
+        msg = '{} [{}]'.format(option.verbose_name.title(), default)
+    else:
+        msg = '{}'.format(option.verbose_name.title())
+    if option.choices:
+        completer = WordCompleter(option.choices)
+    elif option.type == 'bool':
+        completer = WordCompleter(['yes', 'no'])
+    else:
+        completer = WordCompleter([])
+    msg = indent(msg, indent_level, all_lines=True)
+    value = prompt('{}: '.format(msg), completer=completer).strip()
+    value = value if value != '' else option.default
+    return option.convert(value)
 
 
 def prompt_package_uid():

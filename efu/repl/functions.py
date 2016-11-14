@@ -97,8 +97,8 @@ def edit_object(ctx):
     uid = helpers.prompt_object_uid(ctx, msg, index)
     obj = ctx.package.objects.get(uid, index=index)
     option = helpers.prompt_object_option(obj)
-    value = helpers.prompt_object_option_value(option)
-    ctx.package.objects.update(uid, option, value, index=index)
+    value = helpers.prompt_object_option_value(option, indent_level=2)
+    ctx.package.objects.update(uid, option.metadata, value, index=index)
 
 
 # Transactions

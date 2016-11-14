@@ -115,32 +115,32 @@ class PackageTestCase(unittest.TestCase):
             functions.remove_object(self.repl)
 
     def test_can_edit_object(self):
-        helpers.prompt.side_effect = ['0', 'skip', '200']
+        helpers.prompt.side_effect = ['0', 'count', '200']
         self.repl.package.objects.add_list()
         self.repl.package.objects.add(__file__, 'raw', {
             'target-device': '/',
-            'skip': 100,
+            'count': 100,
         })
         obj = self.repl.package.objects.get(0)
-        self.assertEqual(obj.options['skip'], 100)
+        self.assertEqual(obj.options['count'], 100)
         functions.edit_object(self.repl)
         obj = self.repl.package.objects.get(0)
-        self.assertEqual(obj.options['skip'], 200)
+        self.assertEqual(obj.options['count'], 200)
 
     @patch('efu.repl.helpers.prompt')
     def test_can_edit_object_within_index(self, prompt):
-        prompt.side_effect = ['1', '0', 'skip', '200']
+        prompt.side_effect = ['1', '0', 'count', '200']
         self.repl.package.objects.add_list()
         self.repl.package.objects.add_list()
         self.repl.package.objects.add(__file__, 'raw', {
-            'target-device': '/', 'skip': 100}, index=0)
+            'target-device': '/', 'count': 100}, index=0)
         self.repl.package.objects.add(__file__, 'raw', {
-            'target-device': '/', 'skip': 100}, index=1)
+            'target-device': '/', 'count': 100}, index=1)
         obj = self.repl.package.objects.get(0, index=1)
-        self.assertEqual(obj.options['skip'], 100)
+        self.assertEqual(obj.options['count'], 100)
         functions.edit_object(self.repl)
         obj = self.repl.package.objects.get(0, index=1)
-        self.assertEqual(obj.options['skip'], 200)
+        self.assertEqual(obj.options['count'], 200)
 
     def test_edit_object_raises_error_if_invalid_uid(self):
         helpers.prompt.side_effect = ['23']
