@@ -43,6 +43,11 @@ class UtilsTestCase(EnvironmentFixtureMixin, EFUTestCase):
         observed = utils.get_server_url('/test')
         self.assertEqual(observed, 'http://ossystems.com.br/test')
 
+    def test_get_server_url_strips_slashes(self):
+        os.environ[utils.SERVER_URL_VAR] = 'http://ossystems.com.br/'
+        observed = utils.get_server_url()
+        self.assertEqual(observed, 'http://ossystems.com.br')
+
     def test_yes_or_no_returns_yes_if_true(self):
         expected = 'yes'
         observed = utils.yes_or_no(True)

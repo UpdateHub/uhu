@@ -30,7 +30,7 @@ def get_chunk_size():
 
 
 def get_server_url(path=None):
-    url = os.environ.get(SERVER_URL_VAR, DEFAULT_SERVER_URL)
+    url = os.environ.get(SERVER_URL_VAR, DEFAULT_SERVER_URL).strip('/')
     if path is not None:
         url = ''.join((url, path))
     return url
