@@ -3,6 +3,7 @@
 
 import json
 import os
+import unittest
 from unittest.mock import patch
 
 from jsonschema.exceptions import ValidationError
@@ -48,6 +49,18 @@ class UtilsTestCase(EnvironmentFixtureMixin, EFUTestCase):
         observed = utils.get_server_url()
         self.assertEqual(observed, 'http://ossystems.com.br')
 
+    def test_can_get_default_global_config_file(self):
+        observed = utils.get_global_config_file()
+        self.assertEqual(observed, utils.DEFAULT_GLOBAL_CONFIG_FILE)
+
+    def test_can_get_config_file_by_environment_variable(self):
+        os.environ[utils.GLOBAL_CONFIG_VAR] = '/tmp/super_file'
+        observed = utils.get_global_config_file()
+        self.assertEqual(observed, '/tmp/super_file')
+
+
+class StrinUtilsTestCase(unittest.TestCase):
+
     def test_yes_or_no_returns_yes_if_true(self):
         expected = 'yes'
         observed = utils.yes_or_no(True)
@@ -58,14 +71,15 @@ class UtilsTestCase(EnvironmentFixtureMixin, EFUTestCase):
         observed = utils.yes_or_no(False)
         self.assertEqual(expected, observed)
 
-    def test_can_get_default_global_config_file(self):
-        observed = utils.get_global_config_file()
-        self.assertEqual(observed, utils.DEFAULT_GLOBAL_CONFIG_FILE)
+    def test_can_indent_text(self):
+        expected = '1\n  2\n  3'
+        observed = utils.indent('1\n2\n3\n', 2)
+        self.assertEqual(expected, observed)
 
-    def test_can_get_config_file_by_environment_variable(self):
-        os.environ[utils.GLOBAL_CONFIG_VAR] = '/tmp/super_file'
-        observed = utils.get_global_config_file()
-        self.assertEqual(observed, '/tmp/super_file')
+    def test_can_indent_all_lines(self):
+        expected = '  1\n  2\n  3\n'
+        observed = utils.indent('1\n2\n3\n', 2, all_lines=True)
+        self.assertEqual(expected, observed)
 
 
 class LocalConfigTestCase(

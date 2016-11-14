@@ -88,12 +88,21 @@ def str_wrapper(value, start='"', end='"'):
     return '{}{}{}'.format(start, value, end)
 
 
-def indent(value, n):
-    ''' Indent a multline string to right by n '''
+def indent(value, n, all_lines=False):
+    '''
+    Indent a multline string to right by n.
+
+    If all_lines is set to True, the first line will also be indeted,
+    otherwise, first line will be 0 padded. This is so since we can
+    attach the generated string in an already indented line.
+    '''
     lines = value.split('\n')
     padding = n * ' '
     lines = ['{}{}'.format(padding, line).rstrip() for line in lines]
-    return '\n'.join(lines).strip()
+    text = '\n'.join(lines)
+    if all_lines:
+        return text
+    return text.strip()
 
 
 # Compressed file utilities
