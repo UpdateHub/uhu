@@ -3,4 +3,4 @@ raw_full.txt [mode: raw]
     Target device:     /dev/sda [seek: 0, truncate: no]
     Chunk size:        128.0 KiB
     Skip from source:  0
-    Count:             -1
+    Count:             all content

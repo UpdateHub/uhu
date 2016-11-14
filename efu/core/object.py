@@ -64,6 +64,7 @@ OBJECT_STRING_TEMPLATE = OrderedDict([
     ])),
     ('count', OrderedDict([
         ('display', 'Count:'),
+        ('formatter', lambda value: 'all content' if value == -1 else value)
     ])),
 ])
 

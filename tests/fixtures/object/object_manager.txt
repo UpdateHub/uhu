@@ -7,14 +7,14 @@ Objects:
             Target device:     /dev/sda [seek: 0, truncate: no]
             Chunk size:        128.0 KiB
             Skip from source:  0
-            Count:             -1
+            Count:             all content
 
         1# object_manager.txt [mode: raw]
 
             Target device:     /dev/sda [seek: 0, truncate: no]
             Chunk size:        128.0 KiB
             Skip from source:  0
-            Count:             -1
+            Count:             all content
 
     1# Installation Set:
 
@@ -23,11 +23,11 @@ Objects:
             Target device:     /dev/sda [seek: 0, truncate: no]
             Chunk size:        128.0 KiB
             Skip from source:  0
-            Count:             -1
+            Count:             all content
 
         1# object_manager.txt [mode: raw]
 
             Target device:     /dev/sda [seek: 0, truncate: no]
             Chunk size:        128.0 KiB
             Skip from source:  0
-            Count:             -1
+            Count:             all content
