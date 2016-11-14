@@ -52,3 +52,10 @@ class UploadTestCase(
             upload_success=False)
         result = self.obj.upload(self.product_uid, self.package_uid)
         self.assertEqual(result, ObjectUploadResult.FAIL)
+
+    def test_can_upload_compressed_object_from_symbolic_link(self):
+        fn = 'tests/fixtures/compressed/symbolic.gz'
+        obj = Object(fn, 'raw', {'target-device': '/dev/sda'})
+        self.create_upload_conf(obj, self.product_uid, self.package_uid)
+        result = obj.upload(self.product_uid, self.package_uid)
+        self.assertEqual(result, ObjectUploadResult.SUCCESS)

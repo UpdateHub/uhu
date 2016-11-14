@@ -161,6 +161,11 @@ class CompressedObjectTestCase(FileFixtureMixin, EFUTestCase):
             os.path.join(self.fixtures_dir, 'archive.tar'))
         self.assertEqual(observed, expected)
 
+    def test_can_get_symbolic_link_uncompressed_size(self):
+        fn = os.path.join(self.fixtures_dir, 'symbolic.gz')
+        observed = utils.get_uncompressed_size(fn, 'gzip')
+        self.assertEqual(observed, self.size)
+
     def test_uncompressed_size_raises_error_if_not_supported_by_efu(self):
         fn = os.path.join(self.fixtures_dir, 'base.txt.bz2')
         with self.assertRaises(ValueError):
@@ -192,6 +197,11 @@ class CompressedObjectTestCase(FileFixtureMixin, EFUTestCase):
         fn = os.path.join(self.fixtures_dir, 'base.txt.xz')
         observed = utils.get_compressor_format(fn)
         self.assertEqual(observed, 'xz')
+
+    def test_can_get_compressor_format_from_symbolic_link(self):
+        fn = os.path.join(self.fixtures_dir, 'symbolic.gz')
+        observed = utils.get_compressor_format(fn)
+        self.assertEqual(observed, 'gzip')
 
     def test_get_compressor_format_returns_None_if_not_supported_by_efu(self):
         fn = os.path.join(self.fixtures_dir, 'base.txt.bz2')

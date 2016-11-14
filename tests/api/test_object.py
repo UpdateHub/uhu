@@ -247,8 +247,20 @@ class CompressedObjectTestCase(unittest.TestCase):
         obj = Object(fn, mode='raw', options={'target-device': '/'})
         self.assertIsNone(obj.uncompressed_size)
 
+    def test_can_work_with_symbolic_links(self):
+        fn = os.path.join(self.fixtures_dir, 'symbolic.gz')
+        obj = Object(fn, mode='raw', options={'target-device': '/'})
+        self.assertEqual(obj.uncompressed_size, self.size)
+
     def test_can_represent_compressed_object_as_metadata(self):
         fn = os.path.join(self.fixtures_dir, 'base.txt.lzo')
+        obj = Object(fn, mode='raw', options={'target-device': '/'})
+        metadata = obj.metadata()
+        self.assertTrue(metadata['compressed'])
+        self.assertEqual(metadata['required-uncompressed-size'], self.size)
+
+    def test_can_represent_compressed_object_of_symlink_as_metadata(self):
+        fn = os.path.join(self.fixtures_dir, 'symbolic.gz')
         obj = Object(fn, mode='raw', options={'target-device': '/'})
         metadata = obj.metadata()
         self.assertTrue(metadata['compressed'])
