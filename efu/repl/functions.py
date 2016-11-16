@@ -1,9 +1,19 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+from ..config import config
 from ..core import Package
 
 from . import helpers, prompt
+
+
+# Config
+
+def set_authentication():
+    ''' Sets user access and secret keys. '''
+    access = prompt('EasyFOTA Access Key ID: ')
+    secret = prompt('EasyFota Systems Secret Access Key: ')
+    config.set_initial(access, secret)
 
 
 # Product

@@ -20,9 +20,10 @@ from .helpers import set_product_prompt
 
 commands = {
     'cleanup': functions.clean_package,
+    'auth': lambda _: functions.set_authentication(),
+    'quit': lambda _: sys.exit(0),
     'show': functions.show_package,
     'save': functions.save_package,
-    'quit': lambda ctx: sys.exit(0),
 }
 
 groups = {
@@ -141,7 +142,5 @@ def efu_interactive(package):
     access = config.get('access_id', Sections.AUTH)
     secret = config.get('access_secret', Sections.AUTH)
     if not all([access, secret]):
-        access = prompt('EasyFOTA Access Key ID: ')
-        secret = prompt('EasyFota Systems Secret Access Key: ')
-        config.set_initial(access, secret)
+        functions.set_authentication()
     return EFURepl(package).repl()
