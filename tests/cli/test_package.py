@@ -42,10 +42,10 @@ class SetActiveBackupBackendTestCase(PackageTestCase):
     def test_can_set_active_backup_backend(self):
         pkg = Package.from_file(self.pkg_fn)
         self.assertIsNone(pkg.active_backup_backend)
-        result = self.runner.invoke(set_active_backup_backend, ['grub2'])
+        result = self.runner.invoke(set_active_backup_backend, ['u-boot'])
         self.assertEqual(result.exit_code, 0)
         pkg = Package.from_file(self.pkg_fn)
-        self.assertEqual(pkg.active_backup_backend, 'grub2')
+        self.assertEqual(pkg.active_backup_backend, 'u-boot')
 
     def test_set_active_backup_backend_returns_2_if_invalid_backend(self):
         pkg = Package.from_file(self.pkg_fn)
@@ -357,7 +357,7 @@ class ExportCommandTestCase(PackageTestCase):
         pkg = Package(product=self.product)
         pkg.objects.add_list()
         pkg.objects.add(self.obj_fn, mode='raw', options=self.obj_options)
-        pkg.active_backup_backend = 'grub2'
+        pkg.active_backup_backend = 'u-boot'
         pkg.dump(self.pkg_fn)
         self.dest_pkg_fn = '/tmp/pkg-dump'
         self.addCleanup(self.remove_file, self.dest_pkg_fn)
@@ -367,7 +367,7 @@ class ExportCommandTestCase(PackageTestCase):
             'product': self.product,
             'version': None,
             'supported-hardware': {},
-            'active-backup-backend': 'grub2',
+            'active-backup-backend': 'u-boot',
             'objects': [
                 [
                     {

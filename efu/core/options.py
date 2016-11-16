@@ -8,7 +8,7 @@ from collections import OrderedDict
 from copy import deepcopy
 
 
-PACKAGE_MODE_BACKENDS = ['grub2', 'u-boot']
+PACKAGE_MODE_BACKENDS = ['u-boot']
 INSTALL_CONDITION_BACKENDS = ['linux-kernel', 'u-boot']
 
 

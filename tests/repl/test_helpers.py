@@ -114,9 +114,9 @@ class PromptsTestCase(unittest.TestCase):
 
     @patch('efu.repl.helpers.prompt')
     def test_can_prompt_active_backup_backend(self, prompt):
-        prompt.return_value = 'grub2'
+        prompt.return_value = 'u-boot'
         observed = helpers.prompt_active_backup_backend()
-        self.assertEqual(observed, 'grub2')
+        self.assertEqual(observed, 'u-boot')
 
     @patch('efu.repl.helpers.prompt')
     def test_prompt_active_backup_backend_raises_if_invalid(self, prompt):

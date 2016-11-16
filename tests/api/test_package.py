@@ -44,8 +44,8 @@ class ActiveBackupTestCase(PackageTestCase):
         self.pkg.objects.add_list()
 
     def test_can_set_active_backup_backend(self):
-        self.pkg.active_backup_backend = 'grub2'
-        self.assertEqual(self.pkg.active_backup_backend, 'grub2')
+        self.pkg.active_backup_backend = 'u-boot'
+        self.assertEqual(self.pkg.active_backup_backend, 'u-boot')
         self.pkg.active_backup_backend = 'u-boot'
         self.assertEqual(self.pkg.active_backup_backend, 'u-boot')
 
@@ -75,7 +75,7 @@ class PackageConstructorsTestCase(PackageTestCase):
             'product': self.product,
             'version': self.version,
             'supported-hardware': self.supported_hardware,
-            'active-backup-backend': 'grub2',
+            'active-backup-backend': 'u-boot',
             'objects': [
                 [
                     {
@@ -95,7 +95,7 @@ class PackageConstructorsTestCase(PackageTestCase):
         self.assertEqual(pkg.version, self.version)
         self.assertEqual(pkg.product, self.product)
         self.assertEqual(pkg.supported_hardware, self.supported_hardware)
-        self.assertEqual(pkg.active_backup_backend, 'grub2')
+        self.assertEqual(pkg.active_backup_backend, 'u-boot')
         self.assertEqual(len(pkg), 1)
         obj = pkg.objects.get(0)
         self.assertEqual(obj.filename, self.obj_fn)
@@ -109,7 +109,7 @@ class PackageConstructorsTestCase(PackageTestCase):
         metadata = {
             'product': self.product,
             'version': self.version,
-            'active-backup-backend': 'grub2',
+            'active-backup-backend': 'u-boot',
             'objects': [
                 [
                     {
@@ -127,7 +127,7 @@ class PackageConstructorsTestCase(PackageTestCase):
         pkg = Package.from_metadata(metadata)
         self.assertEqual(pkg.version, self.version)
         self.assertEqual(pkg.product, self.product)
-        self.assertEqual(pkg.active_backup_backend, 'grub2')
+        self.assertEqual(pkg.active_backup_backend, 'u-boot')
         self.assertEqual(len(pkg), 1)
         obj = pkg.objects.get(0)
         self.assertEqual(obj.filename, self.obj_fn)
