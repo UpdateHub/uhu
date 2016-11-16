@@ -91,7 +91,7 @@ class Object:
     DEVICE_OPTIONS = ['truncate', 'seek', 'filesystem']
 
     def __init__(self, fn, mode, options, compressed=None):
-        self.filename = fn
+        self.filename = self.validate_filename(fn)
         self.mode = mode
         self.options = OptionsParser(self.mode, options).clean()
 
@@ -105,6 +105,15 @@ class Object:
         self._compressed = compressed
 
         self.chunk_size = get_chunk_size()
+
+    def validate_filename(self, fn):
+        ''' Validates if a given filename is not an invalid filename. '''
+        error_msg = '"{}" is not a valid filename.'.format(fn)
+        if not isinstance(fn, str):
+            raise TypeError(error_msg)
+        if not fn:  # checks if filename is not an empty string
+            raise ValueError(error_msg)
+        return fn
 
     def _init_install_condition(self):
         condition = self.options.pop('install-condition')

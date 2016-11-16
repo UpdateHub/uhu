@@ -48,6 +48,12 @@ class ObjectTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
             obj.update('target-path', '/')  # invalid in raw mode
         self.assertIsNone(obj.options.get('target-path'))
 
+    def test_object_raises_error_if_invalid_filename(self):
+        with self.assertRaises(ValueError):
+            Object('', 'raw', {'target-device': '/'})
+        with self.assertRaises(TypeError):
+            Object(lambda: 'bad filename type', 'raw', {'target-device': '/'})
+
 
 class LoadObjectTestCase(unittest.TestCase):
 
