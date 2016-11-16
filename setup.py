@@ -23,7 +23,7 @@ setup(
     },
     install_requires=[
         'click>=6.5',
-        'jsonschema>=2',
+        'jsonschema>=2.3.0',
         'humanize>=0.5.1',
         'progress>=1.1',
         'prompt-toolkit>=0.57',
