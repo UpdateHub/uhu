@@ -9,7 +9,7 @@ from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter  # nopep8
 from prompt_toolkit.contrib.regular_languages import compiler
 
-from .. import __version__
+from .. import get_efu_version
 from ..config import config, Sections
 from ..core import Package
 from ..utils import get_local_config_file
@@ -96,7 +96,7 @@ class EFURepl:
         self.history = InMemoryHistory()
 
     def repl(self):
-        print('EasyFOTA Utils {}'.format(__version__))
+        print('EasyFOTA Utils {}'.format(get_efu_version()))
         while True:
             expression = prompt(
                 self.prompt, completer=self.completer, history=self.history)

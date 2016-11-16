@@ -3,14 +3,14 @@
 
 from setuptools import find_packages, setup
 
-from efu import __version__
+from efu import get_efu_version
 
 
 setup(
     name='easyfota-utils',
     description='Easy Firmware Over The Air command line utility',
     keywords='fota ota firmware update utility',
-    version=__version__,
+    version=get_efu_version(),
     packages=find_packages(exclude=['tests*']),
     package_data={
         'efu': [

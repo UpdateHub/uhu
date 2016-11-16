@@ -3,6 +3,7 @@
 
 import click
 
+from .. import get_efu_version
 from ..repl import efu_interactive
 
 from .config import config_cli, cleanup_command
@@ -13,6 +14,8 @@ from .product import product_cli
 
 @click.group(invoke_without_command=True)
 @click.option('--package', type=click.Path())
+@click.version_option(
+    get_efu_version(), message='EasyFOTA Utils - %(version)s')
 @click.pass_context
 def cli(ctx, package):
     ''' EasyFOTA utility '''
