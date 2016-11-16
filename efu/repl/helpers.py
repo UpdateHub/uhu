@@ -5,7 +5,7 @@ import os
 
 from prompt_toolkit.contrib.completers import PathCompleter, WordCompleter
 
-from ..core.options import MODES, PACKAGE_MODE_BACKENDS
+from ..core.options import MODES, Option, PACKAGE_MODE_BACKENDS
 from ..utils import indent
 
 from . import prompt
@@ -34,10 +34,11 @@ def set_product_prompt(product):
     return '[{}] efu> '.format(product[:6])
 
 
-def prompt_object_filename():
+def prompt_object_filename(msg=None, indent_level=0):
     ''' Prompts user for a valid filename '''
-    msg = 'Choose a file to add into your package: '
-    fn = prompt(msg, completer=PathCompleter()).strip()
+    msg = 'Choose a file to add into your package' if msg is None else msg
+    msg = indent(msg, indent_level, all_lines=True)
+    fn = prompt('{}: '.format(msg), completer=PathCompleter()).strip()
     if not fn:
         raise ValueError('You must specify a file.')
     if not os.path.exists(fn):
@@ -100,15 +101,22 @@ def prompt_object_option(obj):
     ''' Prompts user for an object option '''
     mode = MODES[obj.mode]
     options = {option.verbose_name: option for option in mode}
+
+    # hack to let user update object filename
+    options['filename'] = Option({'metadata': 'filename'})
+
     completer = WordCompleter(sorted(options))
-    option = options.get(prompt('  Choose an option: ', completer=completer))
+    value = prompt('  Choose an option: ', completer=completer)
+    option = options.get(value)
     if option is None:
-        raise ValueError('"{}" is not a valid option.'.format(option))
+        raise ValueError('"{}" is not a valid option.'.format(value))
     return option
 
 
 def prompt_object_option_value(option, indent_level=0):
     ''' Prompts user for object option value '''
+    if option.metadata == 'filename':
+        return prompt_object_filename('Select a new file', indent_level=2)
     if option.default is not None:
         default = option.default
         if option.type == 'bool':

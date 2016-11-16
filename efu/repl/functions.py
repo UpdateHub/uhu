@@ -93,7 +93,7 @@ def remove_object(ctx):
 def edit_object(ctx):
     ''' Edit an object within the current package '''
     index = helpers.prompt_installation_set(ctx, empty=False)
-    msg = 'Choose a file to edit: '
+    msg = 'Choose a object to edit: '
     uid = helpers.prompt_object_uid(ctx, msg, index)
     obj = ctx.package.objects.get(uid, index=index)
     option = helpers.prompt_object_option(obj)

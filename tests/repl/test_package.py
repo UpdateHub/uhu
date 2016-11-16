@@ -2,6 +2,7 @@
 # This software is released under the MIT License
 
 import os
+import tempfile
 import unittest
 from unittest.mock import Mock, patch
 
@@ -126,6 +127,18 @@ class PackageTestCase(unittest.TestCase):
         functions.edit_object(self.repl)
         obj = self.repl.package.objects.get(0)
         self.assertEqual(obj.options['count'], 200)
+
+    @patch('efu.repl.helpers.prompt')
+    def test_can_edit_object_filename(self, prompt):
+        with tempfile.NamedTemporaryFile() as fp:
+            prompt.side_effect = ['0', 'filename', fp.name]
+            self.repl.package.objects.add_list()
+            self.repl.package.objects.add(
+                __file__, 'raw', {'target-device': '/'})
+            obj = self.repl.package.objects.get(0)
+            self.assertEqual(obj.filename, __file__)
+            functions.edit_object(self.repl)
+            self.assertEqual(obj.filename, fp.name)
 
     @patch('efu.repl.helpers.prompt')
     def test_can_edit_object_within_index(self, prompt):
