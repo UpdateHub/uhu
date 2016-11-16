@@ -223,9 +223,12 @@ class Object:
 
     def update(self, option, value):
         ''' Updates an object option '''
-        options = deepcopy(self.options)
-        options[option] = value
-        self.options = OptionsParser(self.mode, options).clean()
+        if option == 'filename':
+            self.filename = self.validate_filename(value)
+        else:
+            options = deepcopy(self.options)
+            options[option] = value
+            self.options = OptionsParser(self.mode, options).clean()
 
     def load(self, callback=None):
         self.size = os.path.getsize(self.filename)
