@@ -5,7 +5,8 @@
 from ..config import config
 from ..core import Package
 
-from . import helpers, prompt
+from . import helpers
+from .helpers import prompt
 
 
 # Config

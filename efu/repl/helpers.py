@@ -3,16 +3,37 @@
 """EFU REPL helper functions.
 
 Includes reusable prompts, auto-completers, constraint checkers.
-
 """
-import os
 
+import os
+import sys
+from functools import partial
+
+from prompt_toolkit import prompt
 from prompt_toolkit.contrib.completers import PathCompleter, WordCompleter
+from prompt_toolkit.key_binding.manager import KeyBindingManager
+from prompt_toolkit.keys import Keys
 
 from ..core.options import MODES, Option, PACKAGE_MODE_BACKENDS
 from ..utils import indent
 
-from . import prompt
+
+manager = KeyBindingManager.for_prompt()
+
+
+@manager.registry.add_binding(Keys.ControlD)
+def ctrl_d(event):
+    """Ctrl D quits appliaction returning 0 to sys."""
+    event.cli.run_in_terminal(sys.exit(0))
+
+
+@manager.registry.add_binding(Keys.ControlC)
+def ctrl_c(event):
+    """Ctrl C quits appliaction returning 1 to sys."""
+    event.cli.run_in_terminal(sys.exit(1))
+
+
+prompt = partial(prompt, key_bindings_registry=manager.registry)
 
 
 def check_arg(ctx, msg):

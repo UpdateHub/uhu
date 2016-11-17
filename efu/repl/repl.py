@@ -15,8 +15,8 @@ from ..config import config, Sections
 from ..core import Package
 from ..utils import get_local_config_file
 
-from . import functions, prompt
-from .helpers import set_product_prompt
+from . import functions
+from .helpers import prompt, set_product_prompt
 
 
 COMMANDS = {
