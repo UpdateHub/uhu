@@ -1,5 +1,6 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
+"""EFU REPL, an interactive prompt to work with EasyFOTA."""
 
 import os
 import sys
@@ -18,7 +19,7 @@ from . import functions, prompt
 from .helpers import set_product_prompt
 
 
-commands = {
+COMMANDS = {
     'cleanup': functions.clean_package,
     'auth': lambda _: functions.set_authentication(),
     'quit': lambda _: sys.exit(0),
@@ -26,7 +27,7 @@ commands = {
     'save': functions.save_package,
 }
 
-groups = {
+GROUPS = {
     'product': {
         'use': functions.set_product_uid,
     },
@@ -52,7 +53,7 @@ groups = {
 }
 
 
-grammar = compiler.compile(r'''
+GRAMMAR = compiler.compile(r'''
 (\s* (?P<group>product) \s+ (?P<product>[a-z]+) \s+ (?P<arg>.+?) \s*) |
 (\s* (?P<group>product) \s+ (?P<product>[a-z]+) \s*) |
 
@@ -68,16 +69,32 @@ grammar = compiler.compile(r'''
 
 
 class EFURepl:
+    """The main class for EFU REPL."""
 
-    completer = GrammarCompleter(grammar, {
-        'command': WordCompleter(commands),
-        'group': WordCompleter(groups),
-        'hardware': WordCompleter(groups['hardware']),
-        'product': WordCompleter(groups['product']),
-        'package': WordCompleter(groups['package'])
+    completer = GrammarCompleter(GRAMMAR, {
+        'command': WordCompleter(COMMANDS),
+        'group': WordCompleter(GROUPS),
+        'hardware': WordCompleter(GROUPS['hardware']),
+        'product': WordCompleter(GROUPS['product']),
+        'package': WordCompleter(GROUPS['package'])
     })
 
     def __init__(self, package_fn=None):
+        """Creates a new interactive prompt.
+
+        The interactive prompt will work using an exisiting
+        configuration file (if it exists).
+
+        It is also able to load an existing configuration file placed
+        in a non standard place if REPL is created using the
+        `package_fn`.
+
+        Finally, if there is no configuration file present in the
+        working directory, neighter a package file is explicty passed,
+        `EFURepl` will create a new one.
+
+        :param package_fn: An EFU package filename.
+        """
         self.local_config = get_local_config_file()
 
         if package_fn is not None:
@@ -96,6 +113,7 @@ class EFURepl:
         self.history = InMemoryHistory()
 
     def repl(self):
+        """Starts a new interactive prompt."""
         print('EasyFOTA Utils {}'.format(get_efu_version()))
         while True:
             expression = prompt(
@@ -111,7 +129,12 @@ class EFURepl:
                 self.run_command(command)
 
     def get_command(self, expression):
-        expression = grammar.match(expression)
+        """Given an expression, returns a valid command.
+
+        :param expression: The full expression typed by user on
+                           prompt.
+        """
+        expression = GRAMMAR.match(expression)
 
         if expression is None:
             raise TypeError
@@ -121,15 +144,20 @@ class EFURepl:
         self.arg = vars_.get('arg')
 
         if cmd is not None:
-            f = commands.get(cmd)
+            command = COMMANDS.get(cmd)
         elif cmd_group is not None:
-            group, cmd = groups.get(cmd_group), vars_.get(cmd_group)
-            f = group.get(cmd)
+            group, cmd = GROUPS.get(cmd_group), vars_.get(cmd_group)
+            command = group.get(cmd)
         else:
-            raise ValueError
-        return f
+            raise ValueError('Invalid command')
+        return command
 
     def run_command(self, command):
+        """Executes an given command.
+
+        If command runs successfully, persists the configuration state
+        into a file. Otherwise, shows the error message to user.
+        """
         try:
             command(self)
         except Exception as err:  # pylint: disable=broad-except
@@ -139,6 +167,11 @@ class EFURepl:
 
 
 def efu_interactive(package):
+    """Instantiates a new EFURepl.
+
+    Before creating a new instance, checks if server authentication is
+    set. If not, prompts user for its credentials.
+    """
     access = config.get('access_id', Sections.AUTH)
     secret = config.get('access_secret', Sections.AUTH)
     if not all([access, secret]):

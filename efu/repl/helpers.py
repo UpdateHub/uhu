@@ -1,6 +1,10 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
+"""EFU REPL helper functions.
 
+Includes reusable prompts, auto-completers, constraint checkers.
+
+"""
 import os
 
 from prompt_toolkit.contrib.completers import PathCompleter, WordCompleter
@@ -12,44 +16,53 @@ from . import prompt
 
 
 def check_arg(ctx, msg):
-    ''' Checks if user has passed an argument '''
+    """Checks if user has passed an argument.
+
+    :param msg: The error message to display to the user in when an
+                argument is not passed.
+    """
     if ctx.arg is None:
         raise ValueError(msg)
 
 
 def check_version(ctx):
-    ''' Checks if package already has a version '''
+    """Checks if package already has a version."""
     if ctx.package.version is None:
         raise ValueError('You need to set a version first')
 
 
 def check_product(ctx):
-    ''' Checks if product is already set '''
+    """Checks if product is already set."""
     if ctx.package.product is None:
         raise ValueError('You need to set a product first')
 
 
 def set_product_prompt(product):
-    ''' Sets prompt to be 'efu [product]' '''
+    """Sets prompt to be 'efu [product]'."""
     return '[{}] efu> '.format(product[:6])
 
 
 def prompt_object_filename(msg=None, indent_level=0):
-    ''' Prompts user for a valid filename '''
+    """Prompts user for a valid filename.
+
+    :param msg: The prompt message to display to user.
+    :param indent_level: Controls how many spaces must be added before
+                         `msg`.
+    """
     msg = 'Choose a file to add into your package' if msg is None else msg
     msg = indent(msg, indent_level, all_lines=True)
-    fn = prompt('{}: '.format(msg), completer=PathCompleter()).strip()
-    if not fn:
+    filename = prompt('{}: '.format(msg), completer=PathCompleter()).strip()
+    if not filename:
         raise ValueError('You must specify a file.')
-    if not os.path.exists(fn):
-        raise ValueError('"{}" does not exist.'.format(fn))
-    if os.path.isdir(fn):
+    if not os.path.exists(filename):
+        raise ValueError('"{}" does not exist.'.format(filename))
+    if os.path.isdir(filename):
         raise ValueError('Only files are allowed.')
-    return fn
+    return filename
 
 
 def prompt_object_mode():
-    ''' Prompts user for a object mode '''
+    """Prompts user for a object mode."""
     mode = prompt(
         'Choose a mode: ', completer=WordCompleter(sorted(MODES)))
     if not mode:
@@ -60,7 +73,10 @@ def prompt_object_mode():
 
 
 def prompt_object_options(mode):
-    ''' Prompts user for object options '''
+    """Prompts user for object options.
+
+    :param mode: A string indicating the object mode.
+    """
     print()
     print('Options')
     print('-------')
@@ -75,14 +91,20 @@ def prompt_object_options(mode):
 
 
 def get_objects_completer(ctx, index):
-    ''' Generates a prompt completer based on package objects. '''
+    """Generates a prompt completer based on package objects.
+
+    :param index: The object list index from where retrive objects.
+    """
     objects = enumerate(ctx.package.objects.get_list(index))
     return WordCompleter(['{}# {}'.format(index, obj.filename)
                           for index, obj in objects])
 
 
 def parse_prompt_object_uid(value):
-    ''' Parses value passed to a prompt using get_objects_completer '''
+    """Parses value passed to a prompt using get_objects_completer.
+
+    :param value: A value returned by :func:`get_objects_completer`.
+    """
     try:
         return int(value.split('#')[0].strip())
     except ValueError:
@@ -91,14 +113,21 @@ def parse_prompt_object_uid(value):
 
 
 def prompt_object_uid(ctx, msg, index):
-    ''' Prompts user for an object UID '''
+    """Prompts user for an object UID.
+
+    :param msg: The prompt message to display to user.
+    :param index: The object index within an object list.
+    """
     completer = get_objects_completer(ctx, index)
     value = prompt(msg, completer=completer)
     return parse_prompt_object_uid(value)
 
 
 def prompt_object_option(obj):
-    ''' Prompts user for an object option '''
+    """Prompts user for a valid option for the given object.
+
+    :param obj: an efu `Object` instance.
+    """
     mode = MODES[obj.mode]
     options = {option.verbose_name: option for option in mode}
 
@@ -114,7 +143,12 @@ def prompt_object_option(obj):
 
 
 def prompt_object_option_value(option, indent_level=0):
-    ''' Prompts user for object option value '''
+    """Given an object option, prompts user for a valid value.
+
+    :param option: an efu `Option` instance.
+    :param indent_level: Controls how many spaces must be added before
+                         `msg`.
+    """
     if option.metadata == 'filename':
         return prompt_object_filename('Select a new file', indent_level=2)
     if option.default is not None:
@@ -140,7 +174,7 @@ def prompt_object_option_value(option, indent_level=0):
 
 
 def prompt_package_uid():
-    ''' Prompts user for a package UID '''
+    """Prompts user for a package UID."""
     # Package UID could be validated here
     uid = prompt('Type a package UID: ').strip()
     if not uid:
@@ -149,7 +183,7 @@ def prompt_package_uid():
 
 
 def prompt_pull():
-    ''' Prompts user to set if a pull should download all files or not '''
+    """Prompts user to set if a pull should download all files or not."""
     completer = WordCompleter(['yes', 'no'])
     full = prompt('Should we download all files? [Y/n]', completer=completer)
     full = full.strip().lower()
@@ -163,10 +197,11 @@ def prompt_pull():
 
 
 def prompt_installation_set(ctx, msg=None, empty=True):
-    '''
-    Prompts user for a valid installation set.
-    If not empty is True, only sets with objects are valid.
-    '''
+    """Prompts user for a valid installation set.
+
+    :param msg: The prompt message to display to user.
+    :param empty: If True, allow to select an empty installation set.
+    """
     if ctx.package.objects.is_single():
         return None
     objects = [(index, objs) for index, objs in enumerate(ctx.package.objects)]
@@ -191,7 +226,7 @@ def prompt_installation_set(ctx, msg=None, empty=True):
 
 
 def prompt_package_mode():
-    ''' Prompts for a valid package mode '''
+    """Prompts for a valid package mode."""
     modes = ['single', 'active-backup']
     completer = WordCompleter(modes)
     mode = prompt(
@@ -203,7 +238,7 @@ def prompt_package_mode():
 
 
 def prompt_active_backup_backend():
-    ''' Prompts for a valid active backup backend '''
+    """Prompts for a valid active backup backend."""
     completer = WordCompleter(PACKAGE_MODE_BACKENDS)
     msg = 'Choose an active backup backend: '
     backend = prompt(msg, completer=completer).strip().lower()

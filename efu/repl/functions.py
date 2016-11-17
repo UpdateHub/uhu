@@ -1,5 +1,6 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
+"""Main EFU REPL command functions."""
 
 from ..config import config
 from ..core import Package
@@ -10,7 +11,7 @@ from . import helpers, prompt
 # Config
 
 def set_authentication():
-    ''' Sets user access and secret keys. '''
+    """Sets user access and secret keys."""
     access = prompt('EasyFOTA Access Key ID: ')
     secret = prompt('EasyFota Systems Secret Access Key: ')
     config.set_initial(access, secret)
@@ -19,7 +20,7 @@ def set_authentication():
 # Product
 
 def set_product_uid(ctx):
-    ''' Set product UID '''
+    """Set product UID."""
     helpers.check_arg(ctx, 'You need to pass a product id')
     ctx.package.product = ctx.arg
     ctx.prompt = helpers.set_product_prompt(ctx.arg)
@@ -28,13 +29,13 @@ def set_product_uid(ctx):
 # Package
 
 def set_package_version(ctx):
-    ''' Sets the current package version '''
+    """Sets the current package version."""
     helpers.check_arg(ctx, 'You need to pass a version number')
     ctx.package.version = ctx.arg
 
 
 def set_package_mode(ctx):
-    ''' Sets a package to be in Single or Active-backup mode '''
+    """Sets a package to be in Single or Active-backup mode."""
     mode = helpers.prompt_package_mode()
     if mode == 'active-backup':
         while ctx.package.objects.is_single():
@@ -51,30 +52,30 @@ def set_package_mode(ctx):
 
 
 def add_installation_set(ctx):
-    ''' Adds an installation set '''
+    """Adds an installation set."""
     ctx.package.objects.add_list()
 
 
 def remove_installation_set(ctx):
-    ''' Removes an installation set '''
+    """Removes an installation set."""
     msg = 'Select an installation set to remove: '
     index = helpers.prompt_installation_set(ctx, msg)
     ctx.package.objects.remove_list(index)
 
 
 def show_package(ctx):
-    ''' Prints package content '''
+    """Prints package content."""
     print(ctx.package)
 
 
 def save_package(ctx):
-    ''' Save a local package file based in current package '''
+    """Save a local package file based in current package."""
     helpers.check_arg(ctx, 'You need to pass a filename')
     ctx.package.dump(ctx.arg)
 
 
 def clean_package(ctx):
-    ''' Removes current package and set a new empty one '''
+    """Removes current package and set a new empty one."""
     ctx.package = Package()
     ctx.prompt = 'efu> '
 
@@ -82,18 +83,18 @@ def clean_package(ctx):
 # Objects
 
 def add_object(ctx):
-    ''' Add an object into the current package '''
+    """Add an object into the current package."""
     index = helpers.prompt_installation_set(ctx)
-    fn = helpers.prompt_object_filename()
+    filename = helpers.prompt_object_filename()
     mode = helpers.prompt_object_mode()
     options = helpers.prompt_object_options(mode)
     if len(ctx.package.objects) == 0:
         ctx.package.objects.add_list()
-    ctx.package.objects.add(fn, mode, options, index=index)
+    ctx.package.objects.add(filename, mode, options, index=index)
 
 
 def remove_object(ctx):
-    ''' Removes an object from the current package '''
+    """Removes an object from the current package."""
     index = helpers.prompt_installation_set(ctx, empty=False)
     msg = 'Choose a object to remove: '
     uid = helpers.prompt_object_uid(ctx, msg, index)
@@ -101,7 +102,7 @@ def remove_object(ctx):
 
 
 def edit_object(ctx):
-    ''' Edit an object within the current package '''
+    """Edit an object within the current package."""
     index = helpers.prompt_installation_set(ctx, empty=False)
     msg = 'Choose a object to edit: '
     uid = helpers.prompt_object_uid(ctx, msg, index)
@@ -114,7 +115,7 @@ def edit_object(ctx):
 # Transactions
 
 def push_package(ctx):
-    ''' Uploade the current package to server '''
+    """Uploade the current package to server."""
     helpers.check_product(ctx)
     helpers.check_version(ctx)
     from ..cli._push import PushCallback
@@ -124,7 +125,7 @@ def push_package(ctx):
 
 
 def pull_package(ctx):
-    ''' Download and load a package from server '''
+    """Download and load a package from server."""
     helpers.check_product(ctx)
     ctx.package.uid = helpers.prompt_package_uid()
     full = helpers.prompt_pull()
@@ -132,7 +133,7 @@ def pull_package(ctx):
 
 
 def get_package_status(ctx):
-    ''' Get the status from a package already pushed to server '''
+    """Get the status from a package already pushed to server."""
     helpers.check_product(ctx)
     helpers.check_arg(ctx, 'You need to pass a package id')
     ctx.package.uid = ctx.arg
@@ -142,7 +143,7 @@ def get_package_status(ctx):
 # Hardwares
 
 def add_hardware(ctx):
-    ''' Adds a supported hardware/revision into current package '''
+    """Adds a supported hardware/revision into current package."""
     print('Specify the supported hardware for the current package.')
     print('You can pass many hardware as you want, separated by spaces.')
     hardwares = prompt('Hardwares: ').split()
@@ -154,7 +155,7 @@ def add_hardware(ctx):
 
 
 def remove_hardware(ctx):
-    ''' Removes a supported hardware/revision from current package '''
+    """Removes a supported hardware/revision from current package."""
     print('Specify the supported hardware to be remove.')
     print('You can pass many hardware as you want, separated by spaces.')
     hardwares = prompt('Hardwares: ').split()
