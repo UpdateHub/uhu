@@ -60,7 +60,7 @@ def add_installation_set(ctx):
 def remove_installation_set(ctx):
     """Removes an installation set."""
     msg = 'Select an installation set to remove: '
-    index = helpers.prompt_installation_set(ctx, msg)
+    index = helpers.prompt_installation_set(ctx.package, msg)
     ctx.package.objects.remove_list(index)
 
 
@@ -85,7 +85,7 @@ def clean_package(ctx):
 
 def add_object(ctx):
     """Add an object into the current package."""
-    index = helpers.prompt_installation_set(ctx)
+    index = helpers.prompt_installation_set(ctx.package)
     filename = helpers.prompt_object_filename()
     mode = helpers.prompt_object_mode()
     options = helpers.prompt_object_options(mode)
@@ -96,20 +96,19 @@ def add_object(ctx):
 
 def remove_object(ctx):
     """Removes an object from the current package."""
-    index = helpers.prompt_installation_set(ctx, empty=False)
-    msg = 'Choose a object to remove: '
-    uid = helpers.prompt_object_uid(ctx, msg, index)
+    index = helpers.prompt_installation_set(ctx.package, all_sets=False)
+    uid = helpers.prompt_object_uid(ctx.package, index)
     ctx.package.objects.remove(uid, index=index)
 
 
 def edit_object(ctx):
     """Edit an object within the current package."""
-    index = helpers.prompt_installation_set(ctx, empty=False)
-    msg = 'Choose a object to edit: '
-    uid = helpers.prompt_object_uid(ctx, msg, index)
+    index = helpers.prompt_installation_set(ctx.package, all_sets=False)
+    uid = helpers.prompt_object_uid(ctx.package, index)
     obj = ctx.package.objects.get(uid, index=index)
     option = helpers.prompt_object_option(obj)
-    value = helpers.prompt_object_option_value(option, indent_level=2)
+    value = helpers.prompt_object_option_value(
+        option, obj.mode, indent_level=2)
     ctx.package.objects.update(uid, option.metadata, value, index=index)
 
 

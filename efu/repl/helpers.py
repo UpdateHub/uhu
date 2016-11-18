@@ -5,18 +5,26 @@
 Includes reusable prompts, auto-completers, constraint checkers.
 """
 
-import os
 import sys
 from functools import partial
 
 from prompt_toolkit import prompt
-from prompt_toolkit.contrib.completers import PathCompleter, WordCompleter
+from prompt_toolkit.contrib.completers import WordCompleter
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.keys import Keys
 
 from ..core.options import MODES, Option
 from ..core.package import ACTIVE_INACTIVE_MODES
+from ..core.package import MODES as PKG_MODES
 from ..utils import indent
+
+from .completers import (
+    ObjectFilenameCompleter, ObjectModeCompleter, ObjectOptionCompleter,
+    ObjectOptionValueCompleter, ObjectUIDCompleter, YesNoCompleter,
+    PackageModeCompleter, ActiveInactiveCompleter)
+from .validators import (
+    FileValidator, ObjectUIDValidator, ContainerValidator,
+    ObjectOptionValueValidator, PackageUIDValidator, YesNoValidator)
 
 
 manager = KeyBindingManager.for_prompt()
@@ -64,6 +72,38 @@ def set_product_prompt(product):
     return '[{}] efu> '.format(product[:6])
 
 
+def get_object_options(obj):
+    """Returns the possbile options for a given object."""
+    mode = MODES[obj.mode]
+    options = {option.verbose_name: option for option in mode}
+    # hack to let user update object filename
+    options['filename'] = Option({'metadata': 'filename'})
+    return options
+
+
+def parse_prompt_object_uid(value):
+    """Parses value passed to a prompt using get_objects_completer.
+
+    :param value: A value returned by :func:`get_objects_completer`.
+    """
+    return int(value.split('#')[0].strip())
+
+
+def prompt_object_options(mode):
+    """Prompts user for object options.
+
+    :param mode: A string indicating the object mode.
+    """
+    options = {}
+    for option in MODES[mode]:
+        try:
+            option.validate_requirements(options)
+        except ValueError:
+            continue  # requirements not satisfied, skip this option
+        options[option.metadata] = prompt_object_option_value(option, mode)
+    return options
+
+
 def prompt_object_filename(msg=None, indent_level=0):
     """Prompts user for a valid filename.
 
@@ -73,76 +113,32 @@ def prompt_object_filename(msg=None, indent_level=0):
     """
     msg = 'Choose a file to add into your package' if msg is None else msg
     msg = indent(msg, indent_level, all_lines=True)
-    filename = prompt('{}: '.format(msg), completer=PathCompleter()).strip()
-    if not filename:
-        raise ValueError('You must specify a file.')
-    if not os.path.exists(filename):
-        raise ValueError('"{}" does not exist.'.format(filename))
-    if os.path.isdir(filename):
-        raise ValueError('Only files are allowed.')
-    return filename
+    msg = '{}: '.format(msg)
+    completer = ObjectFilenameCompleter()
+    validator = FileValidator()
+    filename = prompt(msg, completer=completer, validator=validator)
+    return filename.strip()
 
 
 def prompt_object_mode():
     """Prompts user for a object mode."""
-    mode = prompt(
-        'Choose a mode: ', completer=WordCompleter(sorted(MODES)))
-    if not mode:
-        raise ValueError('You must specify a mode.')
-    if mode not in MODES:
-        raise ValueError('You must specify a valid mode.')
-    return mode
+    msg = 'Choose a mode: '
+    completer = ObjectModeCompleter()
+    validator = ContainerValidator('mode', list(MODES))
+    mode = prompt(msg, completer=completer, validator=validator)
+    return mode.strip()
 
 
-def prompt_object_options(mode):
-    """Prompts user for object options.
-
-    :param mode: A string indicating the object mode.
-    """
-    print()
-    print('Options')
-    print('-------')
-    options = {}
-    for option in MODES[mode]:
-        try:
-            option.validate_requirements(options)
-        except ValueError:
-            continue  # requirements not satisfied, skip this option
-        options[option.metadata] = prompt_object_option_value(option)
-    return options
-
-
-def get_objects_completer(ctx, index):
-    """Generates a prompt completer based on package objects.
-
-    :param index: The object list index from where retrive objects.
-    """
-    objects = enumerate(ctx.package.objects.get_list(index))
-    return WordCompleter(['{}# {}'.format(index, obj.filename)
-                          for index, obj in objects])
-
-
-def parse_prompt_object_uid(value):
-    """Parses value passed to a prompt using get_objects_completer.
-
-    :param value: A value returned by :func:`get_objects_completer`.
-    """
-    try:
-        return int(value.split('#')[0].strip())
-    except ValueError:
-        err = '"{}" is not a valid object UID.'
-        raise ValueError(err.format(value))
-
-
-def prompt_object_uid(ctx, msg, index):
+def prompt_object_uid(package, index):
     """Prompts user for an object UID.
 
-    :param msg: The prompt message to display to user.
     :param index: The object index within an object list.
     """
-    completer = get_objects_completer(ctx, index)
-    value = prompt(msg, completer=completer)
-    return parse_prompt_object_uid(value)
+    msg = 'Select an object: '
+    completer = ObjectUIDCompleter(package, index)
+    validator = ObjectUIDValidator()
+    value = prompt(msg, completer=completer, validator=validator)
+    return parse_prompt_object_uid(value.strip())
 
 
 def prompt_object_option(obj):
@@ -150,29 +146,26 @@ def prompt_object_option(obj):
 
     :param obj: an efu `Object` instance.
     """
-    mode = MODES[obj.mode]
-    options = {option.verbose_name: option for option in mode}
-
-    # hack to let user update object filename
-    options['filename'] = Option({'metadata': 'filename'})
-
-    completer = WordCompleter(sorted(options))
-    value = prompt('  Choose an option: ', completer=completer)
-    option = options.get(value)
-    if option is None:
-        raise ValueError('"{}" is not a valid option.'.format(value))
-    return option
+    options = get_object_options(obj)
+    msg = 'Choose an option: '
+    completer = ObjectOptionCompleter(options)
+    validator = ContainerValidator('option', options)
+    option = prompt(msg, completer=completer, validator=validator)
+    return options[option.strip()]
 
 
-def prompt_object_option_value(option, indent_level=0):
-    """Given an object option, prompts user for a valid value.
+def prompt_object_option_value(option, mode, indent_level=0):
+    """Given an object and an option, prompts user for a valid value.
 
     :param option: an efu `Option` instance.
+    :param mode: a valid Object mode string.
     :param indent_level: Controls how many spaces must be added before
                          `msg`.
     """
     if option.metadata == 'filename':
         return prompt_object_filename('Select a new file', indent_level=2)
+
+    # Message
     if option.default is not None:
         default = option.default
         if option.type == 'bool':
@@ -183,87 +176,82 @@ def prompt_object_option_value(option, indent_level=0):
         msg = '{} [{}]'.format(option.verbose_name.title(), default)
     else:
         msg = '{}'.format(option.verbose_name.title())
-    if option.choices:
-        completer = WordCompleter(option.choices)
-    elif option.type == 'bool':
-        completer = WordCompleter(['yes', 'no'])
-    else:
-        completer = WordCompleter([])
     msg = indent(msg, indent_level, all_lines=True)
-    value = prompt('{}: '.format(msg), completer=completer).strip()
+    msg = '{}: '.format(msg)
+
+    # Completer
+    if option.choices:
+        completer = ObjectOptionValueCompleter(option)
+    elif option.type == 'bool':
+        completer = YesNoCompleter()
+    else:
+        completer = None
+
+    validator = ObjectOptionValueValidator(option, mode)
+
+    value = prompt(msg, completer=completer, validator=validator).strip()
     value = value if value != '' else option.default
     return option.convert(value)
 
 
 def prompt_package_uid():
     """Prompts user for a package UID."""
-    # Package UID could be validated here
-    uid = prompt('Type a package UID: ').strip()
-    if not uid:
-        raise ValueError('You need to specify a package UID')
-    return uid
+    msg = 'Type a package UID: '
+    validator = PackageUIDValidator()
+    uid = prompt(msg, validator=validator)
+    return uid.strip()
 
 
 def prompt_pull():
     """Prompts user to set if a pull should download all files or not."""
-    completer = WordCompleter(['yes', 'no'])
-    full = prompt('Should we download all files? [Y/n]', completer=completer)
-    full = full.strip().lower()
-    if full in ['yes', 'y'] or full == '':
-        full = True
-    elif full in ['no', 'n']:
-        full = False
-    else:
-        raise ValueError('Only yes or no values are allowed')
-    return full
+    msg = 'Should we download all files [Y/n]?:  '
+    completer = YesNoCompleter()
+    validator = YesNoValidator()
+    answer = prompt(msg, completer=completer, validator=validator)
+    return {'y': True, 'n': False}[answer.strip().lower()[0]]
 
 
-def prompt_installation_set(ctx, msg=None, empty=True):
+def prompt_installation_set(package, msg=None, all_sets=True):
     """Prompts user for a valid installation set.
 
+    :param package: A core.package.Package instance.
     :param msg: The prompt message to display to user.
-    :param empty: If True, allow to select an empty installation set.
+    :param all_sets: If True, allow to select an empty installation set.
     """
-    if ctx.package.objects.is_single():
+    if package.objects.is_single():
         return None
-    objects = [(index, objs) for index, objs in enumerate(ctx.package.objects)]
-    if not empty:
+
+    # Pre-validation
+    objects = [(index, objs) for index, objs in enumerate(package.objects)]
+    if not all_sets:
         objects = [(index, objs) for index, objs in objects if objs]
         if len(objects) == 0:
             raise ValueError('There is no object to operate.')
         if len(objects) == 1:
             index, _ = objects[0]
             return index
-    msg = msg if msg is not None else 'Select an installation set: '
     indexes = [str(i) for i, _ in objects]
+
+    msg = msg if msg is not None else 'Select an installation set: '
     completer = WordCompleter(indexes)
-    index = prompt(msg, completer=completer).strip()
-    try:
-        if index not in indexes:
-            raise ValueError
-        index = int(index)
-    except (ValueError, TypeError):
-        raise ValueError('"{}" is not a valid installation set.'.format(index))
-    return index
+    validator = ContainerValidator('installation set', indexes)
+    installation_set = prompt(msg, completer=completer, validator=validator)
+    return int(installation_set.strip())
 
 
 def prompt_package_mode():
     """Prompts for a valid package mode."""
-    modes = ['single', 'active-inactive']
-    completer = WordCompleter(modes)
-    mode = prompt(
-        'Choose a package mode [single/active-inactive]: ',
-        completer=completer).strip().lower()
-    if mode not in modes:
-        raise ValueError('You need to specify a valid package mode.')
-    return mode
+    msg = 'Choose a package mode [{}]: '.format('/'.join(PKG_MODES))
+    completer = PackageModeCompleter()
+    validator = ContainerValidator('mode', PKG_MODES)
+    mode = prompt(msg, completer=completer, validator=validator)
+    return mode.strip().lower()
 
 
 def prompt_active_inactive_backend():
     """Prompts for a valid active inactive backend."""
-    completer = WordCompleter(ACTIVE_INACTIVE_MODES)
-    msg = 'Choose an active-inactive backend: '
-    backend = prompt(msg, completer=completer).strip().lower()
-    if backend not in ACTIVE_INACTIVE_MODES:
-        raise ValueError('"{}" is not a valid backend.'.format(backend))
-    return backend
+    msg = 'Choose an active inactive backend: '
+    completer = ActiveInactiveCompleter()
+    validator = ContainerValidator('backend', ACTIVE_INACTIVE_MODES)
+    backend = prompt(msg, completer=completer, validator=validator)
+    return backend.strip().lower()

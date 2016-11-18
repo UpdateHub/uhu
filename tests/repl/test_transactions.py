@@ -101,15 +101,3 @@ class PullTestCase(BasePullTestCase):
         self.repl.package.version = '2.0'
         with self.assertRaises(ValueError):
             functions.pull_package(self.repl)
-
-    def test_pull_raises_error_if_missing_uid(self):
-        self.repl.package.product = self.product
-        functions.prompt.side_effect = ['']
-        with self.assertRaises(ValueError):
-            functions.pull_package(self.repl)
-
-    def test_pull_raises_error_if_invalid_pull_mode_answer(self):
-        self.repl.package.product = self.product
-        functions.prompt.side_effect = [self.pkg_uid, 'invalid']
-        with self.assertRaises(ValueError):
-            functions.pull_package(self.repl)

@@ -59,31 +59,6 @@ class PackageTestCase(unittest.TestCase):
         functions.add_object(self.repl)
         self.assertEqual(len(self.repl.package.objects.get_list(0)), 1)
 
-    def test_add_object_raises_error_if_missing_filename(self):
-        helpers.prompt.side_effect = ['']
-        with self.assertRaises(ValueError):
-            functions.add_object(self.repl)
-
-    def test_add_object_raises_error_if_file_does_not_exist(self):
-        helpers.prompt.side_effect = ['not-exist']
-        with self.assertRaises(ValueError):
-            functions.add_object(self.repl)
-
-    def test_add_object_raises_error_if_filename_is_a_dir(self):
-        helpers.prompt.side_effect = ['/']
-        with self.assertRaises(ValueError):
-            functions.add_object(self.repl)
-
-    def test_add_object_raises_error_if_missing_mode(self):
-        helpers.prompt.side_effect = [__file__, '']
-        with self.assertRaises(ValueError):
-            functions.add_object(self.repl)
-
-    def test_add_object_raises_error_if_invalid_mode(self):
-        helpers.prompt.side_effect = [__file__, 'bad-mode']
-        with self.assertRaises(ValueError):
-            functions.add_object(self.repl)
-
     @patch('efu.repl.helpers.prompt')
     def test_can_remove_object_using_uid(self, prompt):
         prompt.side_effect = ['1', '0']
