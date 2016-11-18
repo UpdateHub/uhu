@@ -69,6 +69,24 @@ OBJECT_STRING_TEMPLATE = OrderedDict([
 ])
 
 
+class InstallationSet:
+    ACTIVE = 0
+    INACTIVE = 1
+
+    SETS = {
+        'active': ACTIVE,
+        'inactive': INACTIVE,
+    }
+
+    @classmethod
+    def names(cls):
+        return tuple(cls.SETS.keys())
+
+    @classmethod
+    def get_by_name(cls, name):
+        return cls.SETS[name]
+
+
 class ObjectUploadResult:
     SUCCESS = 1
     EXISTS = 2
