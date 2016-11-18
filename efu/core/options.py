@@ -85,7 +85,7 @@ class Option:
 
     def validate_is_required(self, mode, value):
         ''' Checks if option is required within mode. '''
-        if value is None and mode in self.required_in:
+        if value is None and self.is_required(mode):
             err = 'Option "{}" is required for mode "{}".'
             raise ValueError(err.format(self, mode))
 
@@ -97,6 +97,9 @@ class Option:
                     err = '"{}" must be equal to {} when using "{}" option.'
                     raise ValueError(err.format(
                         requirement, conf['value'], self.verbose_name))
+
+    def is_required(self, mode):
+        return mode in self.required_in
 
     def convert(self, value):
         ''' Convert the given value into object option value. '''
