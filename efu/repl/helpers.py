@@ -14,7 +14,8 @@ from prompt_toolkit.contrib.completers import PathCompleter, WordCompleter
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.keys import Keys
 
-from ..core.options import MODES, Option, PACKAGE_MODE_BACKENDS
+from ..core.options import MODES, Option
+from ..core.package import ACTIVE_INACTIVE_MODES
 from ..utils import indent
 
 
@@ -248,21 +249,21 @@ def prompt_installation_set(ctx, msg=None, empty=True):
 
 def prompt_package_mode():
     """Prompts for a valid package mode."""
-    modes = ['single', 'active-backup']
+    modes = ['single', 'active-inactive']
     completer = WordCompleter(modes)
     mode = prompt(
-        'Choose a package mode [single/active-backup]: ',
+        'Choose a package mode [single/active-inactive]: ',
         completer=completer).strip().lower()
     if mode not in modes:
         raise ValueError('You need to specify a valid package mode.')
     return mode
 
 
-def prompt_active_backup_backend():
-    """Prompts for a valid active backup backend."""
-    completer = WordCompleter(PACKAGE_MODE_BACKENDS)
-    msg = 'Choose an active backup backend: '
+def prompt_active_inactive_backend():
+    """Prompts for a valid active inactive backend."""
+    completer = WordCompleter(ACTIVE_INACTIVE_MODES)
+    msg = 'Choose an active-inactive backend: '
     backend = prompt(msg, completer=completer).strip().lower()
-    if backend not in PACKAGE_MODE_BACKENDS:
+    if backend not in ACTIVE_INACTIVE_MODES:
         raise ValueError('"{}" is not a valid backend.'.format(backend))
     return backend

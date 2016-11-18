@@ -4,7 +4,8 @@
 import click
 import requests
 
-from ..core.options import MODES, PACKAGE_MODE_BACKENDS
+from ..core.options import MODES
+from ..core.package import ACTIVE_INACTIVE_MODES
 from ..exceptions import UploadError
 
 from ._object import ClickOptionsParser, CLICK_OPTIONS
@@ -39,19 +40,19 @@ def export_command(filename):
         package.dump(filename)
 
 
-@package_cli.command('active-backup-backend')
-@click.argument('backend', type=click.Choice(PACKAGE_MODE_BACKENDS))
-def set_active_backup_backend(backend):
-    ''' Sets active backup backend '''
+@package_cli.command('active-inactive-backend')
+@click.argument('backend', type=click.Choice(ACTIVE_INACTIVE_MODES))
+def set_active_inactive_backend(backend):
+    ''' Sets active-inactive backend '''
     with open_package() as package:
-        package.active_backup_backend = backend
+        package.active_inactive_backend = backend
 
 
 # Installtion set commands
 
 @package_cli.command('add-installation-set')
 def add_installation_set_command():
-    ''' Adds a new installation set for active-backup mode '''
+    ''' Adds a new installation set for active-inactive mode '''
     with open_package() as package:
         try:
             package.objects.add_list()

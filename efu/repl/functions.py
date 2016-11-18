@@ -36,19 +36,19 @@ def set_package_version(ctx):
 
 
 def set_package_mode(ctx):
-    """Sets a package to be in Single or Active-backup mode."""
+    """Sets a package to be in Single or Active-inactive mode."""
     mode = helpers.prompt_package_mode()
-    if mode == 'active-backup':
+    if mode == 'active-inactive':
         while ctx.package.objects.is_single():
             ctx.package.objects.add_list()
-        backend = helpers.prompt_active_backup_backend()
-        ctx.package.active_backup_backend = backend
+        backend = helpers.prompt_active_inactive_backend()
+        ctx.package.active_inactive_backend = backend
     elif mode == 'single':
         if ctx.package.objects.is_empty():
             ctx.package.objects.add_list()
         if not ctx.package.objects.is_single():
             raise ValueError(
-                ('Your package already has an active-backup set. '
+                ('Your package already has an active-inactive set. '
                  'You can delete one installation set to enable single mode'))
 
 

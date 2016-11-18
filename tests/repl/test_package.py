@@ -240,16 +240,16 @@ class PackageTestCase(unittest.TestCase):
         self.assertEqual(len(self.repl.package.objects), 1)
 
     @patch('efu.repl.helpers.prompt')
-    def test_can_set_package_active_backup_mode(self, prompt):
-        prompt.side_effect = ['active-backup', 'u-boot']
+    def test_can_set_package_active_inactive_mode(self, prompt):
+        prompt.side_effect = ['active-inactive', 'u-boot']
         self.assertEqual(len(self.repl.package.objects), 0)
-        self.assertIsNone(self.repl.package.active_backup_backend)
+        self.assertIsNone(self.repl.package.active_inactive_backend)
         functions.set_package_mode(self.repl)
         self.assertEqual(len(self.repl.package.objects), 2)
-        self.assertEqual(self.repl.package.active_backup_backend, 'u-boot')
+        self.assertEqual(self.repl.package.active_inactive_backend, 'u-boot')
 
     @patch('efu.repl.helpers.prompt_package_mode')
-    def test_package_mode_raises_if_overwriting_active_backup(self, prompt):
+    def test_package_mode_raises_if_overwriting_active_inactive(self, prompt):
         prompt.return_value = 'single'
         self.repl.package.objects.add_list()
         self.repl.package.objects.add_list()

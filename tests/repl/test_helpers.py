@@ -99,8 +99,8 @@ class PromptsTestCase(unittest.TestCase):
 
     @patch('efu.repl.helpers.prompt')
     def test_can_prompt_package_mode(self, prompt):
-        modes = ['single', 'active-backup']
-        values = ['  single ', '  SinGle', 'active-backup', '  ActivE-baCKup ']
+        modes = ['single', 'active-inactive']
+        values = ['single ', ' SinGle', 'active-inactive', ' ActivE-inactive ']
         for value in values:
             prompt.return_value = value
             observed = helpers.prompt_package_mode()
@@ -113,13 +113,13 @@ class PromptsTestCase(unittest.TestCase):
             helpers.prompt_package_mode()
 
     @patch('efu.repl.helpers.prompt')
-    def test_can_prompt_active_backup_backend(self, prompt):
+    def test_can_prompt_active_inactive_backend(self, prompt):
         prompt.return_value = 'u-boot'
-        observed = helpers.prompt_active_backup_backend()
+        observed = helpers.prompt_active_inactive_backend()
         self.assertEqual(observed, 'u-boot')
 
     @patch('efu.repl.helpers.prompt')
-    def test_prompt_active_backup_backend_raises_if_invalid(self, prompt):
+    def test_prompt_active_inactive_backend_raises_if_invalid(self, prompt):
         prompt.return_value = 'invalid-backend'
         with self.assertRaises(ValueError):
-            helpers.prompt_active_backup_backend()
+            helpers.prompt_active_inactive_backend()

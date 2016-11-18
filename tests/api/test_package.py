@@ -36,29 +36,29 @@ class PackageTestCase(FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase):
         self.obj_size = 4
 
 
-class ActiveBackupTestCase(PackageTestCase):
+class ActiveInactiveTestCase(PackageTestCase):
 
     def setUp(self):
         self.pkg = Package()
         self.pkg.objects.add_list()
         self.pkg.objects.add_list()
 
-    def test_can_set_active_backup_backend(self):
-        self.pkg.active_backup_backend = 'u-boot'
-        self.assertEqual(self.pkg.active_backup_backend, 'u-boot')
-        self.pkg.active_backup_backend = 'u-boot'
-        self.assertEqual(self.pkg.active_backup_backend, 'u-boot')
+    def test_can_set_active_inactive_backend(self):
+        self.pkg.active_inactive_backend = 'u-boot'
+        self.assertEqual(self.pkg.active_inactive_backend, 'u-boot')
+        self.pkg.active_inactive_backend = 'u-boot'
+        self.assertEqual(self.pkg.active_inactive_backend, 'u-boot')
 
-    def test_active_backup_backend_raises_error_if_invalid_backend(self):
+    def test_active_inactive_backend_raises_error_if_invalid_backend(self):
         with self.assertRaises(ValueError):
-            self.pkg.active_backup_backend = 'invalid'
+            self.pkg.active_inactive_backend = 'invalid'
 
-    def test_metadata_with_active_backup_backend(self):
-        self.pkg.active_backup_backend = 'u-boot'
+    def test_metadata_with_active_inactive_backend(self):
+        self.pkg.active_inactive_backend = 'u-boot'
         metadata = self.pkg.metadata()
         self.assertEqual(metadata['active-backup-backend'], 'u-boot')
 
-    def test_metadata_without_active_backup_backend(self):
+    def test_metadata_without_active_inactive_backend(self):
         metadata = self.pkg.metadata()
         self.assertIsNone(metadata.get('active-backup-backend'))
 
@@ -95,7 +95,7 @@ class PackageConstructorsTestCase(PackageTestCase):
         self.assertEqual(pkg.version, self.version)
         self.assertEqual(pkg.product, self.product)
         self.assertEqual(pkg.supported_hardware, self.supported_hardware)
-        self.assertEqual(pkg.active_backup_backend, 'u-boot')
+        self.assertEqual(pkg.active_inactive_backend, 'u-boot')
         self.assertEqual(len(pkg), 1)
         obj = pkg.objects.get(0)
         self.assertEqual(obj.filename, self.obj_fn)
@@ -127,7 +127,7 @@ class PackageConstructorsTestCase(PackageTestCase):
         pkg = Package.from_metadata(metadata)
         self.assertEqual(pkg.version, self.version)
         self.assertEqual(pkg.product, self.product)
-        self.assertEqual(pkg.active_backup_backend, 'u-boot')
+        self.assertEqual(pkg.active_inactive_backend, 'u-boot')
         self.assertEqual(len(pkg), 1)
         obj = pkg.objects.get(0)
         self.assertEqual(obj.filename, self.obj_fn)

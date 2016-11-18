@@ -10,7 +10,10 @@ from ..http.request import Request
 from ..utils import call, get_server_url, validate_schema
 
 from .object import ObjectManager, ObjectUploadResult, Object
-from .options import PACKAGE_MODE_BACKENDS
+
+
+MODES = ['single', 'active-inactive']
+ACTIVE_INACTIVE_MODES = ['u-boot']
 
 
 class Package:
@@ -22,7 +25,7 @@ class Package:
         self.product = product
         self.objects = ObjectManager()
         self.supported_hardware = {}
-        self._active_backup_backend = None
+        self._active_inactive_backend = None
 
     @classmethod
     def from_file(cls, fn):
@@ -32,7 +35,7 @@ class Package:
         package = Package(
             version=dump.get('version'), product=dump.get('product'))
         package.supported_hardware = dump.get('supported-hardware', {})
-        package.active_backup_backend = dump.get('active-backup-backend')
+        package.active_inactive_backend = dump.get('active-backup-backend')
 
         file_object_set = dump.get('objects', [])
         for file_object_list in file_object_set:
@@ -48,7 +51,7 @@ class Package:
         ''' Creates a package from a metadata object '''
         package = Package(
             product=metadata['product'], version=metadata['version'])
-        package.active_backup_backend = metadata.get('active-backup-backend')
+        package.active_inactive_backend = metadata.get('active-backup-backend')
 
         for metadata_object_list in metadata['objects']:
             object_list = package.objects.add_list()
@@ -68,15 +71,15 @@ class Package:
         return package
 
     @property
-    def active_backup_backend(self):
-        return self._active_backup_backend
+    def active_inactive_backend(self):
+        return self._active_inactive_backend
 
-    @active_backup_backend.setter
-    def active_backup_backend(self, backend):
-        if backend not in PACKAGE_MODE_BACKENDS and backend is not None:
-            err = '"{}" is not a valid active-backup backend mode'
+    @active_inactive_backend.setter
+    def active_inactive_backend(self, backend):
+        if backend not in ACTIVE_INACTIVE_MODES and backend is not None:
+            err = '"{}" is not a valid active-inactive backend mode'
             raise ValueError(err.format(backend))
-        self._active_backup_backend = backend
+        self._active_inactive_backend = backend
 
     def add_supported_hardware(self, name, revisions=None):
         revisions = revisions if revisions is not None else []
@@ -127,8 +130,8 @@ class Package:
         }
         if self.supported_hardware:
             metadata['supported-hardware'] = self.supported_hardware
-        if self.active_backup_backend:
-            metadata['active-backup-backend'] = self.active_backup_backend
+        if self.active_inactive_backend:
+            metadata['active-backup-backend'] = self.active_inactive_backend
         return metadata
 
     def template(self):
@@ -138,7 +141,7 @@ class Package:
             'product': self.product,
             'supported-hardware': self.supported_hardware,
             'objects': self.objects.template(),
-            'active-backup-backend': self.active_backup_backend,
+            'active-backup-backend': self.active_inactive_backend,
         }
 
     def dump(self, dest):
