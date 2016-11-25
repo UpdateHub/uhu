@@ -1,0 +1,49 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+
+    "title": "Flash object",
+    "description": "Object specifications for Flash mode",
+
+    "type": "object",
+
+    "properties": {
+        "mode": {
+            "$ref": "definitions.json#/mode"
+        },
+        "filename": {
+            "$ref": "definitions.json#/filename"
+        },
+        "size": {
+            "$ref": "definitions.json#/size"
+        },
+        "sha256sum": {
+            "$ref": "definitions.json#/sha256sum"
+        },
+        "target-device": {
+            "$ref": "definitions.json#/target-device"
+        },
+        "install-if-different": {
+            "$ref": "install-if-different.json"
+        }
+    },
+
+    "required": [
+        "filename",
+        "mode",
+        "size",
+        "sha256sum",
+        "target-device"
+    ],
+
+    "additionalProperties": false,
+
+    "dependencies": {
+        "mode": {
+            "properties": {
+                "mode": {
+                    "enum": ["flash"]
+                }
+            }
+        }
+    }
+}

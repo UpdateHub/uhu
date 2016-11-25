@@ -283,7 +283,7 @@ class EditObjectCommandTestCase(PackageTestCase):
         obj = pkg.objects.get(0)
         self.assertEqual(obj.options['target-device'], '/dev/sdb')
 
-    def test_can_edit_object_filename_edit_object_command(self):
+    def test_can_edit_object_filename_with_edit_object_command(self):
         args = ['0', 'filename', 'new-filename']
         self.runner.invoke(edit_object_command, args=args)
         pkg = Package.from_file(self.pkg_fn)

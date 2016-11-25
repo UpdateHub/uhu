@@ -43,7 +43,7 @@ class Package:
             for obj in file_object_list:
                 objects.add(
                     fn=obj['filename'], mode=obj['mode'],
-                    options=obj['options'], compressed=obj['compressed'])
+                    options=obj['options'], compressed=obj.get('compressed'))
         return package
 
     @classmethod
@@ -62,7 +62,9 @@ class Package:
                 options = {option: value
                            for option, value in metadata_obj.items()
                            if option not in settings}
-                options.update(Object.to_install_condition(metadata_obj))
+                install_if_different = metadata_obj.get('install-if-different')
+                if install_if_different is not None:
+                    options.update(Object.to_install_condition(metadata_obj))
                 obj = object_list.add(
                     fn=metadata_obj['filename'], mode=metadata_obj['mode'],
                     options=options)

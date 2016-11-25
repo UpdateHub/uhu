@@ -23,6 +23,9 @@ from .storages import STORAGES
 
 
 OBJECT_STRING_TEMPLATE = OrderedDict([
+    ('volume', OrderedDict([
+        ('display', 'Volume name:')
+    ])),
     ('target-device', OrderedDict([
         ('display', 'Target device:'),
         ('children', OrderedDict([
@@ -116,7 +119,9 @@ class Object:
         return fn
 
     def _init_install_condition(self):
-        condition = self.options.pop('install-condition')
+        condition = self.options.pop('install-condition', None)
+        if condition is None:
+            return None
         if condition in ['always', 'content-diverges']:
             return {'install-condition': condition}
         type_ = self.options.pop('install-condition-pattern-type')
@@ -138,8 +143,11 @@ class Object:
 
     @property
     def compressed(self):
-        # For now, copy objects cannot be decompressed on agent
-        if self.mode == 'copy':
+        # - Copy object cannot be set as compressed since it can misslead user
+        # when just copying a compressed file (instead of decompress
+        # and copy).
+        # - UBI object is not supported by agent now.
+        if self.mode in ['copy', 'ubi']:
             return False
         if self._compressed is None:
             self.compressor = get_compressor_format(self.filename)
@@ -153,6 +161,8 @@ class Object:
 
     @property
     def install_if_different(self):
+        if self.install_condition is None:
+            return None
         condition = self.install_condition.get('install-condition')
         if condition == 'always' or condition is None:
             iid = None
@@ -176,9 +186,7 @@ class Object:
     @classmethod
     def to_install_condition(cls, metadata):
         iid = metadata.get('install-if-different')
-        if iid is None:
-            return {'install-condition': 'always'}
-        elif iid == 'sha256sum':
+        if iid == 'sha256sum':
             return {'install-condition': 'content-diverges'}
         condition = {
             'install-condition': 'version-diverges',
@@ -200,9 +208,9 @@ class Object:
             'mode': self.mode,
             'sha256sum': self.sha256sum,
             'size': self.size,
-            'compressed': self.compressed,
         }
         if self.compressed:
+            metadata['compressed'] = self.compressed
             metadata['required-uncompressed-size'] = self.uncompressed_size
         if self.install_if_different is not None:
             metadata['install-if-different'] = self.install_if_different
@@ -212,14 +220,18 @@ class Object:
     def template(self):
         ''' Serialize object for dumping to a file '''
         options = deepcopy(self.options)
-        options.update(self.install_condition)
+        if self.install_condition is not None:
+            options.update(self.install_condition)
         options.pop('install-condition-version', None)
-        return {
+
+        template = {
             'filename': self.filename,
             'mode': self.mode,
-            'compressed': self.compressed,
             'options': options,
         }
+        if self.mode not in ['copy', 'ubi']:
+            template['compressed'] = self.compressed
+        return template
 
     def update(self, option, value):
         ''' Updates an object option '''
@@ -241,9 +253,13 @@ class Object:
             call(callback, 'object_read')
         self.sha256sum = sha256sum.hexdigest()
         self.md5 = md5.hexdigest()
-        version = self.get_version()
-        self.install_condition['install-condition-version'] = version
+        self.load_install_condition()
         call(callback, 'post_object_read')
+
+    def load_install_condition(self):
+        if self.install_condition is not None:
+            version = self.get_version()
+            self.install_condition['install-condition-version'] = version
 
     def get_version(self):
         version_absent = ['always', 'content-diverges']

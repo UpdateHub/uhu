@@ -37,9 +37,11 @@
                 "type": "array",
                 "items": {
                     "anyOf": [
-                        {"$ref": "raw-object.json"},
                         {"$ref": "copy-object.json"},
-                        {"$ref": "tarball-object.json"}
+                        {"$ref": "flash-object.json"},
+                        {"$ref": "raw-object.json"},
+                        {"$ref": "tarball-object.json"},
+                        {"$ref": "ubi-object.json"}
                     ]
                 },
                 "minItems": 1

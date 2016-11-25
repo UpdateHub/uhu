@@ -2,7 +2,7 @@
     "mode": {
         "description": "Represents the install mode for the object data",
         "type": "string",
-        "enum": ["raw", "copy", "tarball"]
+        "enum": ["copy", "flash", "raw", "tarball", "ubi"]
     },
     "filename": {
         "description": "file name used by client to rebuild the commit",
@@ -81,5 +81,10 @@
     "mount-options": {
         "description": "Options to mount the filesystem in target-device",
         "type": "string"
+    },
+    "volume": {
+        "description": "Volume name. Property used with UBI Mode.",
+        "type": "string",
+        "minLength": 1
     }
 }

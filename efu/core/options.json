@@ -178,6 +178,15 @@
         "verbose-name": "truncate"
     },
     {
+        "metadata": "volume",
+        "modes": ["ubi"],
+        "required_in": ["ubi"],
+        "type": "str",
+        "help": "The volume name",
+        "cli": ["--volume"],
+        "verbose-name": "volume"
+    },
+    {
         "metadata": "sha256sum",
         "is_volatile": true,
         "verbose-name": "sha256sum"

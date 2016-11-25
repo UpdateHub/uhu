@@ -19,9 +19,6 @@
         "sha256sum": {
             "$ref": "definitions.json#/sha256sum"
         },
-        "install-if-different": {
-            "$ref": "install-if-different.json"
-        },
         "target-device": {
             "$ref": "definitions.json#/target-device"
         },

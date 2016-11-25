@@ -110,8 +110,7 @@ class ObjectStringRepresentationTestCase(unittest.TestCase):
             'target-path': '/',
             'filesystem': 'ext4',
         }
-        obj = Object(
-            'copy_full.txt', mode='copy', options=options)
+        obj = Object('copy_full.txt', mode='copy', options=options)
         observed = str(obj)
         self.assertEqual(observed, expected)
 
@@ -125,16 +124,14 @@ class ObjectStringRepresentationTestCase(unittest.TestCase):
             'format?': True,
             'format-options': '-b 1024',
         }
-        obj = Object(
-            'copy_full.txt', mode='copy', options=options)
+        obj = Object('copy_full.txt', mode='copy', options=options)
         observed = str(obj)
         self.assertEqual(observed, expected)
 
     def test_raw_default(self):
         expected = self.get_fixture('raw_default.txt')
         options = {'target-device': '/dev/sda'}
-        obj = Object(
-            'raw_full.txt', mode='raw', options=options)
+        obj = Object('raw_full.txt', mode='raw', options=options)
         observed = str(obj)
         self.assertEqual(observed, expected)
 
@@ -148,8 +145,7 @@ class ObjectStringRepresentationTestCase(unittest.TestCase):
             'count': 30,
             'chunk-size': 4096,
         }
-        obj = Object(
-            'raw_full.txt', mode='raw', options=options)
+        obj = Object('raw_full.txt', mode='raw', options=options)
         observed = str(obj)
         self.assertEqual(observed, expected)
 
@@ -160,8 +156,7 @@ class ObjectStringRepresentationTestCase(unittest.TestCase):
             'target-path': '/',
             'filesystem': 'ext4',
         }
-        obj = Object(
-            'tarball_full.txt', mode='tarball', options=options)
+        obj = Object('tarball_full.txt', mode='tarball', options=options)
         observed = str(obj)
         self.assertEqual(observed, expected)
 
@@ -175,8 +170,7 @@ class ObjectStringRepresentationTestCase(unittest.TestCase):
             'format?': True,
             'format-options': '-b 1024',
         }
-        obj = Object(
-            'tarball_full.txt', mode='tarball', options=options)
+        obj = Object('tarball_full.txt', mode='tarball', options=options)
         observed = str(obj)
         self.assertEqual(observed, expected)
 

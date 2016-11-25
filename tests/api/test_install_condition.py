@@ -177,7 +177,6 @@ class AlwaysObjectIntegrationTestCase(FileFixtureMixin, EFUTestCase):
         obj = Object(self.fn, 'raw', self.options)
         obj.load()
         expected = {
-            'compressed': False,
             'filename': self.fn,
             'mode': 'raw',
             'chunk-size': 131072,
@@ -239,7 +238,6 @@ class ContentDivergesObjectIntegrationTestCase(FileFixtureMixin, EFUTestCase):
         obj = Object(self.fn, 'raw', self.options)
         obj.load()
         expected = {
-            'compressed': False,
             'filename': self.fn,
             'mode': 'raw',
             'chunk-size': 131072,
@@ -295,7 +293,6 @@ class KnownVersionPatternObjectIntegrationTestCase(unittest.TestCase):
             }
         }
         self.metadata = {
-            'compressed': False,
             'filename': None,  # to be replaced by tests
             'mode': 'raw',
             'chunk-size': 131072,
@@ -450,7 +447,6 @@ class CustomVersionPatternObjectIntegrationTestCase(
             }
         }
         self.metadata = {
-            'compressed': False,
             'filename': self.fn,
             'mode': 'raw',
             'chunk-size': 131072,

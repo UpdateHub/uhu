@@ -1,0 +1,3 @@
+ubi_default.txt [mode: ubi]
+
+    Volume name:       ubi-volume
