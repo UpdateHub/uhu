@@ -158,6 +158,9 @@ class EFURepl:
         If command runs successfully, persists the configuration state
         into a file. Otherwise, shows the error message to user.
         """
+        if command is None:
+            print('Invalid command')
+            return
         try:
             command(self)
         except Exception as err:  # pylint: disable=broad-except
