@@ -72,6 +72,15 @@ OBJECT_STRING_TEMPLATE = OrderedDict([
 ])
 
 
+# Doesn't implement/support compression
+# - Copy object cannot be set as compressed since it can misslead user
+# when just copying a compressed file (instead of decompress
+# and copy).
+# - UBI object is not supported by agent now.
+# - Flash object doesn't implement compression.
+NO_COMPRESSION = ['copy', 'flash', 'ubi']
+
+
 class ObjectUploadResult:
     SUCCESS = 1
     EXISTS = 2
@@ -143,11 +152,7 @@ class Object:
 
     @property
     def compressed(self):
-        # - Copy object cannot be set as compressed since it can misslead user
-        # when just copying a compressed file (instead of decompress
-        # and copy).
-        # - UBI object is not supported by agent now.
-        if self.mode in ['copy', 'ubi']:
+        if self.mode in NO_COMPRESSION:
             return False
         if self._compressed is None:
             self.compressor = get_compressor_format(self.filename)
@@ -229,7 +234,7 @@ class Object:
             'mode': self.mode,
             'options': options,
         }
-        if self.mode not in ['copy', 'ubi']:
+        if self.mode not in NO_COMPRESSION:
             template['compressed'] = self.compressed
         return template
 

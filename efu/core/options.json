@@ -1,7 +1,7 @@
 [
     {
         "metadata": "install-condition",
-        "modes":  ["copy", "raw", "tarball"],
+        "modes":  ["copy", "flash", "raw", "tarball"],
         "required_in": ["copy", "raw", "tarball"],
         "type": "str",
         "choices": ["always", "content-diverges", "version-diverges"],
@@ -12,7 +12,7 @@
     },
     {
         "metadata": "install-condition-pattern-type",
-        "modes":  ["copy", "raw", "tarball"],
+        "modes":  ["copy", "flash", "raw", "tarball"],
         "type": "str",
         "choices": ["linux-kernel", "u-boot", "regexp"],
         "help": "What type of pattern to use to retrive version from object",
@@ -27,7 +27,7 @@
     },
     {
         "metadata": "install-condition-pattern",
-        "modes":  ["copy", "raw", "tarball"],
+        "modes":  ["copy", "flash", "raw", "tarball"],
         "type": "str",
         "help": "Regular expression to use when retriving version from object",
         "cli": ["--install-condition-pattern"],
@@ -41,7 +41,7 @@
     },
     {
         "metadata": "install-condition-seek",
-        "modes":  ["copy", "raw", "tarball"],
+        "modes":  ["copy", "flash", "raw", "tarball"],
         "type": "int",
         "default": 0,
         "help": "Place to start reading object to retrive version",
@@ -56,7 +56,7 @@
     },
     {
         "metadata": "install-condition-buffer-size",
-        "modes":  ["copy", "raw", "tarball"],
+        "modes":  ["copy", "flash", "raw", "tarball"],
         "type": "int",
         "default": -1,
         "help": "How much bytes to read object to retrive version",
@@ -71,8 +71,8 @@
     },
     {
         "metadata": "target-device",
-        "modes": ["copy", "raw", "tarball"],
-        "required_in": ["copy", "raw", "tarball"],
+        "modes": ["copy", "flash", "raw", "tarball"],
+        "required_in": ["copy", "flash", "raw", "tarball"],
         "type": "path",
         "help": "Target device for the object (e.g. /dev/sda1)",
         "cli": ["--target-device", "-td"],

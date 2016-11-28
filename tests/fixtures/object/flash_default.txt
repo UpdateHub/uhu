@@ -1,0 +1,3 @@
+ flash_default.txt [mode: flash]
+
+    Target device:     /dev/sda
