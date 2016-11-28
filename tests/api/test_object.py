@@ -529,7 +529,7 @@ class SingleModeObjectManagerTestCase(unittest.TestCase):
         self.assertEqual(expected, observed)
 
 
-class ActiveBackupModeObjectManagerTestCase(unittest.TestCase):
+class ActiveInactiveModeObjectManagerTestCase(unittest.TestCase):
 
     def setUp(self):
         self.manager = ObjectManager()

@@ -35,7 +35,7 @@ class Package:
         package = Package(
             version=dump.get('version'), product=dump.get('product'))
         package.supported_hardware = dump.get('supported-hardware', {})
-        package.active_inactive_backend = dump.get('active-backup-backend')
+        package.active_inactive_backend = dump.get('active-inactive-backend')
 
         file_object_set = dump.get('objects', [])
         for file_object_list in file_object_set:
@@ -51,7 +51,8 @@ class Package:
         ''' Creates a package from a metadata object '''
         package = Package(
             product=metadata['product'], version=metadata['version'])
-        package.active_inactive_backend = metadata.get('active-backup-backend')
+        package.active_inactive_backend = metadata.get(
+            'active-inactive-backend')
 
         for metadata_object_list in metadata['objects']:
             object_list = package.objects.add_list()
@@ -133,7 +134,7 @@ class Package:
         if self.supported_hardware:
             metadata['supported-hardware'] = self.supported_hardware
         if self.active_inactive_backend:
-            metadata['active-backup-backend'] = self.active_inactive_backend
+            metadata['active-inactive-backend'] = self.active_inactive_backend
         return metadata
 
     def template(self):
@@ -143,7 +144,7 @@ class Package:
             'product': self.product,
             'supported-hardware': self.supported_hardware,
             'objects': self.objects.template(),
-            'active-backup-backend': self.active_inactive_backend,
+            'active-inactive-backend': self.active_inactive_backend,
         }
 
     def dump(self, dest):

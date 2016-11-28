@@ -501,7 +501,7 @@ class ObjectManager:
         return (obj for objects in self for obj in objects)
 
     def is_single(self):
-        ''' Checks if it is single mode or active-backup mode '''
+        ''' Checks if it is single mode or active-inactive mode '''
         if len(self) < 2:
             return True
         return False

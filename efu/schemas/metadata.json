@@ -24,7 +24,7 @@
             },
             "minItems": 1
         },
-        "active-backup-backend": {
+        "active-inactive-backend": {
             "type": "string",
             "enum": ["u-boot", "grub2"]
         },
@@ -64,7 +64,7 @@
     "additionalProperties": false,
 
     "dependencies": {
-        "active-backup-backend": {
+        "active-inactive-backend": {
             "properties": {
                 "objects": {
                     "minItems": 2,

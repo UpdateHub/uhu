@@ -56,11 +56,11 @@ class ActiveInactiveTestCase(PackageTestCase):
     def test_metadata_with_active_inactive_backend(self):
         self.pkg.active_inactive_backend = 'u-boot'
         metadata = self.pkg.metadata()
-        self.assertEqual(metadata['active-backup-backend'], 'u-boot')
+        self.assertEqual(metadata['active-inactive-backend'], 'u-boot')
 
     def test_metadata_without_active_inactive_backend(self):
         metadata = self.pkg.metadata()
-        self.assertIsNone(metadata.get('active-backup-backend'))
+        self.assertIsNone(metadata.get('active-inactive-backend'))
 
 
 class PackageConstructorsTestCase(PackageTestCase):
@@ -75,7 +75,7 @@ class PackageConstructorsTestCase(PackageTestCase):
             'product': self.product,
             'version': self.version,
             'supported-hardware': self.supported_hardware,
-            'active-backup-backend': 'u-boot',
+            'active-inactive-backend': 'u-boot',
             'objects': [
                 [
                     {
@@ -109,7 +109,7 @@ class PackageConstructorsTestCase(PackageTestCase):
         metadata = {
             'product': self.product,
             'version': self.version,
-            'active-backup-backend': 'u-boot',
+            'active-inactive-backend': 'u-boot',
             'objects': [
                 [
                     {

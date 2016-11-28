@@ -367,7 +367,7 @@ class ExportCommandTestCase(PackageTestCase):
             'product': self.product,
             'version': None,
             'supported-hardware': {},
-            'active-backup-backend': 'u-boot',
+            'active-inactive-backend': 'u-boot',
             'objects': [
                 [
                     {
