@@ -16,6 +16,7 @@ from ..core import Package
 from ..utils import get_local_config_file
 
 from . import functions
+from .exceptions import CancelPromptException
 from .helpers import prompt, set_product_prompt
 
 
@@ -116,8 +117,14 @@ class EFURepl:
         """Starts a new interactive prompt."""
         print('EasyFOTA Utils {}'.format(get_efu_version()))
         while True:
-            expression = prompt(
-                self.prompt, completer=self.completer, history=self.history)
+            try:
+                expression = prompt(
+                    self.prompt,
+                    completer=self.completer,
+                    history=self.history
+                )
+            except CancelPromptException:
+                sys.exit(1)  # User has typed Ctrl C
             try:
                 command = self.get_command(expression)
             except TypeError:  # Invalid expression
@@ -164,7 +171,7 @@ class EFURepl:
         try:
             command(self)
         except Exception as err:  # pylint: disable=broad-except
-            print('ERROR: {}'.format(err))
+            print('\033[91mError:\033[0m {}'.format(err))
         else:  # save package in every successful command
             self.package.dump(self.local_config)
 

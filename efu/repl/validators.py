@@ -4,7 +4,9 @@
 import os
 import re
 
-from prompt_toolkit.validation import Validator, ValidationError
+from prompt_toolkit.validation import Validator
+
+from .exceptions import ValidationError
 
 
 class ContainerValidator(Validator):
@@ -17,10 +19,10 @@ class ContainerValidator(Validator):
     def validate(self, document):
         element = document.text.strip()
         if not element:
-            raise ValidationError(message='{} is required.'.format(self.name))
+            raise ValidationError(message='{} is required'.format(self.name))
         if element not in self.container:
             raise ValidationError(
-                message='"{}" is not a valid {}.'.format(element, self.name))
+                message='"{}" is not a valid {}'.format(element, self.name))
 
 
 class FileValidator(Validator):
@@ -28,12 +30,12 @@ class FileValidator(Validator):
     def validate(self, document):
         filename = document.text.strip()
         if not filename:
-            raise ValidationError(message='You must specify a file.')
+            raise ValidationError(message='You must specify a file')
         if not os.path.exists(filename):
             raise ValidationError(
-                message='"{}" does not exist.'.format(filename))
+                message='"{}" does not exist'.format(filename))
         if os.path.isdir(filename):
-            raise ValidationError(message='Only files are allowed.')
+            raise ValidationError(message='Only files are allowed')
 
 
 class ObjectUIDValidator(Validator):
@@ -41,10 +43,10 @@ class ObjectUIDValidator(Validator):
     def validate(self, document):
         uid = document.text.split('#')[0].strip()
         if not uid:
-            raise ValidationError(message='You must specify an object.')
+            raise ValidationError(message='You must specify an object')
         if not uid.isdigit():
             raise ValidationError(
-                message='"{}" is not a valid object UID.'.format(uid))
+                message='"{}" is not a valid object UID'.format(uid))
 
 
 class ObjectOptionValueValidator(Validator):
@@ -60,7 +62,7 @@ class ObjectOptionValueValidator(Validator):
             if self.option.default is not None:
                 return None
             if self.option.is_required(self.mode):
-                raise ValidationError(message='You must provide a value.')
+                raise ValidationError(message='You must provide a value')
         try:
             self.option.convert(value)
         except ValueError as err:
@@ -90,6 +92,6 @@ class YesNoValidator(Validator):
         if not answer:
             if not self.required:
                 return None
-            raise ValidationError(message='{} is required.'.format('Answer'))
+            raise ValidationError(message='{} is required'.format('Answer'))
         if answer[0] not in 'yn':
             raise ValidationError(message='Only yes or no values are allowed')

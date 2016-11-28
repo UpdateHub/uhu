@@ -6,7 +6,7 @@ Includes reusable prompts, auto-completers, constraint checkers.
 """
 
 import sys
-from functools import partial
+from functools import partial, wraps
 
 from prompt_toolkit import prompt
 from prompt_toolkit.contrib.completers import WordCompleter
@@ -22,6 +22,7 @@ from .completers import (
     ObjectFilenameCompleter, ObjectModeCompleter, ObjectOptionCompleter,
     ObjectOptionValueCompleter, ObjectUIDCompleter, YesNoCompleter,
     PackageModeCompleter, ActiveInactiveCompleter)
+from .exceptions import CancelPromptException
 from .validators import (
     FileValidator, ObjectUIDValidator, ContainerValidator,
     ObjectOptionValueValidator, PackageUIDValidator, YesNoValidator)
@@ -37,9 +38,24 @@ def ctrl_d(event):
 
 
 @manager.registry.add_binding(Keys.ControlC)
-def ctrl_c(event):
-    """Ctrl C quits appliaction returning 1 to sys."""
-    event.cli.run_in_terminal(sys.exit(1))
+def ctrl_c(_):
+    """Ctrl C raises an exception to be caught by functions.
+
+    Main prompt must exit efu with code status 1, while subprompts
+    must returns to main prompt.
+    """
+    raise CancelPromptException('Cancelled operation.')
+
+
+def cancellable(f):
+    """Decorator to cancell a current prompt."""
+    @wraps(f)
+    def wrapper(*args, **kw):
+        try:
+            return f(*args, **kw)
+        except CancelPromptException:
+            pass  # Do nothing cancelling the current command
+    return wrapper
 
 
 prompt = partial(prompt, key_bindings_registry=manager.registry)

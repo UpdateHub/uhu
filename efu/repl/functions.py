@@ -11,6 +11,7 @@ from .helpers import prompt
 
 # Config
 
+@helpers.cancellable
 def set_authentication():
     """Sets user access and secret keys."""
     access = prompt('EasyFOTA Access Key ID: ')
@@ -35,6 +36,7 @@ def set_package_version(ctx):
     ctx.package.version = ctx.arg
 
 
+@helpers.cancellable
 def set_package_mode(ctx):
     """Sets a package to be in Single or Active-inactive mode."""
     mode = helpers.prompt_package_mode()
@@ -57,6 +59,7 @@ def add_installation_set(ctx):
     ctx.package.objects.add_list()
 
 
+@helpers.cancellable
 def remove_installation_set(ctx):
     """Removes an installation set."""
     msg = 'Select an installation set to remove: '
@@ -83,6 +86,7 @@ def clean_package(ctx):
 
 # Objects
 
+@helpers.cancellable
 def add_object(ctx):
     """Add an object into the current package."""
     index = helpers.prompt_installation_set(ctx.package)
@@ -94,6 +98,7 @@ def add_object(ctx):
     ctx.package.objects.add(filename, mode, options, index=index)
 
 
+@helpers.cancellable
 def remove_object(ctx):
     """Removes an object from the current package."""
     index = helpers.prompt_installation_set(ctx.package, all_sets=False)
@@ -101,6 +106,7 @@ def remove_object(ctx):
     ctx.package.objects.remove(uid, index=index)
 
 
+@helpers.cancellable
 def edit_object(ctx):
     """Edit an object within the current package."""
     index = helpers.prompt_installation_set(ctx.package, all_sets=False)
@@ -124,6 +130,7 @@ def push_package(ctx):
     ctx.package.push(callback)
 
 
+@helpers.cancellable
 def pull_package(ctx):
     """Download and load a package from server."""
     helpers.check_product(ctx)
@@ -142,6 +149,7 @@ def get_package_status(ctx):
 
 # Hardwares
 
+@helpers.cancellable
 def add_hardware(ctx):
     """Adds a supported hardware/revision into current package."""
     print('Specify the supported hardware for the current package.')
@@ -154,6 +162,7 @@ def add_hardware(ctx):
             ctx.package.add_supported_hardware_revision(hardware, rev.strip())
 
 
+@helpers.cancellable
 def remove_hardware(ctx):
     """Removes a supported hardware/revision from current package."""
     print('Specify the supported hardware to be remove.')
