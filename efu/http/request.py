@@ -28,7 +28,7 @@ class Request(object):
             'Host': self._url.netloc,
             'Timestamp': self.date.timestamp(),
             'Content-sha256': self.payload_sha256,
-            'Api-Content-Type': 'application/vnd.fota-server-v1+json',
+            'Api-Content-Type': 'application/vnd.easyfota-v1+json',
             'Accept': 'application/json',
         }
         if json:

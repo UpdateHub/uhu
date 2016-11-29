@@ -35,7 +35,7 @@ class RequestTestCase(HTTPTestCaseMixin, EFUTestCase):
         self.assertEqual(len(request.headers), 5)
         self.assertEqual(host, 'localhost')
         self.assertEqual(timestamp, 0)
-        self.assertEqual(api, 'application/vnd.fota-server-v1+json')
+        self.assertEqual(api, 'application/vnd.easyfota-v1+json')
         self.assertEqual(
             sha256,
             '6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d'
@@ -125,7 +125,7 @@ class CanonicalRequestTestCase(unittest.TestCase):
 /upload
 a=1&b=2&c=3
 accept:application/json
-api-content-type:application/vnd.fota-server-v1+json
+api-content-type:application/vnd.easyfota-v1+json
 content-sha256:6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d
 host:localhost
 timestamp:0.0
