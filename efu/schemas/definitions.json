@@ -2,7 +2,7 @@
     "mode": {
         "description": "Represents the install mode for the object data",
         "type": "string",
-        "enum": ["copy", "flash", "raw", "tarball", "ubi"]
+        "enum": ["copy", "flash", "imxkobs", "raw", "tarball", "ubi"]
     },
     "filename": {
         "description": "file name used by client to rebuild the commit",
@@ -86,5 +86,21 @@
         "description": "Volume name. Property used with UBI Mode.",
         "type": "string",
         "minLength": 1
+    },
+    "1k_padding": {
+        "description": "If 1k-padding should be added in the head",
+        "type": "boolean"
+    },
+    "search_exponent": {
+        "description": "The search exponent",
+        "type": "integer"
+    },
+    "chip_0_device_path": {
+        "description": "The device path of Chip 0",
+        "type": "string"
+    },
+    "chip_1_device_path": {
+        "type": "description",
+        "type": "string"
     }
 }

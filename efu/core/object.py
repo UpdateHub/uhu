@@ -26,6 +26,19 @@ OBJECT_STRING_TEMPLATE = OrderedDict([
     ('volume', OrderedDict([
         ('display', 'Volume name:')
     ])),
+    ('1k_padding', OrderedDict([
+        ('display', 'Add 1k-padding in the head:'),
+        ('formatter', yes_or_no),
+    ])),
+    ('search_exponent', OrderedDict([
+        ('display', 'Search exponent:')
+    ])),
+    ('chip_0_device_path', OrderedDict([
+        ('display', 'Chip-0 device path:')
+    ])),
+    ('chip_1_device_path', OrderedDict([
+        ('display', 'Chip-1 device path:')
+    ])),
     ('target-device', OrderedDict([
         ('display', 'Target device:'),
         ('children', OrderedDict([
@@ -78,7 +91,8 @@ OBJECT_STRING_TEMPLATE = OrderedDict([
 # and copy).
 # - UBI object is not supported by agent now.
 # - Flash object doesn't implement compression.
-NO_COMPRESSION = ['copy', 'flash', 'ubi']
+# - imxkobs object doesn't implement compression.
+NO_COMPRESSION = ['copy', 'flash', 'imxkobs', 'ubi']
 
 
 class ObjectUploadResult:
@@ -365,6 +379,8 @@ class Object:
                 line = '    {:<18} {} {}'.format(
                     conf['display'], value, self._str_children(conf))
                 s.append(line.rstrip())
+        if len(s) == 1:  # no options
+            s.append('    No options.')
         return '\n'.join(s)
 
 

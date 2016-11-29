@@ -1,7 +1,7 @@
 [
     {
         "metadata": "install-condition",
-        "modes":  ["copy", "flash", "raw", "tarball"],
+        "modes":  ["copy", "flash", "imxkobs", "raw", "tarball"],
         "required_in": ["copy", "raw", "tarball"],
         "type": "str",
         "choices": ["always", "content-diverges", "version-diverges"],
@@ -12,7 +12,7 @@
     },
     {
         "metadata": "install-condition-pattern-type",
-        "modes":  ["copy", "flash", "raw", "tarball"],
+        "modes":  ["copy", "flash", "imxkobs", "raw", "tarball"],
         "type": "str",
         "choices": ["linux-kernel", "u-boot", "regexp"],
         "help": "What type of pattern to use to retrive version from object",
@@ -27,7 +27,7 @@
     },
     {
         "metadata": "install-condition-pattern",
-        "modes":  ["copy", "flash", "raw", "tarball"],
+        "modes":  ["copy", "flash", "imxkobs", "raw", "tarball"],
         "type": "str",
         "help": "Regular expression to use when retriving version from object",
         "cli": ["--install-condition-pattern"],
@@ -41,7 +41,7 @@
     },
     {
         "metadata": "install-condition-seek",
-        "modes":  ["copy", "flash", "raw", "tarball"],
+        "modes":  ["copy", "flash", "imxkobs", "raw", "tarball"],
         "type": "int",
         "default": 0,
         "help": "Place to start reading object to retrive version",
@@ -56,7 +56,7 @@
     },
     {
         "metadata": "install-condition-buffer-size",
-        "modes":  ["copy", "flash", "raw", "tarball"],
+        "modes":  ["copy", "flash", "imxkobs", "raw", "tarball"],
         "type": "int",
         "default": -1,
         "help": "How much bytes to read object to retrive version",
@@ -185,6 +185,38 @@
         "help": "The volume name",
         "cli": ["--volume"],
         "verbose-name": "volume"
+    },
+    {
+        "metadata": "1k_padding",
+        "modes": ["imxkobs"],
+        "type": "bool",
+        "help": "If 1k-padding should be added in the head",
+        "cli": ["--padding-1k"],
+        "verbose-name": "Add 1k-padding in the head"
+    },
+    {
+        "metadata": "search_exponent",
+        "modes": ["imxkobs"],
+        "type": "int",
+        "help": "The search exponent",
+        "cli": ["--search-exponent"],
+        "verbose-name": "Search exponent"
+    },
+    {
+        "metadata": "chip_0_device_path",
+        "modes": ["imxkobs"],
+        "type": "path",
+        "help": "The device path of Chip 0",
+        "cli": ["--chip0-device-path"],
+        "verbose-name": "Chip 0 device path"
+    },
+    {
+        "metadata": "chip_1_device_path",
+        "modes": ["imxkobs"],
+        "type": "path",
+        "help": "The device path of Chip 1",
+        "cli": ["--chip1-device-path"],
+        "verbose-name": "Chip 1 device path"
     },
     {
         "metadata": "sha256sum",

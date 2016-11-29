@@ -36,9 +36,10 @@
             "items": {
                 "type": "array",
                 "items": {
-                    "anyOf": [
+                    "oneOf": [
                         {"$ref": "copy-object.json"},
                         {"$ref": "flash-object.json"},
+                        {"$ref": "imxkobs-object.json"},
                         {"$ref": "raw-object.json"},
                         {"$ref": "tarball-object.json"},
                         {"$ref": "ubi-object.json"}
@@ -46,7 +47,8 @@
                 },
                 "minItems": 1
             },
-            "minItems": 1
+            "minItems": 1,
+            "maxItems": 2
         },
         "changelog": {
             "description": "An URL for a text file containg the changelog between the current version and the new version",
@@ -72,5 +74,32 @@
                 }
             }
         }
-    }
+    },
+    "oneOf": [
+        {
+            "dependencies": {
+                "objects": {
+                    "properties": {
+                        "objects": {
+                            "minItems": 2,
+                            "maxItems": 2
+                        }
+                    },
+                    "required": ["active-inactive-backend"]
+                }
+            }
+        },
+        {
+            "dependencies": {
+                "objects": {
+                    "properties": {
+                        "objects": {
+                            "minItems": 1,
+                            "maxItems": 1
+                        }
+                    }
+                }
+            }
+        }
+    ]
 }
