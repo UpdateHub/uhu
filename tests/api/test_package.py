@@ -5,6 +5,7 @@ import json
 import os
 
 from efu.core import Package
+from efu.core.installation_set import InstallationSetMode
 from efu.exceptions import UploadError
 from efu.utils import CHUNK_SIZE_VAR, SERVER_URL_VAR
 
@@ -39,9 +40,7 @@ class PackageTestCase(FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase):
 class ActiveInactiveTestCase(PackageTestCase):
 
     def setUp(self):
-        self.pkg = Package()
-        self.pkg.objects.add_list()
-        self.pkg.objects.add_list()
+        self.pkg = Package(InstallationSetMode.ActiveInactive)
 
     def test_can_set_active_inactive_backend(self):
         self.pkg.active_inactive_backend = 'u-boot'
@@ -66,9 +65,12 @@ class ActiveInactiveTestCase(PackageTestCase):
 class PackageConstructorsTestCase(PackageTestCase):
 
     def test_can_create_package_with_default_constructor(self):
-        pkg = Package(version=self.version, product=self.product)
+        pkg = Package(
+            InstallationSetMode.ActiveInactive, version=self.version,
+            product=self.product)
         self.assertEqual(pkg.version, self.version)
         self.assertEqual(pkg.product, self.product)
+        self.assertEqual(pkg.mode, InstallationSetMode.ActiveInactive)
 
     def test_can_create_package_from_dumped_file(self):
         fn = self.create_file(json.dumps({
@@ -339,8 +341,8 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
 class PackageRepresentationsTestCase(PackageTestCase):
 
     def test_can_represent_package_as_metadata(self):
-        pkg = Package(version=self.version, product=self.product)
-        pkg.objects.add_list()
+        pkg = Package(InstallationSetMode.Single, version=self.version,
+                      product=self.product)
         pkg.objects.add(self.obj_fn, self.obj_mode, self.obj_options)
         pkg.add_supported_hardware(
             name=self.hardware, revisions=self.hardware_revision)
@@ -360,8 +362,8 @@ class PackageRepresentationsTestCase(PackageTestCase):
         self.assertEqual(obj['target-device'], '/dev/sda')
 
     def test_can_represent_package_as_template(self):
-        pkg = Package(version=self.version, product=self.product)
-        pkg.objects.add_list()
+        pkg = Package(InstallationSetMode.Single,
+                      version=self.version, product=self.product)
         obj = pkg.objects.add(self.obj_fn, self.obj_mode, self.obj_options)
         expected_obj_template = obj.template()
         pkg.add_supported_hardware(
@@ -379,8 +381,8 @@ class PackageRepresentationsTestCase(PackageTestCase):
     def test_can_represent_package_as_file(self):
         dest = '/tmp/efu-dump.json'
         self.addCleanup(self.remove_file, dest)
-        pkg = Package(version=self.version, product=self.product)
-        pkg.objects.add_list()
+        pkg = Package(InstallationSetMode.Single,
+                      version=self.version, product=self.product)
         obj = pkg.objects.add(self.obj_fn, self.obj_mode, self.obj_options)
         expected_obj_dump = obj.template()
         self.assertFalse(os.path.exists(dest))
@@ -401,9 +403,8 @@ class PackageRepresentationsTestCase(PackageTestCase):
         with open('package_full.txt') as fp:
             expected = fp.read()
         package = Package(
-            version='2.0',
+            InstallationSetMode.Single, version='2.0',
             product='e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')  # nopep8
-        package.objects.add_list()
         package.objects.add('files/pkg.json', mode='raw', options={
             'target-device': '/dev/sda',
             'chunk-size': 1234,
@@ -441,7 +442,7 @@ class PackageRepresentationsTestCase(PackageTestCase):
         cwd = os.getcwd()
         os.chdir('tests/fixtures')
         self.addCleanup(os.chdir, cwd)
-        pkg = Package()
+        pkg = Package(InstallationSetMode.Single)
         observed = str(pkg)
         with open('local_empty_config.txt') as fp:
             expected = fp.read().strip()
@@ -457,7 +458,8 @@ class PackageStatusTestCase(HTTPTestCaseMixin, PackageTestCase):
     def test_can_get_a_package_status(self):
         path = '/products/{}/packages/{}/status'.format(
             self.product, self.pkg_uid)
-        package = Package(product=self.product, uid=self.pkg_uid)
+        package = Package(
+            InstallationSetMode.Single, product=self.product, uid=self.pkg_uid)
         expected = 'finished'
         self.httpd.register_response(
             path, status_code=200, body=json.dumps({'status': expected}))
@@ -468,7 +470,8 @@ class PackageStatusTestCase(HTTPTestCaseMixin, PackageTestCase):
         path = '/products/{}/packages/{}/status'.format(
             self.product, self.pkg_uid)
         self.httpd.register_response(path, status_code=404)
-        package = Package(product=self.product, uid=self.pkg_uid)
+        package = Package(
+            InstallationSetMode.Single, product=self.product, uid=self.pkg_uid)
         with self.assertRaises(ValueError):
             package.get_status()
 
@@ -476,7 +479,7 @@ class PackageStatusTestCase(HTTPTestCaseMixin, PackageTestCase):
 class PackageSupportedHardwareManagementTestCase(PackageTestCase):
 
     def test_can_add_supported_hardware(self):
-        pkg = Package()
+        pkg = Package(InstallationSetMode.Single)
         self.assertEqual(len(pkg.supported_hardware), 0)
         pkg.add_supported_hardware(name='PowerX', revisions=['PX230'])
         self.assertEqual(len(pkg.supported_hardware), 1)
@@ -485,7 +488,7 @@ class PackageSupportedHardwareManagementTestCase(PackageTestCase):
         self.assertEqual(hardware['revisions'], ['PX230'])
 
     def test_can_remove_supported_hardware(self):
-        pkg = Package()
+        pkg = Package(InstallationSetMode.Single)
         pkg.add_supported_hardware(name='PowerX')
         pkg.add_supported_hardware(name='PowerY')
         self.assertEqual(len(pkg.supported_hardware), 2)
@@ -495,42 +498,42 @@ class PackageSupportedHardwareManagementTestCase(PackageTestCase):
         self.assertEqual(len(pkg.supported_hardware), 0)
 
     def test_remove_supported_hardware_raises_error_if_invalid_hardware(self):
-        pkg = Package()
+        pkg = Package(InstallationSetMode.Single)
         with self.assertRaises(ValueError):
             pkg.remove_supported_hardware('dosnt-exist')
 
     def test_can_add_hardware_revision(self):
-        pkg = Package()
+        pkg = Package(InstallationSetMode.Single)
         pkg.add_supported_hardware(name='PowerX', revisions=['PX230'])
         pkg.add_supported_hardware_revision('PowerX', 'PX240')
         revisions = pkg.supported_hardware['PowerX']['revisions']
         self.assertEqual(revisions, ['PX230', 'PX240'])
 
     def test_add_hardware_revision_raises_error_if_invalid_hardware(self):
-        pkg = Package()
+        pkg = Package(InstallationSetMode.Single)
         with self.assertRaises(ValueError):
             pkg.add_supported_hardware_revision('dosnt-exist', 'revision')
 
     def test_can_remove_hardware_revision(self):
-        pkg = Package()
+        pkg = Package(InstallationSetMode.Single)
         pkg.add_supported_hardware(name='PowerX', revisions=['PX240'])
         self.assertEqual(len(pkg.supported_hardware['PowerX']['revisions']), 1)
         pkg.remove_supported_hardware_revision('PowerX', 'PX240')
         self.assertEqual(len(pkg.supported_hardware['PowerX']['revisions']), 0)
 
     def test_remove_hardware_revision_raises_error_if_invalid_hardware(self):
-        pkg = Package()
+        pkg = Package(InstallationSetMode.Single)
         with self.assertRaises(ValueError):
             pkg.remove_supported_hardware_revision('dosnt-exist', 'revision')
 
     def test_remove_hardware_revision_raises_error_if_invalid_revision(self):
-        pkg = Package()
+        pkg = Package(InstallationSetMode.Single)
         pkg.add_supported_hardware('PowerX')
         with self.assertRaises(ValueError):
             pkg.remove_supported_hardware_revision('PowerX', 'dosnt-exist')
 
     def test_hardware_revisions_are_alphanumeric_sorted(self):
-        pkg = Package()
+        pkg = Package(InstallationSetMode.Single)
         pkg.add_supported_hardware(name='PowerX', revisions=['PX240'])
         pkg.add_supported_hardware_revision('PowerX', 'PX250')
         pkg.add_supported_hardware_revision('PowerX', 'PX230')
@@ -539,14 +542,14 @@ class PackageSupportedHardwareManagementTestCase(PackageTestCase):
         self.assertEqual(observed, expected)
 
     def test_entries_are_not_duplicated_when_adding_same_hardware_twice(self):
-        pkg = Package()
+        pkg = Package(InstallationSetMode.Single)
         pkg.add_supported_hardware(name='PowerX', revisions=['PX230'])
         pkg.add_supported_hardware(name='PowerX', revisions=['PX230'])
         self.assertEqual(len(pkg.supported_hardware), 1)
         self.assertEqual(len(pkg.supported_hardware['PowerX']['revisions']), 1)
 
     def test_dump_package_with_supported_hardware(self):
-        pkg = Package()
+        pkg = Package(InstallationSetMode.Single)
         pkg.add_supported_hardware(name='PowerX', revisions=['PX230'])
         pkg_fn = self.create_file('')
         pkg.dump(pkg_fn)
@@ -559,7 +562,8 @@ class PackageSupportedHardwareManagementTestCase(PackageTestCase):
         self.assertEqual(supported_hardware['PowerX']['revisions'], ['PX230'])
 
     def test_supported_hardware_within_package_string(self):
-        pkg = Package(version='2.0', product='1234')
+        pkg = Package(
+            InstallationSetMode.Single, version='2.0', product='1234')
         pkg.add_supported_hardware(name='PowerX')
         pkg.add_supported_hardware(name='PowerY', revisions=['PY230'])
         pkg.add_supported_hardware(

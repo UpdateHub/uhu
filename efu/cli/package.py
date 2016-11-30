@@ -48,29 +48,6 @@ def set_active_inactive_backend(backend):
         package.active_inactive_backend = backend
 
 
-# Installtion set commands
-
-@package_cli.command('add-installation-set')
-def add_installation_set_command():
-    ''' Adds a new installation set for active-inactive mode '''
-    with open_package() as package:
-        try:
-            package.objects.add_list()
-        except ValueError as err:
-            error(2, err)
-
-
-@package_cli.command('remove-installation-set')
-@click.argument('index', type=click.INT)
-def remove_installation_set_command(index):
-    ''' Removes an installation set and its objects '''
-    with open_package() as package:
-        try:
-            package.objects.remove_list(index)
-        except ValueError as err:
-            error(2, err)
-
-
 # Object commands
 
 @package_cli.command('add')
@@ -87,8 +64,6 @@ def add_object_command(filename, mode, installation_set, **options):
             options = parser.clean()
         except ValueError as err:
             error(2, err)
-        if len(package.objects) == 0:
-            package.objects.add_list()
         try:
             package.objects.add(
                 filename, mode, options, index=installation_set)
@@ -155,7 +130,7 @@ def pull_command(package_uid, full):
         package.uid = package_uid
         if not package.product:
             error(2, 'Product not set')
-        if len(package) != 0:
+        if len(list(package.objects.all())) != 0:
             error(3, ('ERROR: You have a local package that '
                       'would be overwritten by this action.'))
         try:

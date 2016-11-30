@@ -5,6 +5,7 @@ import os
 import tempfile
 import unittest
 
+from efu.core.installation_set import InstallationSetMode
 from efu.core.package import Package
 from efu.repl.repl import EFURepl
 from efu.repl import functions
@@ -31,7 +32,7 @@ class ProductTestCase(unittest.TestCase):
     def test_start_prompt_with_package_updates_prompt(self):
         _, fn = tempfile.mkstemp()
         self.addCleanup(os.remove, fn)
-        pkg = Package(product='123456789')
+        pkg = Package(InstallationSetMode.Single, product='123456789')
         pkg.dump(fn)
         self.repl = EFURepl(fn)
         self.assertEqual(self.repl.prompt, '[123456] efu> ')

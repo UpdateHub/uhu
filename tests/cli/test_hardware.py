@@ -4,6 +4,7 @@
 from efu.cli.hardware import (
     add_supported_hardware_command, remove_supported_hardware_command)
 from efu.core import Package
+from efu.core.installation_set import InstallationSetMode
 from efu.utils import LOCAL_CONFIG_VAR
 
 from cli.test_package import PackageTestCase
@@ -13,7 +14,9 @@ class SupportedHardwareCommandsTestCase(PackageTestCase):
 
     def setUp(self):
         super().setUp()
-        self.pkg = Package(version=self.version, product=self.product)
+        self.pkg = Package(
+            InstallationSetMode.Single, version=self.version,
+            product=self.product)
         self.pkg.dump(self.pkg_fn)
 
     def test_add_supported_hardware_returns_1_if_package_dosnt_exist(self):

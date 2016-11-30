@@ -10,6 +10,7 @@ import unittest
 from uuid import uuid4
 
 from efu.core import Package
+from efu.core.installation_set import InstallationSetMode
 from efu.utils import CHUNK_SIZE_VAR, LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 from httpmock.httpd import HTTPMockServer
@@ -176,8 +177,9 @@ class BasePushTestCase(
         self.product = '0' * 64
         self.version = '2.0'
         self.package_uid = '1' * 64
-        self.package = Package(version=self.version, product=self.product)
-        self.package.objects.add_list()
+        self.package = Package(
+            InstallationSetMode.Single, version=self.version,
+            product=self.product)
         for _ in range(3):
             fn = self.create_file('123')
             self.package.objects.add(fn, 'raw', {'target-device': '/dev/sda'})
@@ -195,9 +197,10 @@ class BasePullTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
         self.pkg_fn = os.path.join(wd, '.efu')
         self.set_env_var(LOCAL_CONFIG_VAR, self.pkg_fn)
 
-        self.product = '1324'
-        self.pkg_uid = '1234'
-        self.package = Package(uid=self.pkg_uid, product=self.product)
+        self.product = 'product-uid'
+        self.pkg_uid = 'package-uid'
+        self.package = Package(
+            InstallationSetMode.Single, uid=self.pkg_uid, product=self.product)
 
         # object
         self.obj_fn = 'image.bin'

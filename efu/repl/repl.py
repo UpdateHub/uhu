@@ -12,7 +12,8 @@ from prompt_toolkit.contrib.regular_languages import compiler
 
 from .. import get_efu_version
 from ..config import config, Sections
-from ..core import Package
+from ..core.package import Package
+from ..core.installation_set import InstallationSetMode
 from ..utils import get_local_config_file
 
 from . import functions
@@ -34,14 +35,11 @@ GROUPS = {
     },
     'package': {
         # package
-        'mode': functions.set_package_mode,
         'version': functions.set_package_version,
         # objects
         'add': functions.add_object,
         'edit': functions.edit_object,
         'remove': functions.remove_object,
-        'add-set': functions.add_installation_set,
-        'remove-set': functions.remove_installation_set,
         # transactions
         'pull': functions.pull_package,
         'push': functions.push_package,
@@ -103,7 +101,10 @@ class EFURepl:
         elif os.path.exists(self.local_config):
             self.package = Package.from_file(self.local_config)
         else:
-            self.package = Package()
+            # We currently only support active-inactive with u-boot
+            # backend.
+            self.package = Package(InstallationSetMode.ActiveInactive)
+            self.package.active_inactive_backend = 'u-boot'
 
         if self.package.product:
             self.prompt = set_product_prompt(self.package.product)

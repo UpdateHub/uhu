@@ -4,6 +4,7 @@
 import unittest
 from unittest.mock import patch
 
+from efu.core.installation_set import InstallationSetMode
 from efu.core.object import Object
 from efu.core.options import Option
 from efu.core.package import Package
@@ -92,9 +93,8 @@ class PromptsTestCase(unittest.TestCase):
     def test_can_prompt_object_uid(self, prompt):
         prompt.return_value = '1# {}'.format(__file__)
 
-        pkg = Package()
-        pkg.objects.add_list()
-        pkg.objects.add(__file__, 'raw', {'target-device': '/'})
+        pkg = Package(InstallationSetMode.ActiveInactive)
+        pkg.objects.add(__file__, 'raw', {'target-device': '/'}, index=0)
 
         expected = 1
         observed = helpers.prompt_object_uid(pkg, 0)
@@ -128,22 +128,18 @@ class PromptsTestCase(unittest.TestCase):
 
     @patch('efu.repl.helpers.prompt')
     def test_prompt_installation_set_returns_None_if_single(self, prompt):
-        self.assertTrue(self.repl.package.objects.is_single())
-        observed = helpers.prompt_installation_set(self.repl.package)
+        pkg = Package(InstallationSetMode.Single)
+        observed = helpers.prompt_installation_set(pkg)
         self.assertIsNone(observed)
 
     @patch('efu.repl.helpers.prompt')
     def test_prompt_installation_set_returns_int_if_not_single(self, prompt):
-        self.repl.package.objects.add_list()
-        self.repl.package.objects.add_list()
-        self.assertFalse(self.repl.package.objects.is_single())
+        pkg = Package(InstallationSetMode.ActiveInactive)
         helpers.prompt.return_value = '1'
         observed = helpers.prompt_installation_set(self.repl.package)
         self.assertEqual(observed, 1)
 
     def test_prompt_installation_returns_only_index_with_objects(self):
-        self.repl.package.objects.add_list()
-        self.repl.package.objects.add_list()
         self.repl.package.objects.add(
             __file__, 'raw', {'target-device': '/'}, index=1)
         observed = helpers.prompt_installation_set(

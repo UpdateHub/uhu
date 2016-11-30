@@ -5,6 +5,7 @@ import os
 
 from efu.core.object import Object
 from efu.core.package import Package
+from efu.core.installation_set import InstallationSetMode
 from efu.utils import validate_schema
 
 from utils import EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase
@@ -70,8 +71,7 @@ class FlashObjectTestCase(
     def test_can_load_from_file(self):
         # dumping
         pkg_fn = self.create_file(b'')
-        pkg = Package()
-        pkg.objects.add_list()
+        pkg = Package(InstallationSetMode.Single)
         pkg.objects.add(__file__, 'flash', {'target-device': '/dev/sda'})
         obj = pkg.objects.get(0)
         expected = obj.template(), obj.metadata()

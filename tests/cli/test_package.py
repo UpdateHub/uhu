@@ -7,11 +7,11 @@ import os
 from click.testing import CliRunner
 
 from efu.cli.package import (
-    add_installation_set_command, remove_installation_set_command,
     add_object_command, edit_object_command, remove_object_command,
     export_command, show_command, new_version_command, status_command,
     set_active_inactive_backend)
 from efu.core import Package
+from efu.core.installation_set import InstallationSetMode
 from efu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 
@@ -36,7 +36,7 @@ class SetActiveInactiveBackendTestCase(PackageTestCase):
 
     def setUp(self):
         super().setUp()
-        pkg = Package()
+        pkg = Package(InstallationSetMode.Single)
         pkg.dump(self.pkg_fn)
 
     def test_can_set_active_inactive_backend(self):
@@ -53,57 +53,11 @@ class SetActiveInactiveBackendTestCase(PackageTestCase):
         self.assertEqual(result.exit_code, 2)
 
 
-class AddInstallationSetCommandTestCase(PackageTestCase):
-
-    def setUp(self):
-        super().setUp()
-        pkg = Package(product=self.product)
-        pkg.dump(self.pkg_fn)
-
-    def test_can_add_installation_set(self):
-        package = Package.from_file(self.pkg_fn)
-        self.assertEqual(len(package.objects), 0)
-        result = self.runner.invoke(add_installation_set_command)
-        self.assertEqual(result.exit_code, 0)
-        package = Package.from_file(self.pkg_fn)
-        self.assertEqual(len(package.objects), 1)
-
-    def test_add_installation_set_returns_2_if_adding_more_than_2_sets(self):
-        expected = [0, 0, 2]  # 2 succesful runs, 1 with error
-        results = []
-        for _ in range(3):
-            result = self.runner.invoke(add_installation_set_command)
-            results.append(result.exit_code)
-        self.assertEqual(results, expected)
-
-
-class RemoveInstallationSetCommandTestCase(PackageTestCase):
-
-    def setUp(self):
-        super().setUp()
-        pkg = Package(product=self.product)
-        pkg.objects.add_list()
-        pkg.objects.add_list()
-        pkg.dump(self.pkg_fn)
-
-    def test_can_remove_installation_set(self):
-        package = Package.from_file(self.pkg_fn)
-        self.assertEqual(len(package.objects), 2)
-        result = self.runner.invoke(remove_installation_set_command, ['0'])
-        package = Package.from_file(self.pkg_fn)
-        self.assertEqual(len(package.objects), 1)
-
-    def test_remove_installation_set_returns_2_if_index_is_not_found(self):
-        result = self.runner.invoke(remove_installation_set_command, ['10'])
-        package = Package.from_file(self.pkg_fn)
-        self.assertEqual(len(package.objects), 2)
-
-
 class AddObjectCommandTestCase(PackageTestCase):
 
     def setUp(self):
         super().setUp()
-        pkg = Package(product=self.product)
+        pkg = Package(InstallationSetMode.Single)
         pkg.dump(self.pkg_fn)
 
     def test_can_add_an_object(self):
@@ -112,14 +66,13 @@ class AddObjectCommandTestCase(PackageTestCase):
 
         self.assertEqual(result.exit_code, 0)
         package = Package.from_file(self.pkg_fn)
-        self.assertEqual(len(package.objects), 1)
         obj = package.objects.get(0)
         self.assertEqual(obj.filename, self.obj_fn)
         self.assertEqual(obj.mode, 'raw')
         self.assertEqual(obj.options['target-device'], '/dev/sda')
 
     def test_add_command_returns_1_if_package_does_not_exist(self):
-        self.set_env_var(LOCAL_CONFIG_VAR, 'dont-exist')
+        self.set_env_var(LOCAL_CONFIG_VAR, 'doesnt-exist')
         cmd = [self.obj_fn, '-m', 'raw', '-td', '/dev/sda']
         result = self.runner.invoke(add_object_command, cmd)
         self.assertEqual(result.exit_code, 1)
@@ -240,8 +193,7 @@ class AddObjectCommandTestCase(PackageTestCase):
             self.assertEqual(result.exit_code, 2)
 
     def test_can_add_object_within_specific_index(self):
-        self.runner.invoke(add_installation_set_command)
-        self.runner.invoke(add_installation_set_command)
+        Package(InstallationSetMode.ActiveInactive).dump(self.pkg_fn)
         cmd = [self.obj_fn,
                '-m', 'raw',
                '-td', '/dev/sda',
@@ -250,16 +202,16 @@ class AddObjectCommandTestCase(PackageTestCase):
         self.assertEqual(result.exit_code, 0)
 
     def test_add_object_within_specific_index_returns_3_if_index_error(self):
+        Package(InstallationSetMode.ActiveInactive).dump(self.pkg_fn)
         cmd = [self.obj_fn,
                '-m', 'raw',
                '-td', '/dev/sda',
-               '--installation-set', '1']
+               '--installation-set', '100']
         result = self.runner.invoke(add_object_command, cmd)
         self.assertEqual(result.exit_code, 3)
 
     def test_add_object_within_specific_index_returns_4_if_missing_index(self):
-        self.runner.invoke(add_installation_set_command)
-        self.runner.invoke(add_installation_set_command)
+        Package(InstallationSetMode.ActiveInactive).dump(self.pkg_fn)
         cmd = [self.obj_fn,
                '-m', 'raw',
                '-td', '/dev/sda']
@@ -271,8 +223,7 @@ class EditObjectCommandTestCase(PackageTestCase):
 
     def setUp(self):
         super().setUp()
-        pkg = Package(product=self.product)
-        pkg.objects.add_list()
+        pkg = Package(InstallationSetMode.Single)
         pkg.objects.add(self.obj_fn, mode='raw', options=self.obj_options)
         pkg.dump(self.pkg_fn)
 
@@ -296,7 +247,7 @@ class EditObjectCommandTestCase(PackageTestCase):
         self.assertEqual(result.exit_code, 0)
 
     def test_edit_command_returns_1_if_package_does_not_exist(self):
-        self.set_env_var(LOCAL_CONFIG_VAR, 'dont-exist')
+        self.set_env_var(LOCAL_CONFIG_VAR, 'doesnt-exist')
         args = ['0', 'target-device', '/dev/sdb']
         result = self.runner.invoke(edit_object_command, args=args)
         self.assertEqual(result.exit_code, 1)
@@ -311,8 +262,7 @@ class RemoveObjectCommandTestCase(PackageTestCase):
 
     def setUp(self):
         super().setUp()
-        pkg = Package(product=self.product)
-        pkg.objects.add_list()
+        pkg = Package(InstallationSetMode.Single)
         pkg.objects.add(self.obj_fn, mode='raw', options=self.obj_options)
         pkg.dump(self.pkg_fn)
 
@@ -328,7 +278,7 @@ class RemoveObjectCommandTestCase(PackageTestCase):
         self.assertEqual(result.exit_code, 0)
 
     def test_remove_command_returns_1_if_package_does_not_exist(self):
-        self.set_env_var(LOCAL_CONFIG_VAR, 'dont-exist')
+        self.set_env_var(LOCAL_CONFIG_VAR, 'doesnt-exist')
         result = self.runner.invoke(
             remove_object_command, args=['100'])
         self.assertEqual(result.exit_code, 1)
@@ -337,15 +287,14 @@ class RemoveObjectCommandTestCase(PackageTestCase):
 class ShowCommandTestCase(PackageTestCase):
 
     def test_show_command_returns_0_if_successful(self):
-        pkg = Package(product=self.product)
-        pkg.objects.add_list()
+        pkg = Package(InstallationSetMode.Single)
         pkg.objects.add(self.obj_fn, mode='raw', options=self.obj_options)
         pkg.dump(self.pkg_fn)
         result = self.runner.invoke(show_command)
         self.assertEqual(result.exit_code, 0)
 
     def test_show_command_returns_1_if_package_does_not_exist(self):
-        self.set_env_var(LOCAL_CONFIG_VAR, 'dont-exist')
+        self.set_env_var(LOCAL_CONFIG_VAR, 'doesnt-exist')
         result = self.runner.invoke(show_command)
         self.assertEqual(result.exit_code, 1)
 
@@ -354,8 +303,7 @@ class ExportCommandTestCase(PackageTestCase):
 
     def setUp(self):
         super().setUp()
-        pkg = Package(product=self.product)
-        pkg.objects.add_list()
+        pkg = Package(InstallationSetMode.Single)
         pkg.objects.add(self.obj_fn, mode='raw', options=self.obj_options)
         pkg.active_inactive_backend = 'u-boot'
         pkg.dump(self.pkg_fn)
@@ -364,7 +312,7 @@ class ExportCommandTestCase(PackageTestCase):
 
     def test_can_export_package_file(self):
         expected = {
-            'product': self.product,
+            'product': None,
             'version': None,
             'supported-hardware': {},
             'active-inactive-backend': 'u-boot',
@@ -400,7 +348,7 @@ class ExportCommandTestCase(PackageTestCase):
         self.assertEqual(result.exit_code, 0)
 
     def test_export_command_returns_1_if_package_does_not_exist(self):
-        self.set_env_var(LOCAL_CONFIG_VAR, 'dont-exist')
+        self.set_env_var(LOCAL_CONFIG_VAR, 'doesnt-exist')
         result = self.runner.invoke(
             export_command, args=[self.dest_pkg_fn])
         self.assertFalse(os.path.exists(self.dest_pkg_fn))
@@ -411,7 +359,7 @@ class NewVersionCommandTestCase(PackageTestCase):
 
     def setUp(self):
         super().setUp()
-        Package(product=self.product).dump(self.pkg_fn)
+        Package(InstallationSetMode.Single).dump(self.pkg_fn)
 
     def test_can_set_package_version(self):
         package = Package.from_file(self.pkg_fn)
@@ -427,7 +375,7 @@ class NewVersionCommandTestCase(PackageTestCase):
         self.assertEqual(result.exit_code, 0)
 
     def test_new_package_version_comands_returns_1_without_package_file(self):
-        self.set_env_var(LOCAL_CONFIG_VAR, 'dont-exist')
+        self.set_env_var(LOCAL_CONFIG_VAR, 'doesnt-exist')
         result = self.runner.invoke(
             new_version_command, args=[self.version])
         self.assertEqual(result.exit_code, 1)
@@ -437,7 +385,9 @@ class StatusCommandTestCase(HTTPTestCaseMixin, PackageTestCase):
 
     def setUp(self):
         super().setUp()
-        Package(version=self.version, product=self.product).dump(self.pkg_fn)
+        Package(
+            InstallationSetMode.Single, version=self.version,
+            product=self.product).dump(self.pkg_fn)
         self.set_env_var(SERVER_URL_VAR, self.httpd.url(''))
 
     def test_status_command_returns_0_if_successful(self):
@@ -449,7 +399,7 @@ class StatusCommandTestCase(HTTPTestCaseMixin, PackageTestCase):
         self.assertEqual(result.exit_code, 0)
 
     def test_status_command_returns_1_if_package_doesnt_exist(self):
-        self.set_env_var(LOCAL_CONFIG_VAR, 'dont-exist')
+        self.set_env_var(LOCAL_CONFIG_VAR, 'doesnt-exist')
         result = self.runner.invoke(status_command, args=[self.pkg_uid])
         self.assertEqual(result.exit_code, 1)
 

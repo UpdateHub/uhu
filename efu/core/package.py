@@ -9,7 +9,8 @@ from ..exceptions import UploadError
 from ..http.request import Request
 from ..utils import call, get_server_url, validate_schema
 
-from .object import ObjectManager, ObjectUploadResult, Object
+from .object import Object, ObjectUploadResult
+from .installation_set import InstallationSetManager, InstallationSetMode
 
 
 MODES = ['single', 'active-inactive']
@@ -17,60 +18,60 @@ ACTIVE_INACTIVE_MODES = ['u-boot']
 
 
 class Package:
-    ''' A package represents a group of objects. '''
+    """A package represents a group of objects."""
 
-    def __init__(self, uid=None, version=None, product=None):
+    def __init__(self, mode, uid=None, version=None, product=None):
+        self.mode = mode
         self.uid = uid
         self.version = version
         self.product = product
-        self.objects = ObjectManager()
+        self.objects = InstallationSetManager(self.mode)
         self.supported_hardware = {}
         self._active_inactive_backend = None
 
     @classmethod
     def from_file(cls, fn):
-        ''' Creates a package from a dumped package '''
+        """Creates a package from a dumped package."""
         with open(fn) as fp:
             dump = json.load(fp, object_pairs_hook=OrderedDict)
+        objects = dump.get('objects')
         package = Package(
-            version=dump.get('version'), product=dump.get('product'))
+            mode=InstallationSetMode.from_objects(objects),
+            version=dump.get('version'),
+            product=dump.get('product'))
         package.supported_hardware = dump.get('supported-hardware', {})
         package.active_inactive_backend = dump.get('active-inactive-backend')
-
-        file_object_set = dump.get('objects', [])
-        for file_object_list in file_object_set:
-            objects = package.objects.add_list()
-            for obj in file_object_list:
-                objects.add(
-                    fn=obj['filename'], mode=obj['mode'],
+        for index, installation_set in enumerate(objects):
+            for obj in installation_set:
+                package.objects.add(
+                    index=index, fn=obj['filename'], mode=obj['mode'],
                     options=obj['options'], compressed=obj.get('compressed'))
         return package
 
     @classmethod
     def from_metadata(cls, metadata):
-        ''' Creates a package from a metadata object '''
+        """Creates a package from a metadata object."""
+        objects = metadata['objects']
         package = Package(
-            product=metadata['product'], version=metadata['version'])
+            mode=InstallationSetMode.from_objects(objects),
+            product=metadata['product'],
+            version=metadata['version'])
         package.active_inactive_backend = metadata.get(
             'active-inactive-backend')
-
-        for metadata_object_list in metadata['objects']:
-            object_list = package.objects.add_list()
-            for metadata_obj in metadata_object_list:
+        for installation_set in objects:
+            for obj in installation_set:
                 settings = (
                     'filename', 'mode', 'compressed',
                     'install-if-different')
                 options = {option: value
-                           for option, value in metadata_obj.items()
+                           for option, value in obj.items()
                            if option not in settings}
-                install_if_different = metadata_obj.get('install-if-different')
+                install_if_different = obj.get('install-if-different')
                 if install_if_different is not None:
-                    options.update(Object.to_install_condition(metadata_obj))
-                obj = object_list.add(
-                    fn=metadata_obj['filename'], mode=metadata_obj['mode'],
-                    options=options)
-                obj.size = metadata_obj['size']
-                obj.sha256sum = metadata_obj['sha256sum']
+                    options.update(Object.to_install_condition(obj))
+                package.objects.add(
+                    fn=obj['filename'], mode=obj['mode'],
+                    sha256sum=obj['sha256sum'], options=options)
         return package
 
     @property
@@ -277,7 +278,7 @@ class Package:
         else:
             s.append('Supported hardware: all')
         # Objects
-        if self.objects:
+        if len(list(self.objects.all())):
             s.append(str(self.objects))
         else:
             s.append('Objects: None')

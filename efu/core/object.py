@@ -14,7 +14,7 @@ from ..exceptions import DownloadError, UploadError
 from ..http import Request
 from ..utils import (
     call, get_chunk_size, get_server_url, get_uncompressed_size,
-    get_compressor_format, indent, yes_or_no, str_wrapper)
+    get_compressor_format, yes_or_no, str_wrapper)
 
 from .install_condition import (
     get_kernel_version, get_uboot_version, get_object_version)
@@ -108,15 +108,16 @@ class ObjectUploadResult:
 
 
 class Object:
-    '''
-    Objects represents a file or a image with instructions (metadata)
-    to agent operate it.
-    '''
+    """Represents an object to be deployed on agent.
+
+    In other words, it is a file or a image with instructions (metadata)
+    to agent install it on device.
+    """
 
     VOLATILE_OPTIONS = ('size', 'sha256sum', 'required-uncompressed-size')
     DEVICE_OPTIONS = ['truncate', 'seek', 'filesystem']
 
-    def __init__(self, fn, mode, options, compressed=None):
+    def __init__(self, fn, mode, options, compressed=None, sha256sum=None):
         self.filename = self.validate_filename(fn)
         self.mode = mode
         self.options = OptionsParser(self.mode, options).clean()
@@ -124,7 +125,7 @@ class Object:
         self.install_condition = self._init_install_condition()
 
         self.size = None
-        self.sha256sum = None
+        self.sha256sum = sha256sum
         self.md5 = None
 
         self.compressor = None
@@ -385,6 +386,7 @@ class Object:
 
 
 class ObjectReader:
+    """Read-only object class."""
 
     def __init__(self, obj, callback=None):
         self.obj = obj
@@ -399,150 +401,3 @@ class ObjectReader:
             call(self.callback, 'object_read')
             yield chunk
         call(self.callback, 'post_object_read')
-
-
-class ObjectList:
-    '''
-    Low level package objects manager.
-    Represents a list o Object instances
-    '''
-
-    def __init__(self):
-        self._objects = []
-
-    def add(self, *args, **kwargs):
-        ''' Adds an object instance. Returns an Object instance '''
-        obj = Object(*args, **kwargs)
-        self._objects.append(obj)
-        return obj
-
-    def get(self, index):
-        ''' Retrives an object by index '''
-        try:
-            return self._objects[index]
-        except IndexError:
-            raise ValueError('Object not found')
-
-    def update(self, index, *args, **kwargs):
-        ''' Given an object id, sets obj.option to value '''
-        obj = self.get(index)
-        obj.update(*args, **kwargs)
-
-    def remove(self, index):
-        ''' Removes an object '''
-        try:
-            return self._objects.pop(index)
-        except IndexError:
-            raise ValueError('Object not found')
-
-    def metadata(self):
-        return [obj.metadata() for obj in self]
-
-    def template(self):
-        return [obj.template() for obj in self]
-
-    def __iter__(self):
-        return iter(obj for obj in self._objects)
-
-    def __len__(self):
-        return len(self._objects)
-
-    def __str__(self):
-        s = []
-        s.append('Installation Set:\n')
-        for index, obj in enumerate(self):
-            s.append('    {}# {}\n'.format(index, indent(str(obj), 4)))
-        return '\n'.join(s)
-
-
-class ObjectManager:
-    '''
-    High level package objects manager.
-    Represents a list of ObjectList instances.
-    '''
-
-    def __init__(self):
-        self._lists = []
-
-    def add_list(self):
-        ''' Creates a new object list '''
-        if self.is_single():
-            objects = ObjectList()
-            self._lists.append(objects)
-            return objects
-        raise ValueError('It is not possible to have more than 2 lists')
-
-    def get_list(self, index=None):
-        ''' Returns an object list'''
-        if index is None:
-            if self.is_single():
-                index = 0
-            else:
-                err = 'You need to specify an index in non single mode'
-                raise TypeError(err)
-        try:
-            return self._lists[index]
-        except IndexError:
-            raise ValueError('Object List not found')
-
-    def remove_list(self, index):
-        ''' Removes an object list '''
-        try:
-            self._lists.pop(index)
-        except (IndexError, TypeError):
-            raise ValueError('Object List not found')
-
-    def add(self, *args, index=None, **kw):
-        ''' Adds a new object in a given object list '''
-        objects = self.get_list(index)
-        return objects.add(*args, **kw)
-
-    def get(self, *args, index=None, **kw):
-        ''' Retrives an object '''
-        objects = self.get_list(index)
-        return objects.get(*args, **kw)
-
-    def update(self, *args, index=None, **kw):
-        ''' Updates an object option '''
-        objects = self.get_list(index)
-        objects.update(*args, **kw)
-
-    def remove(self, *args, index=None, **kw):
-        ''' Removes an object '''
-        objects = self.get_list(index)
-        objects.remove(*args, **kw)
-
-    def all(self):
-        ''' Returns all objects from all lists '''
-        return (obj for objects in self for obj in objects)
-
-    def is_single(self):
-        ''' Checks if it is single mode or active-inactive mode '''
-        if len(self) < 2:
-            return True
-        return False
-
-    def is_empty(self):
-        ''' Checks if there is any object list '''
-        if len(self) == 0:
-            return True
-        return False
-
-    def metadata(self):
-        return [objects.metadata() for objects in self]
-
-    def template(self):
-        return [objects.template() for objects in self]
-
-    def __iter__(self):
-        return iter(objects for objects in self._lists)
-
-    def __len__(self):
-        return len(self._lists)
-
-    def __str__(self):
-        s = []
-        s.append('Objects:\n')
-        for index, objects in enumerate(self):
-            s.append('    {}# {}\n'.format(index, indent(str(objects), 4)))
-        return '\n'.join(s)

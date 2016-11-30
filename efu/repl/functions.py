@@ -3,7 +3,8 @@
 """Main EFU REPL command functions."""
 
 from ..config import config
-from ..core import Package
+from ..core.installation_set import InstallationSetMode
+from ..core.package import Package
 
 from . import helpers
 from .helpers import prompt
@@ -36,37 +37,6 @@ def set_package_version(ctx):
     ctx.package.version = ctx.arg
 
 
-@helpers.cancellable
-def set_package_mode(ctx):
-    """Sets a package to be in Single or Active-inactive mode."""
-    mode = helpers.prompt_package_mode()
-    if mode == 'active-inactive':
-        while ctx.package.objects.is_single():
-            ctx.package.objects.add_list()
-        backend = helpers.prompt_active_inactive_backend()
-        ctx.package.active_inactive_backend = backend
-    elif mode == 'single':
-        if ctx.package.objects.is_empty():
-            ctx.package.objects.add_list()
-        if not ctx.package.objects.is_single():
-            raise ValueError(
-                ('Your package already has an active-inactive set. '
-                 'You can delete one installation set to enable single mode'))
-
-
-def add_installation_set(ctx):
-    """Adds an installation set."""
-    ctx.package.objects.add_list()
-
-
-@helpers.cancellable
-def remove_installation_set(ctx):
-    """Removes an installation set."""
-    msg = 'Select an installation set to remove: '
-    index = helpers.prompt_installation_set(ctx.package, msg)
-    ctx.package.objects.remove_list(index)
-
-
 def show_package(ctx):
     """Prints package content."""
     print(ctx.package)
@@ -80,7 +50,7 @@ def save_package(ctx):
 
 def clean_package(ctx):
     """Removes current package and set a new empty one."""
-    ctx.package = Package()
+    ctx.package = Package(InstallationSetMode.ActiveInactive)
     ctx.prompt = 'efu> '
 
 
@@ -93,8 +63,6 @@ def add_object(ctx):
     filename = helpers.prompt_object_filename()
     mode = helpers.prompt_object_mode()
     options = helpers.prompt_object_options(mode)
-    if len(ctx.package.objects) == 0:
-        ctx.package.objects.add_list()
     ctx.package.objects.add(filename, mode, options, index=index)
 
 

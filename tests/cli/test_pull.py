@@ -7,6 +7,8 @@ import os
 from click.testing import CliRunner
 
 from efu.cli.package import pull_command
+from efu.core.installation_set import InstallationSetMode
+from efu.core.package import Package
 
 from utils import BasePullTestCase
 
@@ -41,13 +43,11 @@ class PullCommandTestCase(BasePullTestCase):
         self.assertEqual(result.exit_code, 1)
 
     def test_pull_command_returns_2_if_product_not_set(self):
-        with open(self.pkg_fn, 'w') as fp:
-            json.dump({}, fp)
+        Package(InstallationSetMode.Single).dump(self.pkg_fn)
         result = self.runner.invoke(pull_command, args=[self.pkg_uid])
         self.assertEqual(result.exit_code, 2)
 
     def test_pull_command_returns_3_if_package_has_objects(self):
-        self.package.objects.add_list()
         self.package.objects.add(
             __file__, mode='raw', options={'target-device': '/dev/sda'})
         self.package.dump(self.pkg_fn)
