@@ -131,7 +131,7 @@ class InstallationSetManager:
 
     def all(self):
         """Returns all installation_set from installation sets."""
-        return (obj for installation_set in self for obj in installation_set)
+        return [obj for installation_set in self for obj in installation_set]
 
     def is_single(self):
         """Checks if it is single mode."""

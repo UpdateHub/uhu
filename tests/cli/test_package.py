@@ -270,7 +270,7 @@ class RemoveObjectCommandTestCase(PackageTestCase):
         self.runner.invoke(
             remove_object_command, args=['0'])
         pkg = Package.from_file(self.pkg_fn)
-        self.assertEqual(len(list(pkg.objects.all())), 0)
+        self.assertEqual(len(pkg.objects.all()), 0)
 
     def test_remove_command_returns_0_if_successful(self):
         result = self.runner.invoke(

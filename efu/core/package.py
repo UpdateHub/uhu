@@ -281,7 +281,7 @@ class Package:
         s.append('Active-Inactive Backend: {}'.format(
             self.active_inactive_backend))
         # Objects
-        if len(list(self.objects.all())):
+        if len(self.objects.all()):
             s.append(str(self.objects))
         else:
             s.append('Objects: None')

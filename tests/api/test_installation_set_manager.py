@@ -142,7 +142,7 @@ class SingleModeInstallationSetManagerTestCase(unittest.TestCase):
         for _ in range(2):
             expected.append(self.manager.add(
                 __file__, mode='raw', options={'target-device': '/dev/sda'}))
-        observed = list(self.manager.all())
+        observed = self.manager.all()
         self.assertEqual(expected, observed)
 
 
@@ -234,5 +234,5 @@ class ActiveInactiveModeInstallationSetManagerTestCase(unittest.TestCase):
         for i in range(2):
             expected.append(self.manager.add(
                 self.obj_fn, self.obj_mode, options=self.obj_options, index=i))
-        observed = list(self.manager.all())
+        observed = self.manager.all()
         self.assertEqual(expected, observed)

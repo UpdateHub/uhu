@@ -60,9 +60,9 @@ class ObjectManagementTestCase(BaseTestCase):
         for i in range(2):
             self.repl.package.objects.add(
                 __file__, 'raw', {'target-device': '/'}, index=i)
-        self.assertEqual(len(list(self.repl.package.objects.all())), 2)
+        self.assertEqual(len(self.repl.package.objects.all()), 2)
         functions.remove_object(self.repl)
-        self.assertEqual(len(list(self.repl.package.objects.all())), 1)
+        self.assertEqual(len(self.repl.package.objects.all()), 1)
 
     @patch('efu.repl.helpers.prompt')
     def test_can_remove_object_using_autocompleter_suggestion(self, prompt):
@@ -70,9 +70,9 @@ class ObjectManagementTestCase(BaseTestCase):
         for i in range(2):
             self.repl.package.objects.add(
                 __file__, 'raw', {'target-device': '/'}, index=i)
-        self.assertEqual(len(list(self.repl.package.objects.all())), 2)
+        self.assertEqual(len(self.repl.package.objects.all()), 2)
         functions.remove_object(self.repl)
-        self.assertEqual(len(list(self.repl.package.objects.all())), 1)
+        self.assertEqual(len(self.repl.package.objects.all()), 1)
 
     @patch('efu.repl.helpers.prompt')
     def test_remove_object_raises_error_if_invalid_uid(self, prompt):

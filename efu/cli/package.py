@@ -131,7 +131,7 @@ def pull_command(package_uid, full):
         package.uid = package_uid
         if not package.product:
             error(2, 'Product not set')
-        if len(list(package.objects.all())) != 0:
+        if len(package.objects.all()) != 0:
             error(3, ('ERROR: You have a local package that '
                       'would be overwritten by this action.'))
         try:
