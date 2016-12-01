@@ -63,7 +63,7 @@ def add_object(ctx):
     filename = helpers.prompt_object_filename()
     mode = helpers.prompt_object_mode()
     options = helpers.prompt_object_options(mode)
-    ctx.package.objects.add(filename, mode, options, index=index)
+    ctx.package.objects.create(filename, mode, options, index=index)
 
 
 @helpers.cancellable

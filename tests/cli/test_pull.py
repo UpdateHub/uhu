@@ -48,7 +48,7 @@ class PullCommandTestCase(BasePullTestCase):
         self.assertEqual(result.exit_code, 2)
 
     def test_pull_command_returns_3_if_package_has_objects(self):
-        self.package.objects.add(
+        self.package.objects.create(
             __file__, mode='raw', options={'target-device': '/dev/sda'})
         self.package.dump(self.pkg_fn)
         result = self.runner.invoke(pull_command, args=[self.pkg_uid])

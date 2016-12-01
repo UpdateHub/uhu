@@ -224,7 +224,7 @@ class EditObjectCommandTestCase(PackageTestCase):
     def setUp(self):
         super().setUp()
         pkg = Package(InstallationSetMode.Single)
-        pkg.objects.add(self.obj_fn, mode='raw', options=self.obj_options)
+        pkg.objects.create(self.obj_fn, mode='raw', options=self.obj_options)
         pkg.dump(self.pkg_fn)
 
     def test_can_edit_object_with_edit_object_command(self):
@@ -263,7 +263,7 @@ class RemoveObjectCommandTestCase(PackageTestCase):
     def setUp(self):
         super().setUp()
         pkg = Package(InstallationSetMode.Single)
-        pkg.objects.add(self.obj_fn, mode='raw', options=self.obj_options)
+        pkg.objects.create(self.obj_fn, mode='raw', options=self.obj_options)
         pkg.dump(self.pkg_fn)
 
     def test_can_remove_object_with_remove_command(self):
@@ -288,7 +288,7 @@ class ShowCommandTestCase(PackageTestCase):
 
     def test_show_command_returns_0_if_successful(self):
         pkg = Package(InstallationSetMode.Single)
-        pkg.objects.add(self.obj_fn, mode='raw', options=self.obj_options)
+        pkg.objects.create(self.obj_fn, mode='raw', options=self.obj_options)
         pkg.dump(self.pkg_fn)
         result = self.runner.invoke(show_command)
         self.assertEqual(result.exit_code, 0)
@@ -304,7 +304,7 @@ class ExportCommandTestCase(PackageTestCase):
     def setUp(self):
         super().setUp()
         pkg = Package(InstallationSetMode.Single)
-        pkg.objects.add(self.obj_fn, mode='raw', options=self.obj_options)
+        pkg.objects.create(self.obj_fn, mode='raw', options=self.obj_options)
         pkg.active_inactive_backend = 'u-boot'
         pkg.dump(self.pkg_fn)
         self.dest_pkg_fn = '/tmp/pkg-dump'

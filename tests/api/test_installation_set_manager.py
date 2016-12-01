@@ -29,9 +29,9 @@ class InstallationSetManagerTestCase(unittest.TestCase):
             InstallationSetMode.ActiveInactive)
         self.set0 = self.manager.get_set(0)
         self.set1 = self.manager.get_set(1)
-        self.obj0 = self.manager.add(
+        self.obj0 = self.manager.create(
             __file__, 'raw', {'target-device': '/dev/sda'}, index=0)
-        self.obj1 = self.manager.add(
+        self.obj1 = self.manager.create(
             __file__, 'raw', {'target-device': '/dev/sdb'}, index=1)
 
     def test_installation_set_as_metadata(self):
@@ -55,7 +55,7 @@ class InstallationSetManagerTestCase(unittest.TestCase):
         options = {'target-device': '/dev/sda'}
         args = ['manager.txt', 'raw', options]
         for i in range(2):
-            manager.add(*args, index=i)
+            manager.create(*args, index=i)
         with open('manager.txt') as fp:
             expected = fp.read()
         observed = str(manager)
@@ -105,9 +105,9 @@ class SingleModeInstallationSetManagerTestCase(unittest.TestCase):
         self.manager = InstallationSetManager(InstallationSetMode.Single)
         self.installation_set = self.manager.get_set(0)
 
-    def test_can_add_object(self):
+    def test_can_create_object(self):
         self.assertEqual(len(self.installation_set), 0)
-        obj = self.manager.add(
+        obj = self.manager.create(
             __file__, mode='raw', options={'target-device': '/dev/sda'})
         self.assertEqual(len(self.installation_set), 1)
         self.assertEqual(obj.filename, __file__)
@@ -115,7 +115,7 @@ class SingleModeInstallationSetManagerTestCase(unittest.TestCase):
         self.assertEqual(obj.options['target-device'], '/dev/sda')
 
     def test_can_get_object(self):
-        expected = self.manager.add(
+        expected = self.manager.create(
             __file__, mode='raw', options={'target-device': '/dev/sda'})
         observed = self.manager.get(0)
         self.assertEqual(observed, expected)
@@ -124,14 +124,14 @@ class SingleModeInstallationSetManagerTestCase(unittest.TestCase):
         self.assertEqual(observed.options['target-device'], '/dev/sda')
 
     def test_can_update_object(self):
-        obj = self.manager.add(
+        obj = self.manager.create(
             __file__, mode='raw', options={'target-device': '/dev/sda'})
         self.assertEqual(obj.options['target-device'], '/dev/sda')
         self.manager.update(0, 'target-device', '/dev/sdb')
         self.assertEqual(obj.options['target-device'], '/dev/sdb')
 
     def test_can_remove_object(self):
-        self.manager.add(
+        self.manager.create(
             __file__, mode='raw', options={'target-device': '/dev/sda'})
         self.assertEqual(len(self.installation_set), 1)
         self.manager.remove(0)
@@ -140,7 +140,7 @@ class SingleModeInstallationSetManagerTestCase(unittest.TestCase):
     def test_can_get_all_objects(self):
         expected = []
         for _ in range(2):
-            expected.append(self.manager.add(
+            expected.append(self.manager.create(
                 __file__, mode='raw', options={'target-device': '/dev/sda'}))
         observed = self.manager.all()
         self.assertEqual(expected, observed)
@@ -155,12 +155,12 @@ class ActiveInactiveModeInstallationSetManagerTestCase(unittest.TestCase):
         self.obj_mode = 'raw'
         self.obj_options = {'target-device': '/dev/sda'}
 
-    def test_can_add_object(self):
+    def test_can_create_object(self):
         for installation_set in self.manager:
             self.assertEqual(len(installation_set), 0)
         observed = []
         for i in range(2):
-            observed.append(self.manager.add(
+            observed.append(self.manager.create(
                 self.obj_fn, self.obj_mode, options=self.obj_options, index=i))
         for installation_set in self.manager:
             self.assertEqual(len(installation_set), 1)
@@ -169,15 +169,15 @@ class ActiveInactiveModeInstallationSetManagerTestCase(unittest.TestCase):
             self.assertEqual(obj.mode, self.obj_mode)
             self.assertEqual(obj.options, self.obj_options)
 
-    def test_add_object_raises_error_if_index_is_not_specified(self):
+    def test_create_object_raises_error_if_index_is_not_specified(self):
         with self.assertRaises(TypeError):
-            self.manager.add(
+            self.manager.create(
                 self.obj_fn, self.obj_mode, options=self.obj_options)
 
     def test_can_get_object(self):
         expected = []
         for i in range(2):
-            expected.append(self.manager.add(
+            expected.append(self.manager.create(
                 self.obj_fn, self.obj_mode, options=self.obj_options, index=i))
         observed = []
         for i in range(2):
@@ -189,7 +189,7 @@ class ActiveInactiveModeInstallationSetManagerTestCase(unittest.TestCase):
 
     def test_get_object_raises_error_if_index_is_not_specified(self):
         for i in range(2):
-            self.manager.add(
+            self.manager.create(
                 self.obj_fn, self.obj_mode, options=self.obj_options, index=i)
         with self.assertRaises(TypeError):
             self.manager.get(0)
@@ -197,7 +197,7 @@ class ActiveInactiveModeInstallationSetManagerTestCase(unittest.TestCase):
     def test_can_update_object(self):
         objects = []
         for i in range(2):
-            objects.append(self.manager.add(
+            objects.append(self.manager.create(
                 self.obj_fn, self.obj_mode, options=self.obj_options, index=i))
         for index, obj in enumerate(objects):
             self.assertEqual(obj.options['target-device'], '/dev/sda')
@@ -206,14 +206,14 @@ class ActiveInactiveModeInstallationSetManagerTestCase(unittest.TestCase):
 
     def test_update_object_raises_error_if_index_is_not_specified(self):
         for i in range(2):
-            self.manager.add(
+            self.manager.create(
                 self.obj_fn, self.obj_mode, options=self.obj_options, index=i)
         with self.assertRaises(TypeError):
             self.manager.update(0, 'target-device', '/dev/sdb')
 
     def test_can_remove_object(self):
         for i in range(2):
-            self.manager.add(
+            self.manager.create(
                 self.obj_fn, self.obj_mode, options=self.obj_options, index=i)
         for installation_set in self.manager:
             self.assertEqual(len(installation_set), 1)
@@ -224,7 +224,7 @@ class ActiveInactiveModeInstallationSetManagerTestCase(unittest.TestCase):
 
     def test_remove_object_raises_error_if_index_is_not_specified(self):
         for i in range(2):
-            self.manager.add(
+            self.manager.create(
                 self.obj_fn, self.obj_mode, options=self.obj_options, index=i)
         with self.assertRaises(TypeError):
             self.manager.remove(0)
@@ -232,7 +232,7 @@ class ActiveInactiveModeInstallationSetManagerTestCase(unittest.TestCase):
     def test_can_get_all_objects(self):
         expected = []
         for i in range(2):
-            expected.append(self.manager.add(
+            expected.append(self.manager.create(
                 self.obj_fn, self.obj_mode, options=self.obj_options, index=i))
         observed = self.manager.all()
         self.assertEqual(expected, observed)

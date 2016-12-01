@@ -182,7 +182,8 @@ class BasePushTestCase(
             product=self.product)
         for _ in range(3):
             fn = self.create_file('123')
-            self.package.objects.add(fn, 'raw', {'target-device': '/dev/sda'})
+            self.package.objects.create(
+                fn, 'raw', {'target-device': '/dev/sda'})
 
 
 class BasePullTestCase(EnvironmentFixtureMixin, FileFixtureMixin,

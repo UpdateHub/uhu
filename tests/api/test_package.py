@@ -343,7 +343,7 @@ class PackageRepresentationsTestCase(PackageTestCase):
     def test_can_represent_package_as_metadata(self):
         pkg = Package(InstallationSetMode.Single, version=self.version,
                       product=self.product)
-        pkg.objects.add(self.obj_fn, self.obj_mode, self.obj_options)
+        pkg.objects.create(self.obj_fn, self.obj_mode, self.obj_options)
         pkg.add_supported_hardware(
             name=self.hardware, revisions=self.hardware_revision)
         pkg.load()
@@ -364,7 +364,7 @@ class PackageRepresentationsTestCase(PackageTestCase):
     def test_can_represent_package_as_template(self):
         pkg = Package(InstallationSetMode.Single,
                       version=self.version, product=self.product)
-        obj = pkg.objects.add(self.obj_fn, self.obj_mode, self.obj_options)
+        obj = pkg.objects.create(self.obj_fn, self.obj_mode, self.obj_options)
         expected_obj_template = obj.template()
         pkg.add_supported_hardware(
             name=self.hardware, revisions=self.hardware_revision)
@@ -383,7 +383,7 @@ class PackageRepresentationsTestCase(PackageTestCase):
         self.addCleanup(self.remove_file, dest)
         pkg = Package(InstallationSetMode.Single,
                       version=self.version, product=self.product)
-        obj = pkg.objects.add(self.obj_fn, self.obj_mode, self.obj_options)
+        obj = pkg.objects.create(self.obj_fn, self.obj_mode, self.obj_options)
         expected_obj_dump = obj.template()
         self.assertFalse(os.path.exists(dest))
         pkg.dump(dest)
@@ -406,13 +406,13 @@ class PackageRepresentationsTestCase(PackageTestCase):
             InstallationSetMode.Single, version='2.0',
             product='e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')  # nopep8
         package.active_inactive_backend = 'u-boot'
-        package.objects.add('files/pkg.json', mode='raw', options={
+        package.objects.create('files/pkg.json', mode='raw', options={
             'target-device': '/dev/sda',
             'chunk-size': 1234,
             'skip': 0,
             'count': -1
         })
-        package.objects.add('files/setup.py', mode='raw', options={
+        package.objects.create('files/setup.py', mode='raw', options={
             'target-device': '/dev/sda',
             'seek': 5,
             'truncate': True,
@@ -420,7 +420,7 @@ class PackageRepresentationsTestCase(PackageTestCase):
             'skip': 19,
             'count': 3
         })
-        package.objects.add('files/tox.ini', mode='copy', options={
+        package.objects.create('files/tox.ini', mode='copy', options={
             'target-device': '/dev/sda3',
             'target-path': '/dev/null',
             'filesystem': 'ext4',
@@ -428,14 +428,15 @@ class PackageRepresentationsTestCase(PackageTestCase):
             'format-options': '-i 100 -J size=500',
             'mount-options': '--all --fstab=/etc/fstab2'
         })
-        package.objects.add('files/archive.tar.gz', mode='tarball', options={
-            'target-device': '/dev/sda3',
-            'target-path': '/dev/null',
-            'filesystem': 'ext4',
-            'format?': True,
-            'format-options': '-i 100 -J size=500',
-            'mount-options': '--all --fstab=/etc/fstab2'
-        })
+        package.objects.create(
+            'files/archive.tar.gz', mode='tarball', options={
+                'target-device': '/dev/sda3',
+                'target-path': '/dev/null',
+                'filesystem': 'ext4',
+                'format?': True,
+                'format-options': '-i 100 -J size=500',
+                'mount-options': '--all --fstab=/etc/fstab2'
+            })
         observed = str(package)
         self.assertEqual(observed, expected)
 

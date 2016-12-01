@@ -66,7 +66,7 @@ def add_object_command(filename, mode, installation_set, **options):
         except ValueError as err:
             error(2, err)
         try:
-            package.objects.add(
+            package.objects.create(
                 filename, mode, options, index=installation_set)
         except ValueError as err:
             error(3, err)

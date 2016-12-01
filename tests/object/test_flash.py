@@ -72,7 +72,7 @@ class FlashObjectTestCase(
         # dumping
         pkg_fn = self.create_file(b'')
         pkg = Package(InstallationSetMode.Single)
-        pkg.objects.add(__file__, 'flash', {'target-device': '/dev/sda'})
+        pkg.objects.create(__file__, 'flash', {'target-device': '/dev/sda'})
         obj = pkg.objects.get(0)
         expected = obj.template(), obj.metadata()
         pkg.dump(pkg_fn)

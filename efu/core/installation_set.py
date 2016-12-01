@@ -17,8 +17,8 @@ class InstallationSet:
     def __init__(self):
         self._objects = []
 
-    def add(self, *args, **kwargs):
-        """Adds an object instance. Returns an Object instance."""
+    def create(self, *args, **kwargs):
+        """Creates an object instance. Returns an Object instance."""
         obj = Object(*args, **kwargs)
         self._objects.append(obj)
         return obj
@@ -109,10 +109,10 @@ class InstallationSetManager:
         except IndexError:
             raise ValueError('Installation set not found')
 
-    def add(self, *args, index=None, **kw):
-        """Adds a new object in a given installation set."""
+    def create(self, *args, index=None, **kw):
+        """Creates a new object in a given installation set."""
         installation_set = self.get_set(index)
-        return installation_set.add(*args, **kw)
+        return installation_set.create(*args, **kw)
 
     def get(self, *args, index=None, **kw):
         """Retrives an object."""

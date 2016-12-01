@@ -58,7 +58,7 @@ class ObjectManagementTestCase(BaseTestCase):
     def test_can_remove_object_using_uid(self, prompt):
         prompt.side_effect = ['1', '0']
         for i in range(2):
-            self.repl.package.objects.add(
+            self.repl.package.objects.create(
                 __file__, 'raw', {'target-device': '/'}, index=i)
         self.assertEqual(len(self.repl.package.objects.all()), 2)
         functions.remove_object(self.repl)
@@ -68,7 +68,7 @@ class ObjectManagementTestCase(BaseTestCase):
     def test_can_remove_object_using_autocompleter_suggestion(self, prompt):
         prompt.side_effect = ['1', '0# {}'.format(__file__)]
         for i in range(2):
-            self.repl.package.objects.add(
+            self.repl.package.objects.create(
                 __file__, 'raw', {'target-device': '/'}, index=i)
         self.assertEqual(len(self.repl.package.objects.all()), 2)
         functions.remove_object(self.repl)
@@ -83,7 +83,7 @@ class ObjectManagementTestCase(BaseTestCase):
     @patch('efu.repl.helpers.prompt')
     def test_can_edit_object(self, prompt):
         prompt.side_effect = ['0', 'count', '200']
-        self.repl.package.objects.add(__file__, 'raw', {
+        self.repl.package.objects.create(__file__, 'raw', {
             'target-device': '/',
             'count': 100,
         }, index=0)
@@ -96,7 +96,7 @@ class ObjectManagementTestCase(BaseTestCase):
     @patch('efu.repl.helpers.prompt')
     def test_can_edit_object_filename(self, prompt):
         for i in range(2):
-            self.repl.package.objects.add(
+            self.repl.package.objects.create(
                 __file__, 'raw', {'target-device': '/'}, index=i)
         with tempfile.NamedTemporaryFile() as fp:
             prompt.side_effect = ['1', '0', 'filename', fp.name]
@@ -109,7 +109,7 @@ class ObjectManagementTestCase(BaseTestCase):
     def test_can_edit_object_within_index(self, prompt):
         prompt.side_effect = ['1', '0', 'count', '200']
         for i in range(2):
-            self.repl.package.objects.add(__file__, 'raw', {
+            self.repl.package.objects.create(__file__, 'raw', {
                 'target-device': '/', 'count': 100}, index=i)
         obj = self.repl.package.objects.get(0, index=1)
         self.assertEqual(obj.options['count'], 100)
@@ -126,7 +126,7 @@ class ObjectManagementTestCase(BaseTestCase):
     @patch('efu.repl.helpers.prompt')
     def test_edit_object_raises_error_if_invalid_option(self, prompt):
         prompt.side_effect = ['1', 'invalid']
-        self.repl.package.objects.add(
+        self.repl.package.objects.create(
             __file__, 'raw', {'target-device': '/'}, index=0)
         with self.assertRaises(ValueError):
             functions.edit_object(self.repl)

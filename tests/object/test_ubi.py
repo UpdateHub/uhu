@@ -69,7 +69,7 @@ class UBIObjectTestCase(
         # dumping
         pkg_fn = self.create_file(b'')
         pkg = Package(InstallationSetMode.Single)
-        pkg.objects.add(__file__, 'ubi', {'volume': 'system'})
+        pkg.objects.create(__file__, 'ubi', {'volume': 'system'})
         obj = pkg.objects.get(0)
         expected = obj.template(), obj.metadata()
         pkg.dump(pkg_fn)

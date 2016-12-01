@@ -43,7 +43,7 @@ class Package:
         package.active_inactive_backend = dump.get('active-inactive-backend')
         for index, installation_set in enumerate(objects):
             for obj in installation_set:
-                package.objects.add(
+                package.objects.create(
                     index=index, fn=obj['filename'], mode=obj['mode'],
                     options=obj['options'], compressed=obj.get('compressed'))
         return package
@@ -69,7 +69,7 @@ class Package:
                 install_if_different = obj.get('install-if-different')
                 if install_if_different is not None:
                     options.update(Object.to_install_condition(obj))
-                package.objects.add(
+                package.objects.create(
                     fn=obj['filename'], mode=obj['mode'],
                     sha256sum=obj['sha256sum'], options=options)
         return package
