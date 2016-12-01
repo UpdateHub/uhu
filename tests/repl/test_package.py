@@ -50,9 +50,11 @@ class ObjectManagementTestCase(BaseTestCase):
     def test_can_add_object_within_index(self, prompt):
         values = ['0', __file__, 'copy', '', '/', '/', 'ext4', '', '', '']
         prompt.side_effect = values
-        self.assertEqual(len(self.repl.package.objects.get_set(0)), 0)
+        self.assertEqual(
+            len(self.repl.package.objects.get_installation_set(0)), 0)
         functions.add_object(self.repl)
-        self.assertEqual(len(self.repl.package.objects.get_set(0)), 1)
+        self.assertEqual(
+            len(self.repl.package.objects.get_installation_set(0)), 1)
 
     @patch('efu.repl.helpers.prompt')
     def test_can_remove_object_using_uid(self, prompt):

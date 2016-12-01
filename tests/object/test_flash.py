@@ -25,8 +25,7 @@ class FlashObjectTestCase(
             return fp.read().strip()
 
     def test_can_create_object(self):
-        obj = Object(
-            __file__, mode='flash', options={'target-device': '/dev/sda'})
+        obj = Object(__file__, 'flash', {'target-device': '/dev/sda'})
         self.assertEqual(obj.filename, __file__)
         self.assertEqual(obj.mode, 'flash')
         self.assertEqual(obj.options['target-device'], '/dev/sda')
@@ -72,14 +71,15 @@ class FlashObjectTestCase(
         # dumping
         pkg_fn = self.create_file(b'')
         pkg = Package(InstallationSetMode.Single)
-        pkg.objects.create(__file__, 'flash', {'target-device': '/dev/sda'})
-        obj = pkg.objects.get(0)
+        pkg.objects.create(
+            __file__, 'flash', {'target-device': '/dev/sda'}, index=0)
+        obj = pkg.objects.get(0, index=0)
         expected = obj.template(), obj.metadata()
         pkg.dump(pkg_fn)
 
         # loading
         pkg = Package.from_file(pkg_fn)
-        obj = pkg.objects.get(0)
+        obj = pkg.objects.get(0, index=0)
         observed = obj.template(), obj.metadata()
         self.assertEqual(observed, expected)
 
@@ -92,5 +92,5 @@ class FlashObjectTestCase(
             'objects': [[obj.metadata()]]
         }
         pkg = Package.from_metadata(metadata)
-        loaded_obj = pkg.objects.get(0)
+        loaded_obj = pkg.objects.get(0, index=0)
         self.assertEqual(obj.metadata(), loaded_obj.metadata())

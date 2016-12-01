@@ -87,14 +87,8 @@ class InstallationSetManager:
         for _ in range(self.mode.value):
             self._sets.append(InstallationSet())
 
-    def get_set(self, index=None):
+    def get_installation_set(self, index):
         """Returns an installation set."""
-        if index is None:
-            if self.is_single():
-                index = 0
-            else:
-                err = 'You need to specify an index in non single mode'
-                raise TypeError(err)
         try:
             return self._sets[index]
         except IndexError:
@@ -102,22 +96,22 @@ class InstallationSetManager:
 
     def create(self, *args, index=None, **kw):
         """Creates a new object in a given installation set."""
-        installation_set = self.get_set(index)
+        installation_set = self.get_installation_set(index)
         return installation_set.create(*args, **kw)
 
     def get(self, *args, index=None, **kw):
         """Retrives an object."""
-        installation_set = self.get_set(index)
+        installation_set = self.get_installation_set(index)
         return installation_set.get(*args, **kw)
 
     def update(self, *args, index=None, **kw):
         """Updates an object option."""
-        installation_set = self.get_set(index)
+        installation_set = self.get_installation_set(index)
         installation_set.update(*args, **kw)
 
     def remove(self, *args, index=None, **kw):
         """Removes an object."""
-        installation_set = self.get_set(index)
+        installation_set = self.get_installation_set(index)
         installation_set.remove(*args, **kw)
 
     def all(self):

@@ -27,8 +27,8 @@ class InstallationSetManagerTestCase(unittest.TestCase):
     def setUp(self):
         self.manager = InstallationSetManager(
             InstallationSetMode.ActiveInactive)
-        self.set0 = self.manager.get_set(0)
-        self.set1 = self.manager.get_set(1)
+        self.set0 = self.manager.get_installation_set(0)
+        self.set1 = self.manager.get_installation_set(1)
         self.obj0 = self.manager.create(
             __file__, 'raw', {'target-device': '/dev/sda'}, index=0)
         self.obj1 = self.manager.create(
@@ -84,35 +84,25 @@ class InstallationSetManagerSetManagementTestCase(unittest.TestCase):
 
     def test_can_get_installation_set(self):
         manager = InstallationSetManager(InstallationSetMode.Single)
-        set_ = manager.get_set(0)
+        set_ = manager.get_installation_set(0)
         self.assertIsInstance(set_, InstallationSet)
 
-    def test_get_set_raises_error_if_set_does_not_exist(self):
+    def test_get_installation_set_raises_error_if_set_does_not_exist(self):
         manager = InstallationSetManager(InstallationSetMode.Single)
         with self.assertRaises(ValueError):
-            manager.get_set(100)
-
-    def test_get_set_returns_first_set_when_single_mode(self):
-        manager = InstallationSetManager(InstallationSetMode.Single)
-        set_ = manager.get_set()
-        self.assertIsInstance(set_, InstallationSet)
-
-    def test_get_set_raises_if_not_single_and_index_is_not_passed(self):
-        manager = InstallationSetManager(InstallationSetMode.ActiveInactive)
-        with self.assertRaises(TypeError):
-            manager.get_set()
+            manager.get_installation_set(100)
 
 
 class SingleModeInstallationSetManagerTestCase(unittest.TestCase):
 
     def setUp(self):
         self.manager = InstallationSetManager(InstallationSetMode.Single)
-        self.installation_set = self.manager.get_set(0)
+        self.installation_set = self.manager.get_installation_set(0)
 
     def test_can_create_object(self):
         self.assertEqual(len(self.installation_set), 0)
         obj = self.manager.create(
-            __file__, mode='raw', options={'target-device': '/dev/sda'})
+            __file__, 'raw', {'target-device': '/dev/sda'}, index=0)
         self.assertEqual(len(self.installation_set), 1)
         self.assertEqual(obj.filename, __file__)
         self.assertEqual(obj.mode, 'raw')
@@ -120,8 +110,8 @@ class SingleModeInstallationSetManagerTestCase(unittest.TestCase):
 
     def test_can_get_object(self):
         expected = self.manager.create(
-            __file__, mode='raw', options={'target-device': '/dev/sda'})
-        observed = self.manager.get(0)
+            __file__, 'raw', {'target-device': '/dev/sda'}, index=0)
+        observed = self.manager.get(0, index=0)
         self.assertEqual(observed, expected)
         self.assertEqual(observed.filename, __file__)
         self.assertEqual(observed.mode, 'raw')
@@ -129,23 +119,21 @@ class SingleModeInstallationSetManagerTestCase(unittest.TestCase):
 
     def test_can_update_object(self):
         obj = self.manager.create(
-            __file__, mode='raw', options={'target-device': '/dev/sda'})
+            __file__, 'raw', {'target-device': '/dev/sda'}, index=0)
         self.assertEqual(obj.options['target-device'], '/dev/sda')
-        self.manager.update(0, 'target-device', '/dev/sdb')
+        self.manager.update(0, 'target-device', '/dev/sdb', index=0)
         self.assertEqual(obj.options['target-device'], '/dev/sdb')
 
     def test_can_remove_object(self):
         self.manager.create(
-            __file__, mode='raw', options={'target-device': '/dev/sda'})
+            __file__, 'raw', {'target-device': '/dev/sda'}, index=0)
         self.assertEqual(len(self.installation_set), 1)
-        self.manager.remove(0)
+        self.manager.remove(0, index=0)
         self.assertEqual(len(self.installation_set), 0)
 
     def test_can_get_all_objects(self):
-        expected = []
-        for _ in range(2):
-            expected.append(self.manager.create(
-                __file__, mode='raw', options={'target-device': '/dev/sda'}))
+        expected = [self.manager.create(
+            __file__, 'raw', {'target-device': '/dev/sda'}, index=0)]
         observed = self.manager.all()
         self.assertEqual(expected, observed)
 

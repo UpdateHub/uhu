@@ -138,8 +138,8 @@ class ImxkobsObjectTestCase(
         # dumping
         pkg_fn = self.create_file(b'')
         pkg = Package(InstallationSetMode.Single)
-        pkg.objects.create(__file__, 'imxkobs', {})
-        pkg.objects.create(__file__, 'imxkobs', options={
+        pkg.objects.create(__file__, 'imxkobs', {}, index=0)
+        pkg.objects.create(__file__, 'imxkobs', index=0, options={
             "1k_padding": True,
             "search_exponent": 1,
             "chip_0_device_path": "/dev/mtd0",

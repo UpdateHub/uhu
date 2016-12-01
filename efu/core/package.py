@@ -58,7 +58,7 @@ class Package:
             version=metadata['version'])
         package.active_inactive_backend = metadata.get(
             'active-inactive-backend')
-        for installation_set in objects:
+        for index, installation_set in enumerate(objects):
             for obj in installation_set:
                 settings = (
                     'filename', 'mode', 'compressed',
@@ -70,7 +70,7 @@ class Package:
                 if install_if_different is not None:
                     options.update(Object.to_install_condition(obj))
                 package.objects.create(
-                    fn=obj['filename'], mode=obj['mode'],
+                    index=index, fn=obj['filename'], mode=obj['mode'],
                     sha256sum=obj['sha256sum'], options=options)
         return package
 

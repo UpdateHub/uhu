@@ -69,14 +69,14 @@ class UBIObjectTestCase(
         # dumping
         pkg_fn = self.create_file(b'')
         pkg = Package(InstallationSetMode.Single)
-        pkg.objects.create(__file__, 'ubi', {'volume': 'system'})
-        obj = pkg.objects.get(0)
+        pkg.objects.create(__file__, 'ubi', {'volume': 'system'}, index=0)
+        obj = pkg.objects.get(0, index=0)
         expected = obj.template(), obj.metadata()
         pkg.dump(pkg_fn)
 
         # loading
         pkg = Package.from_file(pkg_fn)
-        obj = pkg.objects.get(0)
+        obj = pkg.objects.get(0, index=0)
         observed = obj.template(), obj.metadata()
         self.assertEqual(observed, expected)
 
@@ -89,5 +89,5 @@ class UBIObjectTestCase(
             'objects': [[obj.metadata()]]
         }
         pkg = Package.from_metadata(metadata)
-        loaded_obj = pkg.objects.get(0)
+        loaded_obj = pkg.objects.get(0, index=0)
         self.assertEqual(obj.metadata(), loaded_obj.metadata())

@@ -13,6 +13,13 @@ from ._push import PushCallback
 from .utils import error, open_package
 
 
+def _get_installation_set(pkg, set_):
+    # This function must be removed when installation set gets symmetric
+    if pkg.objects.is_single() and set_ is None:
+        return 0
+    return set_
+
+
 @click.group(name='package')
 def package_cli():
     ''' Package related commands '''
@@ -65,6 +72,7 @@ def add_object_command(filename, mode, installation_set, **options):
             options = parser.clean()
         except ValueError as err:
             error(2, err)
+        installation_set = _get_installation_set(package, installation_set)
         try:
             package.objects.create(
                 filename, mode, options, index=installation_set)
@@ -88,6 +96,7 @@ for option in CLICK_OPTIONS.values():
 def edit_object_command(object_id, key, value, installation_set):
     ''' Edits an object property within package '''
     with open_package() as package:
+        installation_set = _get_installation_set(package, installation_set)
         try:
             package.objects.update(
                 object_id, key, value, index=installation_set)
@@ -102,6 +111,7 @@ def edit_object_command(object_id, key, value, installation_set):
 def remove_object_command(object_id, installation_set):
     ''' Removes the filename entry within package file '''
     with open_package() as package:
+        installation_set = _get_installation_set(package, installation_set)
         package.objects.remove(object_id, index=installation_set)
 
 
