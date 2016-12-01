@@ -85,16 +85,7 @@ class InstallationSetManager:
         self.mode = mode
         self._sets = []
         for _ in range(self.mode.value):
-            self._add_set()
-
-    def _add_set(self):
-        """Creates a new installation set."""
-        if len(self) < self.mode.value:
-            installation_set = InstallationSet()
-            self._sets.append(installation_set)
-            return installation_set
-        err = 'It is not possible to have more than {} set(s)'
-        raise ValueError(err.format(self.mode.value))
+            self._sets.append(InstallationSet())
 
     def get_set(self, index=None):
         """Returns an installation set."""

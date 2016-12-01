@@ -34,6 +34,16 @@ class InstallationSetManagerTestCase(unittest.TestCase):
         self.obj1 = self.manager.create(
             __file__, 'raw', {'target-device': '/dev/sdb'}, index=1)
 
+    def test_can_create_single_manager(self):
+        manager = InstallationSetManager(InstallationSetMode.Single)
+        self.assertEqual(manager.mode, InstallationSetMode.Single)
+        self.assertEqual(len(manager), 1)
+
+    def test_can_create_active_inactive_manager(self):
+        manager = InstallationSetManager(InstallationSetMode.ActiveInactive)
+        self.assertEqual(manager.mode, InstallationSetMode.ActiveInactive)
+        self.assertEqual(len(manager), 2)
+
     def test_installation_set_as_metadata(self):
         metadata = self.manager.metadata()
         self.assertEqual(len(metadata), 2)
@@ -71,12 +81,6 @@ class InstallationSetManagerSetManagementTestCase(unittest.TestCase):
     def test_is_single_returns_False_when_not_single(self):
         manager = InstallationSetManager(InstallationSetMode.ActiveInactive)
         self.assertFalse(manager.is_single())
-
-    def test_cannot_add_more_sets_than_allowed_by_mode(self):
-        manager = InstallationSetManager(InstallationSetMode.Single)
-        self.assertEqual(len(manager), 1)
-        with self.assertRaises(ValueError):
-            manager._add_set()
 
     def test_can_get_installation_set(self):
         manager = InstallationSetManager(InstallationSetMode.Single)
