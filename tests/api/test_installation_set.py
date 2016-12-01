@@ -15,63 +15,63 @@ class InstallationSetTestCase(unittest.TestCase):
         self.options = {'target-device': '/'}
 
     def test_can_add_object(self):
-        objects = InstallationSet()
-        self.assertEqual(len(objects), 0)
-        obj = objects.add(self.fn, self.mode, self.options)
-        self.assertEqual(len(objects), 1)
+        installation_set = InstallationSet()
+        self.assertEqual(len(installation_set), 0)
+        obj = installation_set.add(self.fn, self.mode, self.options)
+        self.assertEqual(len(installation_set), 1)
         self.assertEqual(obj.filename, self.fn)
         self.assertEqual(obj.mode, self.mode)
         self.assertEqual(obj.options, self.options)
 
     def test_can_get_object_by_index(self):
-        objects = InstallationSet()
-        objects.add(self.fn, self.mode, self.options)
-        obj = objects.get(0)
+        installation_set = InstallationSet()
+        installation_set.add(self.fn, self.mode, self.options)
+        obj = installation_set.get(0)
         self.assertEqual(obj.filename, self.fn)
         self.assertEqual(obj.mode, self.mode)
         self.assertEqual(obj.options, self.options)
 
     def test_get_object_raises_error_if_object_doesnt_exist(self):
-        objects = InstallationSet()
+        installation_set = InstallationSet()
         with self.assertRaises(ValueError):
-            objects.get(100)
+            installation_set.get(100)
 
     def test_can_update_object(self):
-        objects = InstallationSet()
-        obj = objects.add(self.fn, self.mode, self.options)
+        installation_set = InstallationSet()
+        obj = installation_set.add(self.fn, self.mode, self.options)
         self.assertEqual(obj.options['target-device'], '/')
-        objects.update(0, 'target-device', '/dev/sda')
+        installation_set.update(0, 'target-device', '/dev/sda')
         self.assertEqual(obj.options['target-device'], '/dev/sda')
 
     def test_update_object_raises_error_if_object_doesnt_exist(self):
-        objects = InstallationSet()
+        installation_set = InstallationSet()
         with self.assertRaises(ValueError):
-            objects.update(100, 'target-device', '/dev/sda')
+            installation_set.update(100, 'target-device', '/dev/sda')
 
     def test_can_remove_object(self):
-        objects = InstallationSet()
-        self.assertEqual(len(objects), 0)
-        objects.add(self.fn, self.mode, self.options)
-        self.assertEqual(len(objects), 1)
-        objects.remove(0)
-        self.assertEqual(len(objects), 0)
+        installation_set = InstallationSet()
+        self.assertEqual(len(installation_set), 0)
+        installation_set.add(self.fn, self.mode, self.options)
+        self.assertEqual(len(installation_set), 1)
+        installation_set.remove(0)
+        self.assertEqual(len(installation_set), 0)
 
     def test_remove_object_raises_error_if_object_doesnt_exist(self):
-        objects = InstallationSet()
+        installation_set = InstallationSet()
         with self.assertRaises(ValueError):
-            objects.remove(100)
+            installation_set.remove(100)
 
     def test_installation_set_as_metadata(self):
-        objects = InstallationSet()
-        obj = objects.add(self.fn, self.mode, self.options)
-        metadata = objects.metadata()
+        installation_set = InstallationSet()
+        obj = installation_set.add(self.fn, self.mode, self.options)
+        metadata = installation_set.metadata()
         self.assertEqual(len(metadata), 1)
         self.assertEqual(metadata[0], obj.metadata())
 
     def test_installation_set_as_template(self):
-        objects = InstallationSet()
-        obj = objects.add(self.fn, self.mode, self.options)
-        template = objects.template()
+        installation_set = InstallationSet()
+        obj = installation_set.add(self.fn, self.mode, self.options)
+        template = installation_set.template()
         self.assertEqual(len(template), 1)
         self.assertEqual(template[0], obj.template())
 
@@ -81,8 +81,9 @@ class InstallationSetTestCase(unittest.TestCase):
         self.addCleanup(os.chdir, cwd)
         with open('set.txt') as fp:
             expected = fp.read()
-        objects = InstallationSet()
+        installation_set = InstallationSet()
         for _ in range(3):
-            objects.add('set.txt', 'raw', {'target-device': '/dev/sda'})
-        observed = str(objects)
+            installation_set.add(
+                'set.txt', 'raw', {'target-device': '/dev/sda'})
+        observed = str(installation_set)
         self.assertEqual(observed, expected)

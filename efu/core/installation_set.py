@@ -90,9 +90,9 @@ class InstallationSetManager:
     def _add_set(self):
         """Creates a new installation set."""
         if len(self) < self.mode.value:
-            objects = InstallationSet()
-            self._sets.append(objects)
-            return objects
+            installation_set = InstallationSet()
+            self._sets.append(installation_set)
+            return installation_set
         err = 'It is not possible to have more than {} set(s)'
         raise ValueError(err.format(self.mode.value))
 
@@ -111,40 +111,40 @@ class InstallationSetManager:
 
     def add(self, *args, index=None, **kw):
         """Adds a new object in a given installation set."""
-        objects = self.get_set(index)
-        return objects.add(*args, **kw)
+        installation_set = self.get_set(index)
+        return installation_set.add(*args, **kw)
 
     def get(self, *args, index=None, **kw):
         """Retrives an object."""
-        objects = self.get_set(index)
-        return objects.get(*args, **kw)
+        installation_set = self.get_set(index)
+        return installation_set.get(*args, **kw)
 
     def update(self, *args, index=None, **kw):
         """Updates an object option."""
-        objects = self.get_set(index)
-        objects.update(*args, **kw)
+        installation_set = self.get_set(index)
+        installation_set.update(*args, **kw)
 
     def remove(self, *args, index=None, **kw):
         """Removes an object."""
-        objects = self.get_set(index)
-        objects.remove(*args, **kw)
+        installation_set = self.get_set(index)
+        installation_set.remove(*args, **kw)
 
     def all(self):
-        """Returns all objects from installation sets."""
-        return (obj for objects in self for obj in objects)
+        """Returns all installation_set from installation sets."""
+        return (obj for installation_set in self for obj in installation_set)
 
     def is_single(self):
         """Checks if it is single mode."""
         return self.mode is InstallationSetMode.Single
 
     def metadata(self):
-        return [objects.metadata() for objects in self]
+        return [installation_set.metadata() for installation_set in self]
 
     def template(self):
-        return [objects.template() for objects in self]
+        return [installation_set.template() for installation_set in self]
 
     def __iter__(self):
-        return iter(objects for objects in self._sets)
+        return iter(installation_set for installation_set in self._sets)
 
     def __len__(self):
         return len(self._sets)
@@ -152,6 +152,7 @@ class InstallationSetManager:
     def __str__(self):
         s = []
         s.append('Objects:\n')
-        for index, objects in enumerate(self):
-            s.append('    {}# {}\n'.format(index, indent(str(objects), 4)))
+        for index, installation_set in enumerate(self):
+            s.append('    {}# {}\n'.format(
+                index, indent(str(installation_set), 4)))
         return '\n'.join(s)
