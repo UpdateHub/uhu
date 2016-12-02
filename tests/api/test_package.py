@@ -90,6 +90,18 @@ class PackageConstructorsTestCase(PackageTestCase):
                             'filesystem': 'ext4',
                         }
                     }
+                ],
+                [
+                    {
+                        'filename': self.obj_fn,
+                        'mode': 'copy',
+                        'compressed': False,
+                        'options': {
+                            'target-device': '/dev/sda',
+                            'target-path': '/boot',
+                            'filesystem': 'ext4',
+                        }
+                    }
                 ]
             ]
         }))
@@ -98,7 +110,7 @@ class PackageConstructorsTestCase(PackageTestCase):
         self.assertEqual(pkg.product, self.product)
         self.assertEqual(pkg.supported_hardware, self.supported_hardware)
         self.assertEqual(pkg.active_inactive_backend, 'u-boot')
-        self.assertEqual(len(pkg), 1)
+        self.assertEqual(len(pkg.objects.all()), 2)
         obj = pkg.objects.get(index=0, installation_set=0)
         self.assertEqual(obj.filename, self.obj_fn)
         self.assertEqual(obj.mode, 'copy')
@@ -123,6 +135,17 @@ class PackageConstructorsTestCase(PackageTestCase):
                         'target-path': '/boot',
                         'filesystem': 'ext4'
                     }
+                ],
+                [
+                    {
+                        'filename': self.obj_fn,
+                        'mode': 'copy',
+                        'size': self.obj_size,
+                        'sha256sum': self.obj_sha256,
+                        'target-device': '/dev/sda',
+                        'target-path': '/boot',
+                        'filesystem': 'ext4'
+                    }
                 ]
             ]
         }
@@ -130,7 +153,7 @@ class PackageConstructorsTestCase(PackageTestCase):
         self.assertEqual(pkg.version, self.version)
         self.assertEqual(pkg.product, self.product)
         self.assertEqual(pkg.active_inactive_backend, 'u-boot')
-        self.assertEqual(len(pkg), 1)
+        self.assertEqual(len(pkg.objects.all()), 2)
         obj = pkg.objects.get(index=0, installation_set=0)
         self.assertEqual(obj.filename, self.obj_fn)
         self.assertEqual(obj.mode, 'copy')
