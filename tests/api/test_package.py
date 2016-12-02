@@ -400,6 +400,18 @@ class PackageRepresentationsTestCase(PackageTestCase):
         dump_obj = dump['objects'][0][0]
         self.assertEqual(dump_obj, expected_obj_dump)
 
+    def test_can_represent_package_as_exported_package(self):
+        dest = '/tmp/efu-dump.json'
+        self.addCleanup(self.remove_file, dest)
+        pkg = Package(InstallationSetMode.ActiveInactive,
+                      product=self.product, version=self.version)
+        pkg.export(dest)
+        with open(dest) as fp:
+            exported = json.load(fp)
+        self.assertIsNone(exported.get('version'))
+        self.assertEqual(exported['product'], self.product)
+        self.assertEqual(len(exported['objects']), 2)
+
     def test_can_represent_package_as_string(self):
         cwd = os.getcwd()
         os.chdir('tests/fixtures/package')

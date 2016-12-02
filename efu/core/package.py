@@ -147,10 +147,20 @@ class Package:
             'active-inactive-backend': self.active_inactive_backend,
         }
 
+    def export(self, dest):
+        ''' Writes package template in dest file (without version) '''
+        template = self.template()
+        template['version'] = None
+        self._persist(template, dest)
+
     def dump(self, dest):
-        ''' Writes package template in dest file '''
-        with open(dest, 'w') as fp:
-            json.dump(self.template(), fp, indent=4, sort_keys=True)
+        ''' Writes package template in dest file (with version) '''
+        self._persist(self.template(), dest)
+
+    def _persist(self, dict_, fn):
+        ''' Saves an dict_ as JSON into fn '''
+        with open(fn, 'w') as fp:
+            json.dump(dict_, fp, indent=4, sort_keys=True)
 
     def upload_metadata(self, callback=None):
         metadata = self.metadata()
