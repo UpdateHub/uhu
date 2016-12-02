@@ -405,6 +405,7 @@ class PackageRepresentationsTestCase(PackageTestCase):
         package = Package(
             InstallationSetMode.Single, version='2.0',
             product='e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')  # nopep8
+        package.active_inactive_backend = 'u-boot'
         package.objects.add('files/pkg.json', mode='raw', options={
             'target-device': '/dev/sda',
             'chunk-size': 1234,

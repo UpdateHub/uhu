@@ -277,6 +277,9 @@ class Package:
                 s.append('')
         else:
             s.append('Supported hardware: all')
+        # ActiveInactive
+        s.append('Active-Inactive Backend: {}'.format(
+            self.active_inactive_backend))
         # Objects
         if len(list(self.objects.all())):
             s.append(str(self.objects))

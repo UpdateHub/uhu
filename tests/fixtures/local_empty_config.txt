@@ -1,4 +1,5 @@
 Product: None
 Version: None
 Supported hardware: all
+Active-Inactive Backend: None
 Objects: None

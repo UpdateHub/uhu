@@ -8,4 +8,5 @@ Supported hardware:
 
   3# PowerZ [revisions: PZ230, PZ240, PZ250]
 
+Active-Inactive Backend: None
 Objects: None
