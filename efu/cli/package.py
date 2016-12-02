@@ -18,9 +18,10 @@ def package_cli():
     ''' Package related commands '''
 
 
-@package_cli.command('new')
+@package_cli.command('version')
 @click.argument('version')
-def new_version_command(version):
+def set_version_command(version):
+    ''' Sets package version '''
     with open_package() as package:
         package.version = version
 

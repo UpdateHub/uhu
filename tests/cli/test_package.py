@@ -8,7 +8,7 @@ from click.testing import CliRunner
 
 from efu.cli.package import (
     add_object_command, edit_object_command, remove_object_command,
-    export_command, show_command, new_version_command, status_command,
+    export_command, show_command, set_version_command, status_command,
     set_active_inactive_backend)
 from efu.core import Package
 from efu.core.installation_set import InstallationSetMode
@@ -355,7 +355,7 @@ class ExportCommandTestCase(PackageTestCase):
         self.assertEqual(result.exit_code, 1)
 
 
-class NewVersionCommandTestCase(PackageTestCase):
+class SetVersionCommandTestCase(PackageTestCase):
 
     def setUp(self):
         super().setUp()
@@ -365,19 +365,19 @@ class NewVersionCommandTestCase(PackageTestCase):
         package = Package.from_file(self.pkg_fn)
         self.assertIsNone(package.version)
         self.runner.invoke(
-            new_version_command, args=[self.version])
+            set_version_command, args=[self.version])
         package = Package.from_file(self.pkg_fn)
         self.assertEqual(package.version, self.version)
 
     def test_new_package_version_comands_returns_0_if_successful(self):
         result = self.runner.invoke(
-            new_version_command, args=[self.version])
+            set_version_command, args=[self.version])
         self.assertEqual(result.exit_code, 0)
 
     def test_new_package_version_comands_returns_1_without_package_file(self):
         self.set_env_var(LOCAL_CONFIG_VAR, 'doesnt-exist')
         result = self.runner.invoke(
-            new_version_command, args=[self.version])
+            set_version_command, args=[self.version])
         self.assertEqual(result.exit_code, 1)
 
 
