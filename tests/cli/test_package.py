@@ -293,7 +293,7 @@ class ExportCommandTestCase(PackageTestCase):
 
     def setUp(self):
         super().setUp()
-        pkg = Package(InstallationSetMode.Single)
+        pkg = Package(InstallationSetMode.Single, version='1.0')
         pkg.objects.create(self.obj_fn, 'raw', self.obj_options)
         pkg.active_inactive_backend = 'u-boot'
         pkg.dump(self.pkg_fn)

@@ -38,7 +38,7 @@ def show_command():
 def export_command(filename):
     ''' Copy package file to the given filename '''
     with open_package() as package:
-        package.dump(filename)
+        package.export(filename)
 
 
 @package_cli.command('active-inactive-backend')
