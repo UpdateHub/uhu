@@ -151,7 +151,7 @@ class Package:
     def dump(self, dest):
         ''' Writes package template in dest file '''
         with open(dest, 'w') as fp:
-            json.dump(self.template(), fp)
+            json.dump(self.template(), fp, indent=4, sort_keys=True)
 
     def upload_metadata(self, callback=None):
         metadata = self.metadata()
