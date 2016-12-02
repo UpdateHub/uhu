@@ -145,13 +145,15 @@ def prompt_object_mode():
     return mode.strip()
 
 
-def prompt_object_uid(package, index):
+def prompt_object_uid(package, installation_set=None):
     """Prompts user for an object UID.
 
     :param index: The object index within an object list.
     """
+    if installation_set is None:
+        installation_set = 0
     msg = 'Select an object: '
-    completer = ObjectUIDCompleter(package, index)
+    completer = ObjectUIDCompleter(package, installation_set)
     validator = ObjectUIDValidator()
     value = prompt(msg, completer=completer, validator=validator)
     return parse_prompt_object_uid(value.strip())
@@ -227,7 +229,7 @@ def prompt_pull():
     return {'y': True, 'n': False}[answer.strip().lower()[0]]
 
 
-def prompt_installation_set(package, msg=None, all_sets=True):
+def prompt_installation_set(package, msg=None):
     """Prompts user for a valid installation set.
 
     :param package: A core.package.Package instance.
@@ -237,15 +239,7 @@ def prompt_installation_set(package, msg=None, all_sets=True):
     if package.objects.is_single():
         return None
 
-    # Pre-validation
     objects = [(index, objs) for index, objs in enumerate(package.objects)]
-    if not all_sets:
-        objects = [(index, objs) for index, objs in objects if objs]
-        if len(objects) == 0:
-            raise ValueError('There is no object to operate.')
-        if len(objects) == 1:
-            index, _ = objects[0]
-            return index
     indexes = [str(i) for i, _ in objects]
 
     msg = msg if msg is not None else 'Select an installation set: '

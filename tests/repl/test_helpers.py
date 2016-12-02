@@ -94,7 +94,7 @@ class PromptsTestCase(unittest.TestCase):
         prompt.return_value = '1# {}'.format(__file__)
 
         pkg = Package(InstallationSetMode.ActiveInactive)
-        pkg.objects.create(__file__, 'raw', {'target-device': '/'}, index=0)
+        pkg.objects.create(__file__, 'raw', {'target-device': '/'})
 
         expected = 1
         observed = helpers.prompt_object_uid(pkg, 0)
@@ -137,13 +137,6 @@ class PromptsTestCase(unittest.TestCase):
         pkg = Package(InstallationSetMode.ActiveInactive)
         helpers.prompt.return_value = '1'
         observed = helpers.prompt_installation_set(self.repl.package)
-        self.assertEqual(observed, 1)
-
-    def test_prompt_installation_returns_only_index_with_objects(self):
-        self.repl.package.objects.create(
-            __file__, 'raw', {'target-device': '/'}, index=1)
-        observed = helpers.prompt_installation_set(
-            self.repl.package, all_sets=False)
         self.assertEqual(observed, 1)
 
     @patch('efu.repl.helpers.prompt')

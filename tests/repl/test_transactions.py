@@ -56,9 +56,8 @@ class PushTestCase(BasePushTestCase):
         self.repl = EFURepl()
 
     def test_can_push_package(self):
-        for i in range(2):
-            self.repl.package.objects.create(
-                __file__, 'raw', {'target-device': '/'}, index=i)
+        self.repl.package.objects.create(
+                __file__, 'raw', {'target-device': '/'})
         self.repl.package.product = self.product
         self.repl.package.version = '2.0'
         self.set_push(self.repl.package, '100')

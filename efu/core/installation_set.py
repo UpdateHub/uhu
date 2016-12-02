@@ -17,11 +17,10 @@ class InstallationSet:
     def __init__(self):
         self._objects = []
 
-    def create(self, *args, **kwargs):
-        """Creates an object instance. Returns an Object instance."""
-        obj = Object(*args, **kwargs)
+    def add(self, obj):
+        """Adds an object into set, returns its index."""
         self._objects.append(obj)
-        return obj
+        return len(self) - 1
 
     def get(self, index):
         """Retrives an object by index."""
@@ -30,15 +29,15 @@ class InstallationSet:
         except IndexError:
             raise ValueError('Object not found')
 
-    def update(self, index, *args, **kwargs):
+    def update(self, index, option, value):
         """Given an object id, sets obj.option to value."""
         obj = self.get(index)
-        obj.update(*args, **kwargs)
+        obj.update(option, value)
 
     def remove(self, index):
         """Removes an object."""
         try:
-            return self._objects.pop(index)
+            self._objects.pop(index)
         except IndexError:
             raise ValueError('Object not found')
 
@@ -94,25 +93,27 @@ class InstallationSetManager:
         except IndexError:
             raise ValueError('Installation set not found')
 
-    def create(self, *args, index=None, **kw):
+    def create(self, *args, **kw):
         """Creates a new object in a given installation set."""
-        installation_set = self.get_installation_set(index)
-        return installation_set.create(*args, **kw)
+        obj = Object(*args, **kw)
+        for installation_set in self:
+            index = installation_set.add(obj)
+        return index
 
-    def get(self, *args, index=None, **kw):
-        """Retrives an object."""
-        installation_set = self.get_installation_set(index)
-        return installation_set.get(*args, **kw)
+    def get(self, index, installation_set):
+        """Retrives an object from an given installation set."""
+        installation_set = self.get_installation_set(installation_set)
+        return installation_set.get(index)
 
-    def update(self, *args, index=None, **kw):
-        """Updates an object option."""
-        installation_set = self.get_installation_set(index)
-        installation_set.update(*args, **kw)
+    def update(self, index, installation_set, option, value):
+        """Updates an object option from an given installation set."""
+        installation_set = self.get_installation_set(installation_set)
+        installation_set.update(index, option, value)
 
-    def remove(self, *args, index=None, **kw):
-        """Removes an object."""
-        installation_set = self.get_installation_set(index)
-        installation_set.remove(*args, **kw)
+    def remove(self, index):
+        """Removes an object from all installation sets."""
+        for installation_set in self:
+            installation_set.remove(index)
 
     def all(self):
         """Returns all installation_set from installation sets."""

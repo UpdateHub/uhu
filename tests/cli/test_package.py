@@ -60,13 +60,13 @@ class AddObjectCommandTestCase(PackageTestCase):
         pkg = Package(InstallationSetMode.Single)
         pkg.dump(self.pkg_fn)
 
-    def test_can_add_an_object(self):
+    def test_can_add_object(self):
         cmd = [self.obj_fn, '-m', 'raw', '-td', '/dev/sda']
         result = self.runner.invoke(add_object_command, cmd)
 
         self.assertEqual(result.exit_code, 0)
         package = Package.from_file(self.pkg_fn)
-        obj = package.objects.get(0, index=0)
+        obj = package.objects.get(index=0, installation_set=0)
         self.assertEqual(obj.filename, self.obj_fn)
         self.assertEqual(obj.mode, 'raw')
         self.assertEqual(obj.options['target-device'], '/dev/sda')
@@ -192,63 +192,53 @@ class AddObjectCommandTestCase(PackageTestCase):
             result = self.runner.invoke(add_object_command, cmd)
             self.assertEqual(result.exit_code, 2)
 
-    def test_can_add_object_within_specific_index(self):
-        Package(InstallationSetMode.ActiveInactive).dump(self.pkg_fn)
-        cmd = [self.obj_fn,
-               '-m', 'raw',
-               '-td', '/dev/sda',
-               '--installation-set', '1']
-        result = self.runner.invoke(add_object_command, cmd)
-        self.assertEqual(result.exit_code, 0)
-
-    def test_add_object_within_specific_index_returns_3_if_index_error(self):
-        Package(InstallationSetMode.ActiveInactive).dump(self.pkg_fn)
-        cmd = [self.obj_fn,
-               '-m', 'raw',
-               '-td', '/dev/sda',
-               '--installation-set', '100']
-        result = self.runner.invoke(add_object_command, cmd)
-        self.assertEqual(result.exit_code, 3)
-
-    def test_add_object_within_specific_index_returns_4_if_missing_index(self):
-        Package(InstallationSetMode.ActiveInactive).dump(self.pkg_fn)
-        cmd = [self.obj_fn,
-               '-m', 'raw',
-               '-td', '/dev/sda']
-        result = self.runner.invoke(add_object_command, cmd)
-        self.assertEqual(result.exit_code, 4)
-
 
 class EditObjectCommandTestCase(PackageTestCase):
 
     def setUp(self):
         super().setUp()
         pkg = Package(InstallationSetMode.Single)
-        pkg.objects.create(self.obj_fn, 'raw', self.obj_options, index=0)
+        pkg.objects.create(self.obj_fn, 'raw', self.obj_options)
         pkg.dump(self.pkg_fn)
 
     def test_can_edit_object_with_edit_object_command(self):
-        args = ['0', 'target-device', '/dev/sdb']
+        args = [
+            '--index', '0',
+            '--installation-set', '0',
+            '--option', 'target-device',
+            '--value', '/dev/sdb']
         self.runner.invoke(edit_object_command, args=args)
         pkg = Package.from_file(self.pkg_fn)
-        obj = pkg.objects.get(0, index=0)
+        obj = pkg.objects.get(index=0, installation_set=0)
         self.assertEqual(obj.options['target-device'], '/dev/sdb')
 
     def test_can_edit_object_filename_with_edit_object_command(self):
-        args = ['0', 'filename', 'new-filename']
+        args = [
+            '--index', '0',
+            '--installation-set', '0',
+            '--option', 'filename',
+            '--value', 'new-filename']
         self.runner.invoke(edit_object_command, args=args)
         pkg = Package.from_file(self.pkg_fn)
-        obj = pkg.objects.get(0, index=0)
+        obj = pkg.objects.get(index=0, installation_set=0)
         self.assertEqual(obj.filename, 'new-filename')
 
     def test_edit_command_returns_0_if_successful(self):
-        args = ['0', 'target-device', '/dev/sdb']
+        args = [
+            '--index', '0',
+            '--installation-set', '0',
+            '--option', 'target-device',
+            '--value', '/dev/sdb']
         result = self.runner.invoke(edit_object_command, args=args)
         self.assertEqual(result.exit_code, 0)
 
     def test_edit_command_returns_1_if_package_does_not_exist(self):
         self.set_env_var(LOCAL_CONFIG_VAR, 'doesnt-exist')
-        args = ['0', 'target-device', '/dev/sdb']
+        args = [
+            '--index', '0',
+            '--installation-set', '0',
+            '--option', 'target-device',
+            '--value', '/dev/sdb']
         result = self.runner.invoke(edit_object_command, args=args)
         self.assertEqual(result.exit_code, 1)
 
@@ -263,7 +253,7 @@ class RemoveObjectCommandTestCase(PackageTestCase):
     def setUp(self):
         super().setUp()
         pkg = Package(InstallationSetMode.Single)
-        pkg.objects.create(self.obj_fn, 'raw', self.obj_options, index=0)
+        pkg.objects.create(self.obj_fn, 'raw', self.obj_options)
         pkg.dump(self.pkg_fn)
 
     def test_can_remove_object_with_remove_command(self):
@@ -288,7 +278,7 @@ class ShowCommandTestCase(PackageTestCase):
 
     def test_show_command_returns_0_if_successful(self):
         pkg = Package(InstallationSetMode.Single)
-        pkg.objects.create(self.obj_fn, 'raw', self.obj_options, index=0)
+        pkg.objects.create(self.obj_fn, 'raw', self.obj_options)
         pkg.dump(self.pkg_fn)
         result = self.runner.invoke(show_command)
         self.assertEqual(result.exit_code, 0)
@@ -304,7 +294,7 @@ class ExportCommandTestCase(PackageTestCase):
     def setUp(self):
         super().setUp()
         pkg = Package(InstallationSetMode.Single)
-        pkg.objects.create(self.obj_fn, 'raw', self.obj_options, index=0)
+        pkg.objects.create(self.obj_fn, 'raw', self.obj_options)
         pkg.active_inactive_backend = 'u-boot'
         pkg.dump(self.pkg_fn)
         self.dest_pkg_fn = '/tmp/pkg-dump'

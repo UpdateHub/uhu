@@ -41,10 +41,10 @@ class Package:
             product=dump.get('product'))
         package.supported_hardware = dump.get('supported-hardware', {})
         package.active_inactive_backend = dump.get('active-inactive-backend')
-        for index, installation_set in enumerate(objects):
+        for installation_set in objects:
             for obj in installation_set:
                 package.objects.create(
-                    index=index, fn=obj['filename'], mode=obj['mode'],
+                    fn=obj['filename'], mode=obj['mode'],
                     options=obj['options'], compressed=obj.get('compressed'))
         return package
 
@@ -54,15 +54,14 @@ class Package:
         objects = metadata['objects']
         package = Package(
             mode=InstallationSetMode.from_objects(objects),
-            product=metadata['product'],
-            version=metadata['version'])
+            version=metadata['version'],
+            product=metadata['product'])
         package.active_inactive_backend = metadata.get(
             'active-inactive-backend')
-        for index, installation_set in enumerate(objects):
+        for installation_set in objects:
             for obj in installation_set:
                 settings = (
-                    'filename', 'mode', 'compressed',
-                    'install-if-different')
+                    'filename', 'mode', 'compressed', 'install-if-different')
                 options = {option: value
                            for option, value in obj.items()
                            if option not in settings}
@@ -70,7 +69,7 @@ class Package:
                 if install_if_different is not None:
                     options.update(Object.to_install_condition(obj))
                 package.objects.create(
-                    index=index, fn=obj['filename'], mode=obj['mode'],
+                    fn=obj['filename'], mode=obj['mode'],
                     sha256sum=obj['sha256sum'], options=options)
         return package
 

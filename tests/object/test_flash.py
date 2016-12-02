@@ -72,14 +72,14 @@ class FlashObjectTestCase(
         pkg_fn = self.create_file(b'')
         pkg = Package(InstallationSetMode.Single)
         pkg.objects.create(
-            __file__, 'flash', {'target-device': '/dev/sda'}, index=0)
-        obj = pkg.objects.get(0, index=0)
+            __file__, 'flash', {'target-device': '/dev/sda'})
+        obj = pkg.objects.get(index=0, installation_set=0)
         expected = obj.template(), obj.metadata()
         pkg.dump(pkg_fn)
 
         # loading
         pkg = Package.from_file(pkg_fn)
-        obj = pkg.objects.get(0, index=0)
+        obj = pkg.objects.get(index=0, installation_set=0)
         observed = obj.template(), obj.metadata()
         self.assertEqual(observed, expected)
 
@@ -92,5 +92,5 @@ class FlashObjectTestCase(
             'objects': [[obj.metadata()]]
         }
         pkg = Package.from_metadata(metadata)
-        loaded_obj = pkg.objects.get(0, index=0)
+        loaded_obj = pkg.objects.get(index=0, installation_set=0)
         self.assertEqual(obj.metadata(), loaded_obj.metadata())

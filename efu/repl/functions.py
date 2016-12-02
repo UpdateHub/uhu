@@ -59,31 +59,29 @@ def clean_package(ctx):
 @helpers.cancellable
 def add_object(ctx):
     """Add an object into the current package."""
-    index = helpers.prompt_installation_set(ctx.package)
     filename = helpers.prompt_object_filename()
     mode = helpers.prompt_object_mode()
     options = helpers.prompt_object_options(mode)
-    ctx.package.objects.create(filename, mode, options, index=index)
+    ctx.package.objects.create(filename, mode, options)
 
 
 @helpers.cancellable
 def remove_object(ctx):
     """Removes an object from the current package."""
-    index = helpers.prompt_installation_set(ctx.package, all_sets=False)
-    uid = helpers.prompt_object_uid(ctx.package, index)
-    ctx.package.objects.remove(uid, index=index)
+    index = helpers.prompt_object_uid(ctx.package)
+    ctx.package.objects.remove(index)
 
 
 @helpers.cancellable
 def edit_object(ctx):
     """Edit an object within the current package."""
-    index = helpers.prompt_installation_set(ctx.package, all_sets=False)
-    uid = helpers.prompt_object_uid(ctx.package, index)
-    obj = ctx.package.objects.get(uid, index=index)
+    set_ = helpers.prompt_installation_set(ctx.package)
+    index = helpers.prompt_object_uid(ctx.package, set_)
+    obj = ctx.package.objects.get(index=index, installation_set=set_)
     option = helpers.prompt_object_option(obj)
     value = helpers.prompt_object_option_value(
         option, obj.mode, indent_level=2)
-    ctx.package.objects.update(uid, option.metadata, value, index=index)
+    ctx.package.objects.update(index, set_, option.metadata, value)
 
 
 # Transactions

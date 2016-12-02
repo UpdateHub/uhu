@@ -37,8 +37,9 @@ class ObjectOptionValueCompleter(WordCompleter):
 
 class ObjectUIDCompleter(WordCompleter):
 
-    def __init__(self, package, index):
-        objects = enumerate(package.objects.get_installation_set(index))
+    def __init__(self, package, installation_set):
+        objects = enumerate(
+            package.objects.get_installation_set(installation_set))
         completions = ['{}# {}'.format(index, obj.filename)
                        for index, obj in objects]
         super().__init__(sorted(completions))
