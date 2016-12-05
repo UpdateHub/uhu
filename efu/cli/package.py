@@ -79,7 +79,7 @@ for opt in CLICK_OPTIONS.values():
 @package_cli.command(name='edit')
 @click.option('--index', type=click.INT, required=True,
               help='The object index')
-@click.option('--installation-set', type=click.INT, required=True,
+@click.option('--installation-set', type=click.INT,
               help='The installation set to retrive object')
 @click.option('--option', help='The object option to be edited', required=True)
 @click.option('--value', help='The new value to be set', required=True)
@@ -87,7 +87,8 @@ def edit_object_command(index, installation_set, option, value):
     ''' Edits an object property within package '''
     with open_package() as package:
         try:
-            package.objects.update(index, installation_set, option, value)
+            package.objects.update(
+                index, option, value, installation_set=installation_set)
         except ValueError as err:
             error(2, err)
 

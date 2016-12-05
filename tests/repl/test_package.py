@@ -79,25 +79,59 @@ class ObjectManagementTestCase(BaseTestCase):
             functions.remove_object(self.repl)
 
     @patch('efu.repl.helpers.prompt')
-    def test_can_edit_object(self, prompt):
-        prompt.side_effect = ['0', '0', 'count', '200']
-        self.repl.package.objects.create(__file__, 'raw', {
-            'target-device': '/',
-            'count': 100,
-        })
-        obj = self.repl.package.objects.get(index=0, installation_set=0)
-        self.assertEqual(obj.options['count'], 100)
+    def test_can_edit_asymmetrical_option(self, prompt):
+        prompt.side_effect = [
+            '0',  # object index
+            'target device',  # option
+            '0',  # installation set index
+            '/dev/sdb',  # value
+        ]
+        index = self.repl.package.objects.create(
+            __file__, 'raw', {'target-device': '/dev/sda'})
+        for set_index in range(len(self.repl.package.objects)):
+            obj = self.repl.package.objects.get(
+                index=index, installation_set=set_index)
+            self.assertEqual(obj.options['target-device'], '/dev/sda')
+
         functions.edit_object(self.repl)
-        obj = self.repl.package.objects.get(index=0, installation_set=0)
-        self.assertEqual(obj.options['count'], 200)
+
+        obj = self.repl.package.objects.get(index=index, installation_set=0)
+        self.assertEqual(obj.options['target-device'], '/dev/sdb')
+
+        obj = self.repl.package.objects.get(index=index, installation_set=1)
+        self.assertEqual(obj.options['target-device'], '/dev/sda')
+
+    @patch('efu.repl.helpers.prompt')
+    def test_can_edit_symmetrical_option(self, prompt):
+        prompt.side_effect = [
+            '0',  # object index
+            'count',  # option
+            '200',  # value
+        ]
+        index = self.repl.package.objects.create(
+            __file__, 'raw', {'target-device': '/', 'count': 100})
+        for set_index in range(len(self.repl.package.objects)):
+            obj = self.repl.package.objects.get(
+                index=index, installation_set=set_index)
+            self.assertEqual(obj.options['count'], 100)
+
+        functions.edit_object(self.repl)
+
+        for set_index in range(len(self.repl.package.objects)):
+            obj = self.repl.package.objects.get(
+                index=index, installation_set=set_index)
+            self.assertEqual(obj.options['count'], 200)
 
     @patch('efu.repl.helpers.prompt')
     def test_can_edit_object_filename(self, prompt):
-        for i in range(2):
-            self.repl.package.objects.create(
-                __file__, 'raw', {'target-device': '/'})
+        self.repl.package.objects.create(
+            __file__, 'raw', {'target-device': '/'})
         with tempfile.NamedTemporaryFile() as fp:
-            prompt.side_effect = ['1', '0', 'filename', fp.name]
+            prompt.side_effect = [
+                '0',  # object index
+                'filename',  # option
+                fp.name,  # value
+            ]
             obj = self.repl.package.objects.get(index=0, installation_set=1)
             self.assertEqual(obj.filename, __file__)
             functions.edit_object(self.repl)

@@ -4,6 +4,7 @@
 from enum import Enum, unique
 
 from .object import Object
+from .options import ASYMMETRIC_OPTIONS
 
 from ..utils import indent
 
@@ -104,10 +105,20 @@ class InstallationSetManager:
         installation_set = self.get_installation_set(installation_set)
         return installation_set.get(index)
 
-    def update(self, index, installation_set, option, value):
-        """Updates an object option from an given installation set."""
-        installation_set = self.get_installation_set(installation_set)
-        installation_set.update(index, option, value)
+    def update(self, index, option, value, installation_set=None):
+        """Updates an object option value."""
+        if option in ASYMMETRIC_OPTIONS:
+            if installation_set is None:
+                raise ValueError(
+                    'You must specify an installation set for this option')
+            installation_set = self.get_installation_set(installation_set)
+            installation_set.update(index, option, value)
+        else:
+            if installation_set is not None:
+                raise ValueError(
+                    'You must not pass an installation set for this option')
+            for installation_set in self:
+                installation_set.update(index, option, value)
 
     def remove(self, index):
         """Removes an object from all installation sets."""

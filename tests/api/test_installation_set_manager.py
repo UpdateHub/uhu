@@ -111,7 +111,7 @@ class InstallationSetManagerTestCase(unittest.TestCase):
             self.assertEqual(obj.options['target-device'], '/dev/sda')
 
     @verify_all_modes
-    def test_can_update_object(self, mode):
+    def test_can_update_asymmetrical_object_option(self, mode):
         manager = InstallationSetManager(mode)
         index = manager.create(__file__, 'raw', {'target-device': '/dev/sda'})
         for set_index, installation_set in enumerate(manager):
@@ -128,6 +128,48 @@ class InstallationSetManagerTestCase(unittest.TestCase):
                 self.assertEqual(obj.options['target-device'], '/dev/sdb')
             else:
                 self.assertEqual(obj.options['target-device'], '/dev/sda')
+
+    @verify_all_modes
+    def test_can_update_symmetrical_object_option(self, mode):
+        manager = InstallationSetManager(mode)
+        index = manager.create(__file__, 'raw', {'target-device': '/dev/sda'})
+        for set_index, installation_set in enumerate(manager):
+            obj = manager.get(index=index, installation_set=set_index)
+            self.assertEqual(obj.filename, __file__)
+
+        manager.update(
+            index=0, option='filename', value='new-filename')
+
+        for set_index, installation_set in enumerate(manager):
+            obj = manager.get(index=index, installation_set=set_index)
+            self.assertEqual(obj.filename, 'new-filename')
+
+    @verify_all_modes
+    def test_update_asymmetrical_option_raises_without_install_set(self, mode):
+        manager = InstallationSetManager(mode)
+        index = manager.create(__file__, 'raw', {'target-device': '/dev/sda'})
+
+        with self.assertRaises(ValueError):
+            manager.update(index, 'target-device', '/dev/sdb')
+
+        for set_index, installation_set in enumerate(manager):
+            obj = manager.get(index=index, installation_set=set_index)
+            self.assertEqual(obj.options['target-device'], '/dev/sda')
+
+    @verify_all_modes
+    def test_update_symmetrical_option_raises_error_if_install_set(self, mode):
+        manager = InstallationSetManager(mode)
+        index = manager.create(__file__, 'raw', {
+            'target-device': '/dev/sda',
+            'count': 100,
+        })
+
+        with self.assertRaises(ValueError):
+            manager.update(index, 'count', 200, installation_set=0)
+
+        for set_index, installation_set in enumerate(manager):
+            obj = manager.get(index=index, installation_set=set_index)
+            self.assertEqual(obj.options['count'], 100)
 
     @verify_all_modes
     def test_can_remove_object(self, mode):

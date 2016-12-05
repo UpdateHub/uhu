@@ -8,6 +8,8 @@ from collections import OrderedDict
 from copy import deepcopy
 
 
+ASYMMETRIC_OPTIONS = ['target-device', 'target-path', 'volume']
+
 INSTALL_CONDITION_BACKENDS = ['linux-kernel', 'u-boot']
 
 

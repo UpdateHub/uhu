@@ -4,6 +4,7 @@
 
 from ..config import config
 from ..core.installation_set import InstallationSetMode
+from ..core.options import ASYMMETRIC_OPTIONS
 from ..core.package import Package
 
 from . import helpers
@@ -75,14 +76,21 @@ def remove_object(ctx):
 @helpers.cancellable
 def edit_object(ctx):
     """Edit an object within the current package."""
-    set_ = helpers.prompt_installation_set(ctx.package)
-    index = helpers.prompt_object_uid(ctx.package, set_)
-    obj = ctx.package.objects.get(index=index, installation_set=set_)
+    index = helpers.prompt_object_uid(ctx.package, 0)
+    obj = ctx.package.objects.get(index=index, installation_set=0)
     option = helpers.prompt_object_option(obj)
+
+    installation_set = None
+    if option.metadata in ASYMMETRIC_OPTIONS:
+        installation_set = helpers.prompt_installation_set(ctx.package)
+        obj = ctx.package.objects.get(
+            index=index, installation_set=installation_set)
+
     default = obj.options.get(option.metadata, '')
     value = helpers.prompt_object_option_value(
-        option, obj.mode, default=default, indent_level=2)
-    ctx.package.objects.update(index, set_, option.metadata, value)
+        option, obj.mode, default=default)
+    ctx.package.objects.update(
+        index, option.metadata, value, installation_set=installation_set)
 
 
 # Transactions
