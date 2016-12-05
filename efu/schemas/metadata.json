@@ -28,9 +28,6 @@
             "type": "string",
             "enum": ["u-boot", "grub2"]
         },
-        "post-update-hook": {
-            "$ref": "post-update-hook.json"
-        },
         "objects": {
             "type": "array",
             "items": {
@@ -42,18 +39,13 @@
                         {"$ref": "imxkobs-object.json"},
                         {"$ref": "raw-object.json"},
                         {"$ref": "tarball-object.json"},
-                        {"$ref": "ubi-object.json"}
+                        {"$ref": "ubifs-object.json"}
                     ]
                 },
                 "minItems": 1
             },
             "minItems": 1,
             "maxItems": 2
-        },
-        "changelog": {
-            "description": "An URL for a text file containg the changelog between the current version and the new version",
-            "type": "string",
-            "format": "uri"
         }
     },
 

@@ -179,8 +179,8 @@
     },
     {
         "metadata": "volume",
-        "modes": ["ubi"],
-        "required_in": ["ubi"],
+        "modes": ["ubifs"],
+        "required_in": ["ubifs"],
         "type": "str",
         "help": "The volume name",
         "cli": ["--volume"],

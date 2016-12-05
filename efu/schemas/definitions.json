@@ -2,7 +2,7 @@
     "mode": {
         "description": "Represents the install mode for the object data",
         "type": "string",
-        "enum": ["copy", "flash", "imxkobs", "raw", "tarball", "ubi"]
+        "enum": ["copy", "flash", "imxkobs", "raw", "tarball", "ubifs"]
     },
     "filename": {
         "description": "file name used by client to rebuild the commit",

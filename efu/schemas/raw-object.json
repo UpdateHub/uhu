@@ -31,9 +31,6 @@
         "required-uncompressed-size": {
             "$ref": "definitions.json#/required-uncompressed-size"
         },
-        "post-update-hook": {
-            "$ref": "post-update-hook.json"
-        },
         "chunk-size": {
             "$ref": "definitions.json#/chunk-size"
         },
