@@ -172,11 +172,12 @@ def prompt_object_option(obj):
     return options[option.strip()]
 
 
-def prompt_object_option_value(option, mode, indent_level=0):
+def prompt_object_option_value(option, mode, default='', indent_level=0):
     """Given an object and an option, prompts user for a valid value.
 
     :param option: an efu `Option` instance.
     :param mode: a valid Object mode string.
+    :param default: a default value to be displayed as placeholder.
     :param indent_level: Controls how many spaces must be added before
                          `msg`.
     """
@@ -185,13 +186,13 @@ def prompt_object_option_value(option, mode, indent_level=0):
 
     # Message
     if option.default is not None:
-        default = option.default
+        default_msg = option.default
         if option.type == 'bool':
-            if default:
-                default = 'Y/n'
+            if default_msg:
+                default_msg = 'Y/n'
             else:
-                default = 'y/N'
-        msg = '{} [{}]'.format(option.verbose_name.title(), default)
+                default_msg = 'y/N'
+        msg = '{} [{}]'.format(option.verbose_name.title(), default_msg)
     else:
         msg = '{}'.format(option.verbose_name.title())
     msg = indent(msg, indent_level, all_lines=True)
@@ -205,9 +206,11 @@ def prompt_object_option_value(option, mode, indent_level=0):
     else:
         completer = None
 
+    # Validation
     validator = ObjectOptionValueValidator(option, mode)
 
-    value = prompt(msg, completer=completer, validator=validator).strip()
+    value = prompt(
+        msg, completer=completer, default=default, validator=validator).strip()
     value = value if value != '' else option.default
     return option.convert(value)
 

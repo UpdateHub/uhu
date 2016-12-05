@@ -79,8 +79,9 @@ def edit_object(ctx):
     index = helpers.prompt_object_uid(ctx.package, set_)
     obj = ctx.package.objects.get(index=index, installation_set=set_)
     option = helpers.prompt_object_option(obj)
+    default = obj.options.get(option.metadata, '')
     value = helpers.prompt_object_option_value(
-        option, obj.mode, indent_level=2)
+        option, obj.mode, default=default, indent_level=2)
     ctx.package.objects.update(index, set_, option.metadata, value)
 
 
