@@ -17,9 +17,9 @@ class InstallationSet:
     def __init__(self):
         self._objects = []
 
-    def add(self, obj):
+    def create(self, *args, **kwargs):
         """Adds an object into set, returns its index."""
-        self._objects.append(obj)
+        self._objects.append(Object(*args, **kwargs))
         return len(self) - 1
 
     def get(self, index):
@@ -95,9 +95,8 @@ class InstallationSetManager:
 
     def create(self, *args, **kw):
         """Creates a new object in a given installation set."""
-        obj = Object(*args, **kw)
         for installation_set in self:
-            index = installation_set.add(obj)
+            index = installation_set.create(*args, **kw)
         return index
 
     def get(self, index, installation_set):

@@ -12,7 +12,7 @@ def verify_all_modes(fn):
     """Run decorated test against all installation set modes."""
     def wrapper(*args, **kwargs):
         for mode in InstallationSetMode:
-            return fn(*args, mode=mode, **kwargs)
+            fn(*args, mode=mode, **kwargs)
     return wrapper
 
 
@@ -58,9 +58,9 @@ class InstallationSetManagerTestCase(unittest.TestCase):
 
     @verify_all_modes
     def test_installation_set_manager_as_string(self, mode):
-        cwd = os.getcwd()
-        os.chdir('tests/fixtures/installation_set')
-        self.addCleanup(os.chdir, cwd)
+        self.addCleanup(os.chdir, os.getcwd())
+        fixtures_dir = '../fixtures/installation_set'
+        os.chdir(os.path.join(os.path.dirname(__file__), fixtures_dir))
         manager = InstallationSetManager(mode)
         manager.create('manager.txt', 'raw', {'target-device': '/dev/sda'})
         fn = '{}-mode.txt'.format(mode.name.lower())

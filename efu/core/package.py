@@ -44,9 +44,9 @@ class Package:
         for set_index, installation_set in enumerate(objects):
             for obj in installation_set:
                 set_ = package.objects.get_installation_set(set_index)
-                set_.add(Object(
+                set_.create(
                     fn=obj['filename'], mode=obj['mode'],
-                    options=obj['options'], compressed=obj.get('compressed')))
+                    options=obj['options'], compressed=obj.get('compressed'))
         return package
 
     @classmethod
@@ -70,9 +70,9 @@ class Package:
                 if install_if_different is not None:
                     options.update(Object.to_install_condition(obj))
                 set_ = package.objects.get_installation_set(set_index)
-                set_.add(Object(
+                set_.create(
                     fn=obj['filename'], mode=obj['mode'],
-                    sha256sum=obj['sha256sum'], options=options))
+                    sha256sum=obj['sha256sum'], options=options)
         return package
 
     @property
