@@ -267,9 +267,6 @@ class Package:
             raise ValueError('Status not found')
         return response.json().get('status')
 
-    def __len__(self):
-        return len(self.objects)
-
     def __str__(self):
         s = []
         # Product
