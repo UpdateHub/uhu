@@ -3,9 +3,7 @@
 """Main EFU REPL command functions."""
 
 from ..config import config
-from ..core.installation_set import InstallationSetMode
 from ..core.options import ASYMMETRIC_OPTIONS
-from ..core.package import Package
 
 from . import helpers
 from .helpers import prompt
@@ -47,12 +45,6 @@ def save_package(ctx):
     """Save a local package file based in current package."""
     helpers.check_arg(ctx, 'You need to pass a filename')
     ctx.package.dump(ctx.arg)
-
-
-def clean_package(ctx):
-    """Removes current package and set a new empty one."""
-    ctx.package = Package(InstallationSetMode.ActiveInactive)
-    ctx.prompt = 'efu> '
 
 
 # Objects

@@ -22,7 +22,6 @@ from .helpers import prompt, set_product_prompt
 
 
 COMMANDS = {
-    'cleanup': functions.clean_package,
     'auth': lambda _: functions.set_authentication(),
     'quit': lambda _: sys.exit(0),
     'show': functions.show_package,

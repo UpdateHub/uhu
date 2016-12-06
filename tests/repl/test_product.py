@@ -40,12 +40,3 @@ class ProductTestCase(unittest.TestCase):
     def test_set_product_raises_error_if_missing_product(self):
         with self.assertRaises(ValueError):
             functions.set_product_uid(self.repl)
-
-    def test_can_clenaup_environment(self):
-        self.repl.arg = '123456789'
-        functions.set_product_uid(self.repl)
-        self.assertEqual(self.repl.prompt, '[123456] efu> ')
-        self.assertEqual(self.repl.package.product, '123456789')
-        functions.clean_package(self.repl)
-        self.assertIsNone(self.repl.package.product)
-        self.assertEqual(self.repl.prompt, 'efu> ')
