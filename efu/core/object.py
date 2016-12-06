@@ -169,7 +169,7 @@ class Object:
     def compressed(self):
         if self.mode in NO_COMPRESSION:
             return False
-        if self._compressed is None:
+        if self._compressed is None or self._compressed is True:
             self.compressor = get_compressor_format(self.filename)
             self._compressed = bool(self.compressor)
         return self._compressed
@@ -229,8 +229,9 @@ class Object:
             'sha256sum': self.sha256sum,
             'size': self.size,
         }
-        if self.compressed:
-            metadata['compressed'] = self.compressed
+        compressed = self.compressed
+        if compressed:
+            metadata['compressed'] = compressed
             metadata['required-uncompressed-size'] = self.uncompressed_size
         if self.install_if_different is not None:
             metadata['install-if-different'] = self.install_if_different

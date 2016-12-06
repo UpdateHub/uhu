@@ -2,6 +2,7 @@
 # This software is released under the MIT License
 
 import json
+import os
 
 from efu.core.installation_set import InstallationSetMode
 from efu.core.package import Package
@@ -107,3 +108,18 @@ class PackageConstructorsTestCase(PackageTestCase):
         self.assertEqual(obj.options['target-device'], '/dev/sda')
         self.assertEqual(obj.options['target-path'], '/boot')
         self.assertEqual(obj.options['filesystem'], 'ext4')
+
+    def test_can_dump_package_and_load_from_file(self):
+        compressed_fn = os.path.join(
+            os.path.dirname(__file__), '../fixtures/compressed/base.txt.gz')
+
+        pkg_fn = self.create_file(b'')
+        pkg = Package(InstallationSetMode.ActiveInactive)
+        pkg.objects.create(__file__, 'raw', {'target-device': '/'})
+        pkg.objects.create(compressed_fn, 'raw', {'target-device': '/'})
+        observed = pkg.template(), pkg.metadata()
+
+        pkg.dump(pkg_fn)
+        pkg = Package.from_file(pkg_fn)
+        expected = pkg.template(), pkg.metadata()
+        self.assertEqual(observed, expected)

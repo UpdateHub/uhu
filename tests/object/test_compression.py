@@ -61,13 +61,14 @@ class CompressedObjectTestCase(unittest.TestCase):
         self.assertTrue(metadata['compressed'])
         self.assertEqual(metadata['required-uncompressed-size'], self.size)
 
-    def test_metadata_raises_error_if_invalid_uncompressed_object(self):
+    def test_cannot_overwrite_compression_properties_on_metadata(self):
         fn = os.path.join(self.fixtures_dir, 'base.txt.bz2')
         obj = Object(fn, mode='raw', options={'target-device': '/'})
-        obj._compressed = True
-        obj.compressor = 'gzip'
-        with self.assertRaises(ValueError):
-            obj.metadata()
+        obj._compressed = True  # it's a compressed file, but not supported
+        obj.compressor = 'gzip'  # and it is a bz2, not a gzip.
+        metadata = obj.metadata()  # luckily metadata will ignore all this
+        self.assertIsNone(metadata.get('compressed'))
+        self.assertIsNone(metadata.get('required-uncompressed-size'))
 
     def test_can_represent_compressed_object_as_template(self):
         fn = os.path.join(self.fixtures_dir, 'base.txt.lzo')
