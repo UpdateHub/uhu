@@ -89,10 +89,9 @@ OBJECT_STRING_TEMPLATE = OrderedDict([
 # - Copy object cannot be set as compressed since it can misslead user
 # when just copying a compressed file (instead of decompress
 # and copy).
-# - ubifs object is not supported by agent now.
 # - Flash object doesn't implement compression.
 # - imxkobs object doesn't implement compression.
-NO_COMPRESSION = ['copy', 'flash', 'imxkobs', 'ubifs']
+NO_COMPRESSION = ['copy', 'flash', 'imxkobs']
 
 
 class ObjectUploadResult:

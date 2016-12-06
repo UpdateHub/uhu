@@ -40,6 +40,7 @@ class UBIFSObjectTestCase(
     def test_object_template(self):
         obj = Object(__file__, mode='ubifs', options={'volume': 'system'})
         expected = {
+            'compressed': False,
             'mode': 'ubifs',
             'filename': __file__,
             'options': {
