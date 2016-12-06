@@ -1,9 +1,6 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-# Copyright (C) 2016 O.S. Systems Software LTDA.
-# This software is released under the MIT License
-
 from efu.core import Object
 from efu.core.object import ObjectUploadResult
 from efu.exceptions import UploadError
