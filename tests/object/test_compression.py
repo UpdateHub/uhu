@@ -76,3 +76,19 @@ class CompressedObjectTestCase(unittest.TestCase):
         template = obj.template()
         self.assertTrue(template['compressed'])
         self.assertIsNone(template.get('required-uncompressed-size'))
+
+    def test_updating_filename_cleans_compression(self):
+        uncompressed_fn = os.path.join(self.fixtures_dir, 'base.txt')
+        compressed_fn = os.path.join(self.fixtures_dir, 'base.txt.gz')
+
+        obj = Object(uncompressed_fn, 'raw', {'target-device': '/'})
+        template = obj.template()
+        self.assertEqual(template['compressed'], False)
+
+        obj.update('filename', compressed_fn)
+        template = obj.template()
+        self.assertEqual(template['compressed'], True)
+
+        obj.update('filename', uncompressed_fn)
+        template = obj.template()
+        self.assertEqual(template['compressed'], False)

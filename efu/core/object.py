@@ -258,6 +258,7 @@ class Object:
         """Updates an object option."""
         if option == 'filename':
             self.filename = self.validate_filename(value)
+            self._compressed = None
         else:
             options = deepcopy(self.options)
             options[option] = value

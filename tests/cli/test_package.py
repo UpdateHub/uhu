@@ -217,11 +217,11 @@ class EditObjectCommandTestCase(PackageTestCase):
         args = [
             '--index', '0',
             '--option', 'filename',
-            '--value', 'new-filename']
+            '--value', self.pkg_fn]
         result = self.runner.invoke(edit_object_command, args=args)
         pkg = Package.from_file(self.pkg_fn)
         obj = pkg.objects.get(index=0, installation_set=0)
-        self.assertEqual(obj.filename, 'new-filename')
+        self.assertEqual(obj.filename, self.pkg_fn)
 
     def test_edit_command_returns_0_if_successful(self):
         args = [
