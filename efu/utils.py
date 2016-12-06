@@ -72,30 +72,27 @@ def call(obj, name, *args, **kw):
 # String utilities
 
 def yes_or_no(value):
-    '''
-    Helper function to humanize boolean values.
+    """Helper function to humanize boolean values.
+
     If value represents a True value, returns "yes", otherwise "no".
-    '''
+    """
     if value:
         return 'yes'
     return 'no'
 
 
 def str_wrapper(value, start='"', end='"'):
-    '''
-    Helper function to wrap a string between two strings.
-    '''
+    """Helper function to wrap a string between two strings."""
     return '{}{}{}'.format(start, value, end)
 
 
 def indent(value, n, all_lines=False):
-    '''
-    Indent a multline string to right by n.
+    """Indent a multline string to right by n.
 
     If all_lines is set to True, the first line will also be indeted,
     otherwise, first line will be 0 padded. This is so since we can
     attach the generated string in an already indented line.
-    '''
+    """
     lines = value.split('\n')
     padding = n * ' '
     lines = ['{}{}'.format(padding, line).rstrip() for line in lines]
@@ -134,10 +131,11 @@ MAX_COMPRESSOR_SIGNATURE_SIZE = max(
 
 
 def get_compressor_format(fn):
-    '''
+    """Returns the compression backend for a given file.
+
     If file is compressed and we support it, return compression
     format, otherwise return None explicitly.
-    '''
+    """
     with open(fn, 'rb') as fp:
         header = fp.read(MAX_COMPRESSOR_SIGNATURE_SIZE)
     for fmt, compressor in COMPRESSORS.items():
@@ -148,15 +146,16 @@ def get_compressor_format(fn):
 
 
 def is_compressor_supported(compressor):
-    '''
-    Checks if compressor utility exists so we can get uncompressed
-    size.
-    '''
+    """Checks if compressor utility exists.
+
+    This is necessary so we can get the uncompressed size of an
+    object.
+    """
     return bool(shutil.which(compressor))
 
 
 def is_valid_compressed_file(fn, compressor_name):
-    ''' Checks if compressed file is a valid one. '''
+    """Checks if compressed file is a valid one."""
     compressor = COMPRESSORS.get(compressor_name)
     test_cmd = compressor['test'] % fn
     try:
@@ -169,9 +168,7 @@ def is_valid_compressed_file(fn, compressor_name):
 
 
 def get_uncompressed_size(fn, compressor_name):
-    '''
-    Returns uncompressed size of a given compressed file.
-    '''
+    """Returns uncompressed size of a given compressed file."""
     compressor = COMPRESSORS.get(compressor_name)
     if compressor is None:
         err = '"{}" is not supported'

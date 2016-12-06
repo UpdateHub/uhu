@@ -127,7 +127,7 @@ class Package:
         call(callback, 'post_package_load')
 
     def metadata(self):
-        ''' Serialize package as metadata '''
+        """Serialize package as metadata."""
         metadata = {
             'product': self.product,
             'version': self.version,
@@ -140,7 +140,7 @@ class Package:
         return metadata
 
     def template(self):
-        ''' Serialize package to dump to a file '''
+        """Serialize package to dump to a file."""
         return {
             'version': self.version,
             'product': self.product,
@@ -150,17 +150,17 @@ class Package:
         }
 
     def export(self, dest):
-        ''' Writes package template in dest file (without version) '''
+        """Writes package template in dest file (without version)."""
         template = self.template()
         template['version'] = None
         self._persist(template, dest)
 
     def dump(self, dest):
-        ''' Writes package template in dest file (with version) '''
+        """Writes package template in dest file (with version)."""
         self._persist(self.template(), dest)
 
     def _persist(self, dict_, fn):
-        ''' Saves an dict_ as JSON into fn '''
+        """Saves an dict_ as JSON into fn."""
         with open(fn, 'w') as fp:
             json.dump(dict_, fp, indent=4, sort_keys=True)
 
@@ -213,8 +213,7 @@ class Package:
         return response.json()
 
     def get_download_list(self):
-        '''
-        Returns a list with all objects that must be downloaded.
+        """Returns a list with all objects that must be downloaded.
 
         If local object exists and it is equal to remote object, we
         do not downloaded it.  Verifies if local files will not be
@@ -222,7 +221,7 @@ class Package:
 
         If local objects exists and it is different from remote
         object, we raise an exception to avoid object overwritting.
-        '''
+        """
         objects = []
         for obj in self.objects.all():
             if not obj.exists():

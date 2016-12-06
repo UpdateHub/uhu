@@ -14,7 +14,7 @@ INSTALL_CONDITION_BACKENDS = ['linux-kernel', 'u-boot']
 
 
 class Option:
-    ''' A wrapper over each option within options.json '''
+    """A wrapper over each option within options.json."""
 
     def __init__(self, conf):
         self.verbose_name = conf.get('verbose-name')
@@ -61,7 +61,7 @@ class Option:
         return value
 
     def validate_path(self, value):
-        ''' Validates if value is an absolute path '''
+        """Validates if value is an absolute path."""
         value = str(value)
         result = re.match(r'^/[^\0]*', value)
         if result is None:
@@ -78,20 +78,20 @@ class Option:
         return value
 
     def validate_is_allowed(self, mode, value):
-        ''' Checks if option is valid within mode. '''
+        """Checks if option is valid within mode."""
         if value is not None:
             if (mode not in self.modes) and (not self.is_volatile):
                 err = 'Option "{}" is not valid in mode "{}".'
                 raise ValueError(err.format(self, mode))
 
     def validate_is_required(self, mode, value):
-        ''' Checks if option is required within mode. '''
+        """Checks if option is required within mode."""
         if value is None and self.is_required(mode):
             err = 'Option "{}" is required for mode "{}".'
             raise ValueError(err.format(self, mode))
 
     def validate_requirements(self, values):
-        ''' Checks if option requirements are satisfied '''
+        """Checks if option requirements are satisfied."""
         for requirement, conf in self.requirements.items():
             if conf['type'] == 'value':
                 if values.get(requirement) != conf['value']:
@@ -103,7 +103,7 @@ class Option:
         return mode in self.required_in
 
     def convert(self, value):
-        ''' Convert the given value into object option value. '''
+        """Convert the given value into object option value."""
         validator = self.VALIDATORS[self.type]
         return validator(self, value)
 
@@ -119,7 +119,7 @@ class Option:
 
 
 def load_options(fn):
-    ''' Loads all options and modes from a given conf file. '''
+    """Loads all options and modes from a given conf file."""
     options = OrderedDict()
     with open(fn) as fp:
         data = json.load(fp, object_pairs_hook=OrderedDict)
@@ -129,7 +129,7 @@ def load_options(fn):
 
 
 def load_modes(options):
-    ''' Loads all modes based on the given options. '''
+    """Loads all modes based on the given options."""
     modes = {}
     for option in options.values():
         for mode in option.modes:
@@ -142,21 +142,19 @@ MODES = load_modes(OPTIONS)
 
 
 class OptionsParser:
-    '''
-    This is the base object option parser. It can handles if required
-    options are present, if there are bad mode options present and can
-    insert default values.
-    '''
+    """The base object option parser.
+
+    It can handles if required options are present, if there are bad
+    mode options present and can insert default values.
+    """
+
     def __init__(self, mode, options):
         self.mode = mode
         self.options = MODES[self.mode]
         self.values = options
 
     def inject_default_values(self):
-        '''
-        Add default option value if option is not present in the given
-        values.
-        '''
+        """Add default option value for missing options."""
         for option in self.options:
             if option.metadata not in self.values:
                 if option.default is not None:
@@ -168,15 +166,14 @@ class OptionsParser:
                         self.values[option.metadata] = option.default
 
     def _can_inject(self, option):
-        '''
-        Method used during value injection step.
+        """Method used during value injection step.
 
         It validates an option (which has a default value)
         requirements.
 
         It is necessary since we must only add default values if
         requirements are satisfied.
-        '''
+        """
         requirements = [req for req in self.options
                         if req.metadata in option.requirements]
         values = deepcopy(self.values)
@@ -190,36 +187,37 @@ class OptionsParser:
         return True
 
     def check_allowed_options(self):
-        ''' Verifies if there are invalid options for the given mode. '''
+        """Verifies if there are invalid options for the given mode."""
         for opt, value in self.values.items():
             option = OPTIONS[opt]
             option.validate_is_allowed(self.mode, value)
 
     def check_mode_requirements(self):
-        ''' Verifies if there are missing options for the given mode. '''
+        """Verifies if there are missing options for the given mode."""
         for option in self.options:
             value = self.values.get(option.metadata)
             option.validate_is_required(self.mode, value)
 
     def check_options_requirements(self):
-        ''' Verifies if all options requirements are satisfied. '''
+        """Verifies if all options requirements are satisfied."""
         for option in self.options:
             if self.values.get(option.metadata) is not None:
                 option.validate_requirements(self.values)
 
     def convert_values(self):
-        ''' Convert and validate values according to mode options. '''
+        """Convert and validate values according to mode options."""
         for option in self.options:
             value = self.values.get(option.metadata)
             if value is not None:
                 self.values[option.metadata] = option.convert(value)
 
     def clean(self):
-        '''
-        Parse the given values according to the given mode rules returning
-        a dict with the values normalized and cleaned. Raises
-        ValueError in case something is wrong.
-        '''
+        """Parse the given values according to the given mode.
+
+        Returns a dict with the values normalized and cleaned.
+
+        Raises ValueError in case something is wrong.
+        """
         # First we need to inject default values
         self.inject_default_values()
         # Then, we check if there are invalid options for the given mode

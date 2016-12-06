@@ -72,13 +72,12 @@ class Request(object):
         self.headers['Authorization'] = signature.signature
 
     def _prepare_headers(self):
-        '''
-        Transforms all header values in strings.
+        """Transforms all header values in strings.
 
         This must be called before any real HTTP request to prevent
         breaking any library that just expects strings as header
         values.
-        '''
+        """
         return {header: str(self.headers[header]) for header in self.headers}
 
     def send(self):

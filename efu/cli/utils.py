@@ -10,11 +10,11 @@ from ..utils import get_local_config_file
 
 @contextmanager
 def open_package(read_only=False):
-    '''
-    Context for package operations. It opens a package, gives control
-    to the user and, finally, dumps the package. If read_only, it does not
-    dump the package.
-    '''
+    """Context manager for package operations.
+
+    It opens a package, gives control to the user and, finally, dumps
+    the package. If read_only, it does not dump the package.
+    """
     pkg_file = get_local_config_file()
     try:
         package = Package.from_file(pkg_file)
@@ -31,6 +31,6 @@ def open_package(read_only=False):
 
 
 def error(code, msg):
-    ''' Terminates cli with an error code and message for the user. '''
+    """Terminates cli with an error code and message for the user."""
     print('ERROR: {}'.format(msg))
     sys.exit(code)

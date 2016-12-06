@@ -7,12 +7,12 @@ import pkg_resources
 
 
 def get_efu_version():
-    '''Retrives efu package version.
+    """Retrives efu package version.
 
     First, it tries to parse a git describe command result. If not
     successful, uses setuptools pkg_resources. If the last fails,
     returns Unknown version.
-    '''
+    """
     try:
         output = subprocess.check_output(
             ['git', 'describe'], stderr=subprocess.PIPE)

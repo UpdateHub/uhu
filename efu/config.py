@@ -13,7 +13,7 @@ class Sections:
 
 
 class Config:
-    ''' This is the wrapper to manage ~/.efu configuration file. '''
+    """This is the wrapper to manage ~/.efu configuration file."""
 
     def __new__(cls):
         if not hasattr(cls, 'instance'):
@@ -31,15 +31,12 @@ class Config:
         open(self._filename, 'a').close()
 
     def set_initial(self, access_id, access_secret):
-        '''
-        This set the initial required values (credentials) to run
-        other efu commands.
-        '''
+        """Set server requried credentials."""
         self.set('access_id', access_id, section=Sections.AUTH)
         self.set('access_secret', access_secret, section=Sections.AUTH)
 
     def set(self, key, value, section=None):
-        ''' Adds a new entry on settings based on key and value '''
+        """Adds a new entry on settings based on key and value."""
         self._read()
 
         if section is None:
@@ -53,7 +50,7 @@ class Config:
             self._config.write(fp)
 
     def get(self, key, section=None):
-        ''' Gets the value for the given a key '''
+        """Gets the value for the given a key."""
         self._read()
         if not section:
             section = Sections.MAIN

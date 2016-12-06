@@ -13,10 +13,7 @@ PRINTABLE = string.printable.encode()
 
 
 def read(fp, seek, type_, buffer_size):
-    '''
-    Generic function which retrives a chunk from file and converts it
-    to a given type.
-    '''
+    """Retrives a chunk from file and converts it to a given type."""
     fp.seek(seek)
     try:
         return struct.unpack(type_, fp.read(buffer_size))[0]
@@ -25,17 +22,14 @@ def read(fp, seek, type_, buffer_size):
 
 
 def check(phrase, regexp):
-    '''
-    Generic function to check if a phrase matches a given regexp
-    pattern.
-    '''
+    """Checks if a phrase matches a given regexp pattern."""
     results = regexp.findall(phrase)
     if results:
         return results[0].decode()
 
 
 def find(fp, pattern, iterable, seek=0):
-    ''' Generic function to find some text in some iterable. '''
+    """Generic function to find some text in some iterable."""
     fp.seek(seek)
     regexp = re.compile(pattern)
     phrase = b''
@@ -60,17 +54,17 @@ X86_Z_IMAGE = (0xaa55, 0)
 
 
 def is_arm_uImage(fp):
-    ''' Checks if an image is ARM uImage. '''
+    """Checks if an image is ARM uImage."""
     return read(fp, 0, '>I', 4) == ARM_U_IMAGE
 
 
 def is_arm_zImage(fp):
-    ''' Checks if an image is ARM zImage. '''
+    """Checks if an image is ARM zImage."""
     return read(fp, 36, '<I', 4) == ARM_Z_IMAGE
 
 
 def get_x86_generic_image_info(fp):
-    ''' Generic function to retrive Linux kernel info from x86 images. '''
+    """Generic function to retrive Linux kernel info from x86 images."""
     magic = read(fp, 510, '<H', 2)
     data = read(fp, 529, '<c', 1)
     compression = ord(data) if data is not None else None
@@ -78,17 +72,17 @@ def get_x86_generic_image_info(fp):
 
 
 def is_x86_bzImage(fp):
-    ''' Checks if an image is x86 bzImage. '''
+    """Checks if an image is x86 bzImage."""
     return get_x86_generic_image_info(fp) == X86_BZ_IMAGE
 
 
 def is_x86_zImage(fp):
-    ''' Checks if an image is x86 zImage. '''
+    """Checks if an image is x86 zImage."""
     return get_x86_generic_image_info(fp) == X86_Z_IMAGE
 
 
 def get_arm_zImage_version(fp):
-    ''' Returns Linux kernel version of an ARM zImage. '''
+    """Returns Linux kernel version of an ARM zImage."""
     # In ARM uImage kernel is compressed within the image. To retrive
     # its version, we need find the compressed kernel, uncompress it,
     # and extract the version from the uncompressed data.
@@ -105,7 +99,7 @@ def get_arm_zImage_version(fp):
 
 
 def get_arm_uImage_version(fp):
-    ''' Returns Linux kernel version of an ARM uImage. '''
+    """Returns Linux kernel version of an ARM uImage."""
     fp.seek(32)
     data = fp.read(32).strip(b'\0')
     regexp = re.compile(br'(\d+.?\.[^\s]+)')
@@ -114,7 +108,7 @@ def get_arm_uImage_version(fp):
 
 
 def get_x86_generic_version(fp):
-    ''' Generic function to retrive Linux kernel version from x86 images. '''
+    """Retrives Linux kernel version from x86 images."""
     offset = read(fp, 526, '<H', 2)
     fp.seek(offset + 512)  # 0x200
     version = fp.read(512)
@@ -123,19 +117,19 @@ def get_x86_generic_version(fp):
 
 
 def get_x86_bzImage_version(fp):
-    ''' Returns Linux kernel version of a x86 bzImage. '''
+    """Returns Linux kernel version of a x86 bzImage."""
     return get_x86_generic_version(fp)
 
 
 def get_x86_zImage_version(fp):
-    ''' Returns Linux kernel version of a x86 zImage. '''
+    """Returns Linux kernel version of a x86 zImage."""
     return get_x86_generic_version(fp)
 
 
 # Linux Kernel
 
 def get_kernel_version(fp):
-    ''' Returns Linux kernel object version. '''
+    """Returns Linux kernel object version."""
     result = None
     # ARM uImage
     if is_arm_uImage(fp):
@@ -157,7 +151,7 @@ def get_kernel_version(fp):
 # U-Boot
 
 def get_uboot_version(fp):
-    ''' Returns U-Boot object version. '''
+    """Returns U-Boot object version."""
     pattern = br'U-Boot (\S+) \(.*\)'
     iterable = iter(lambda: fp.read(30), b'')
     result = find(fp, pattern, iterable, 0)
@@ -169,7 +163,7 @@ def get_uboot_version(fp):
 # Arbitrary object
 
 def get_object_version(fp, pattern, seek=0, buffer_size=-1):
-    ''' Returns version of any type of object. '''
+    """Returns version of any type of object."""
     iterable = iter(lambda: fp.read(buffer_size), b'')
     result = find(fp, pattern, iterable, seek)
     if result is not None:

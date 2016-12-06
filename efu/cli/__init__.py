@@ -18,7 +18,7 @@ from .product import product_cli
     get_efu_version(), message='EasyFOTA Utils - %(version)s')
 @click.pass_context
 def cli(ctx, package):
-    ''' EasyFOTA utility '''
+    """EasyFOTA utility."""
     if ctx.invoked_subcommand is None:
         efu_interactive(package)
 

@@ -9,14 +9,14 @@ from .utils import error
 
 @click.group(name='product')
 def product_cli():
-    ''' Product related commands '''
+    """Product related commands."""
 
 
 @product_cli.command(name='use')
 @click.argument('uid')
 @click.option('--force', '-f', is_flag=True)
 def use_command(uid, force):
-    ''' Sets the product '''
+    """Sets the product."""
     try:
         Product.use(uid, force=force)
     except FileExistsError as err:

@@ -96,7 +96,7 @@ def edit_object(ctx):
 # Transactions
 
 def push_package(ctx):
-    """Uploade the current package to server."""
+    """Upload the current package to server."""
     helpers.check_product(ctx)
     helpers.check_version(ctx)
     from ..cli._push import PushCallback

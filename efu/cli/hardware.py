@@ -8,7 +8,7 @@ from .utils import error, open_package
 
 @click.group(name='hardware')
 def hardware_cli():
-    ''' Supported hardware related commands '''
+    """Supported hardware related commands."""
 
 
 @hardware_cli.command(name='add')
@@ -18,7 +18,7 @@ def hardware_cli():
                     'added within the given hardware. '
                     'This option can be repeated many times.'))
 def add_supported_hardware_command(hardware, revision):
-    ''' Add a supported hardware for the current package. '''
+    """Add a supported hardware for the current package."""
     with open_package() as package:
         if hardware not in package.supported_hardware:
             package.add_supported_hardware(hardware)
@@ -33,7 +33,7 @@ def add_supported_hardware_command(hardware, revision):
                     'removed from the given hardware. '
                     'This option can be repeated many times.'))
 def remove_supported_hardware_command(hardware, revision):
-    ''' Remove a supported hardware for the current package. '''
+    """Remove a supported hardware for the current package."""
     with open_package() as package:
         try:
             if not revision:

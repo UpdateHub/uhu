@@ -133,7 +133,7 @@ class Object:
         self.chunk_size = get_chunk_size()
 
     def validate_filename(self, fn):
-        ''' Validates if a given filename is not an invalid filename. '''
+        """Validates if a given filename is not an invalid filename."""
         error_msg = '"{}" is not a valid filename.'.format(fn)
         if not isinstance(fn, str):
             raise TypeError(error_msg)
@@ -142,6 +142,7 @@ class Object:
         return fn
 
     def _init_install_condition(self):
+        """Retrives install-condition properties from object options."""
         condition = self.options.pop('install-condition', None)
         if condition is None:
             return None
@@ -221,7 +222,7 @@ class Object:
         return condition
 
     def metadata(self):
-        ''' Serialize object as metadata '''
+        """Serialize object as metadata."""
         metadata = {
             'filename': self.filename,
             'mode': self.mode,
@@ -238,7 +239,7 @@ class Object:
         return metadata
 
     def template(self):
-        ''' Serialize object for dumping to a file '''
+        """Serialize object for dumping to a file."""
         options = deepcopy(self.options)
         if self.install_condition is not None:
             options.update(self.install_condition)
@@ -254,7 +255,7 @@ class Object:
         return template
 
     def update(self, option, value):
-        ''' Updates an object option '''
+        """Updates an object option."""
         if option == 'filename':
             self.filename = self.validate_filename(value)
         else:
@@ -263,6 +264,7 @@ class Object:
             self.options = OptionsParser(self.mode, options).clean()
 
     def load(self, callback=None):
+        """Reads object to set its size, sha256sum, MD5 and version."""
         self.size = os.path.getsize(self.filename)
         call(callback, 'pre_object_read', self)
         sha256sum = hashlib.sha256()
@@ -386,7 +388,7 @@ class Object:
 
 
 class ObjectReader:
-    """Read-only object class."""
+    """Read-only object class. Used when uploading with requests."""
 
     def __init__(self, obj, callback=None):
         self.obj = obj
