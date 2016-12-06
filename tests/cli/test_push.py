@@ -4,6 +4,8 @@
 from click.testing import CliRunner
 
 from efu.cli.package import push_command
+from efu.core.package import Package
+from efu.core.installation_set import InstallationSetMode
 from efu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 from utils import BasePushTestCase
@@ -51,3 +53,10 @@ class PushCommandTestCase(PushCommandMixin, BasePushTestCase):
         self.set_push(self.package, self.package_uid)
         result = self.runner.invoke(push_command)
         self.assertEqual(result.exit_code, 3)
+
+    def test_push_command_returns_4_if_invalid_schema(self):
+        self.package = Package(InstallationSetMode.ActiveInactive)
+        self.package.dump(self.pkg_fn)
+        self.set_push(self.package, self.package_uid)
+        result = self.runner.invoke(push_command)
+        self.assertEqual(result.exit_code, 4)

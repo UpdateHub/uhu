@@ -3,6 +3,7 @@
 
 import click
 import requests
+from jsonschema.exceptions import ValidationError
 
 from ..core.options import MODES
 from ..core.package import ACTIVE_INACTIVE_MODES
@@ -63,12 +64,7 @@ def add_object_command(filename, mode, **options):
             options = parser.clean()
         except ValueError as err:
             error(2, err)
-        try:
-            package.objects.create(filename, mode, options)
-        except ValueError as err:
-            error(3, err)
-        except TypeError as err:
-            error(4, err)
+        package.objects.create(filename, mode, options)
 
 
 # Adds all object options
@@ -90,7 +86,7 @@ def edit_object_command(index, installation_set, option, value):
             package.objects.update(
                 index, option, value, installation_set=installation_set)
         except ValueError as err:
-            error(2, err)
+            error(3, err)
 
 
 @package_cli.command('remove')
@@ -115,6 +111,8 @@ def push_command():
             error(2, err)
         except requests.exceptions.ConnectionError:
             error(3, 'Can\'t reach server')
+        except ValidationError:
+            error(4, 'Tempered configuration file (invalid metadata)')
 
 
 @package_cli.command(name='pull')

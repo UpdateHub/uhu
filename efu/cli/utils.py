@@ -22,6 +22,9 @@ def open_package(read_only=False):
         print('Package file does not exist. '
               'Create one with <efu use> command')
         sys.exit(1)
+    except ValueError:
+        print('Invalid configuration file.')
+        sys.exit(1)
     yield package
     if not read_only:
         package.dump(pkg_file)

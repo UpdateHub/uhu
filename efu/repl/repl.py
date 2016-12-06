@@ -97,9 +97,9 @@ class EFURepl:
         self.local_config = get_local_config_file()
 
         if package_fn is not None:
-            self.package = Package.from_file(package_fn)
+            self.package = self.load_package(package_fn)
         elif os.path.exists(self.local_config):
-            self.package = Package.from_file(self.local_config)
+            self.package = self.load_package(self.local_config)
         else:
             # We currently only support active-inactive with u-boot
             # backend.
@@ -113,6 +113,13 @@ class EFURepl:
 
         self.arg = None
         self.history = InMemoryHistory()
+
+    def load_package(self, fn):
+        try:
+            return Package.from_file(fn)
+        except ValueError:
+            print('Error: Invalid configuration file.')
+            sys.exit(1)
 
     def repl(self):
         """Starts a new interactive prompt."""

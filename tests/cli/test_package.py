@@ -10,6 +10,7 @@ from efu.cli.package import (
     add_object_command, edit_object_command, remove_object_command,
     export_command, show_command, set_version_command, status_command,
     set_active_inactive_backend)
+from efu.cli.utils import open_package
 from efu.core import Package
 from efu.core.installation_set import InstallationSetMode
 from efu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
@@ -246,6 +247,15 @@ class EditObjectCommandTestCase(PackageTestCase):
         result = self.runner.invoke(edit_object_command, args=args)
         self.assertEqual(result.exit_code, 2)
 
+    def test_edit_command_returns_3_if_validation_error(self):
+        args = [
+            '--index', '0',
+            '--installation-set', '0',
+            '--option', 'target-path',
+            '--value', '/dev/sdb']
+        result = self.runner.invoke(edit_object_command, args=args)
+        self.assertEqual(result.exit_code, 3)
+
 
 class RemoveObjectCommandTestCase(PackageTestCase):
 
@@ -398,3 +408,20 @@ class StatusCommandTestCase(HTTPTestCaseMixin, PackageTestCase):
         self.httpd.register_response(path, status_code=404)
         result = self.runner.invoke(status_command, args=[self.pkg_uid])
         self.assertEqual(result.exit_code, 2)
+
+
+class UtilsTestCase(FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase):
+
+    def test_open_package_quits_program_if_invalid_package(self):
+        pkg_fn = self.create_file(b'')
+        self.set_env_var(LOCAL_CONFIG_VAR, pkg_fn)
+
+        pkg = Package(InstallationSetMode.ActiveInactive)
+        template = pkg.template()
+        del template['objects']
+        with open(pkg_fn, 'w') as fp:
+            json.dump(template, fp)
+
+        with self.assertRaises(SystemExit):
+            with open_package() as pkg:
+                pass
