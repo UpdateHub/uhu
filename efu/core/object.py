@@ -115,8 +115,9 @@ class Object:
         self.install_condition = self._init_install_condition()
 
         self.size = None
-        self.sha256sum = sha256sum
+        self.version = None
         self.md5 = None
+        self.sha256sum = sha256sum
 
         self.chunk_size = get_chunk_size()
 
@@ -252,25 +253,31 @@ class Object:
             options[option] = value
             self.options = OptionsParser(self.mode, options).clean()
 
-    def load(self, callback=None):
+    def load(self, cache=None, callback=None):
         """Reads object to set its size, sha256sum, MD5 and version."""
-        self.size = os.path.getsize(self.filename)
+        cache = {} if cache is None else cache
+        self.size = cache.get('size', os.path.getsize(self.filename))
         call(callback, 'pre_object_read', self)
-        sha256sum = hashlib.sha256()
-        md5 = hashlib.md5()
-        for chunk in self:
-            sha256sum.update(chunk)
-            md5.update(chunk)
-            call(callback, 'object_read')
-        self.sha256sum = sha256sum.hexdigest()
-        self.md5 = md5.hexdigest()
-        self.load_install_condition()
+
+        self.sha256sum = cache.get('sha256sum')
+        self.md5 = cache.get('md5')
+        if not all((self.sha256sum, self.md5)):
+            sha256sum = hashlib.sha256()
+            md5 = hashlib.md5()
+            for chunk in self:
+                sha256sum.update(chunk)
+                md5.update(chunk)
+                call(callback, 'object_read')
+            self.sha256sum = sha256sum.hexdigest()
+            self.md5 = md5.hexdigest()
+        self.load_install_condition(cache)
         call(callback, 'post_object_read')
 
-    def load_install_condition(self):
+    def load_install_condition(self, cache=None):
+        cache = {} if cache is None else cache
         if self.install_condition is not None:
-            version = self.get_version()
-            self.install_condition['install-condition-version'] = version
+            self.version = cache.get('version', self.get_version())
+            self.install_condition['install-condition-version'] = self.version
 
     def get_version(self):
         version_absent = ['always', 'content-diverges']

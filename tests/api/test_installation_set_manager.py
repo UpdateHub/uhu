@@ -3,7 +3,9 @@
 
 import os
 import unittest
+from unittest.mock import Mock, patch
 
+from efu.core import installation_set
 from efu.core.installation_set import (
     InstallationSet, InstallationSetManager, InstallationSetMode)
 
@@ -186,3 +188,26 @@ class InstallationSetManagerTestCase(unittest.TestCase):
         expected = [set_.get(index) for set_ in manager]
         observed = manager.all()
         self.assertEqual(observed, expected)
+
+    @verify_all_modes
+    def test_can_use_cache_to_load_objects(self, mode):
+        manager = InstallationSetManager(mode)
+        index = manager.create(__file__, 'raw', {'target-device': '/dev/sda'})
+        cache = {
+            __file__: {
+                'size': 100,
+                'md5': 'md5',
+                'sha256sum': 'sha256sum',
+                'version': '2.0',
+            }
+        }
+        patched_dict = Mock()
+        patched_dict.return_value = cache
+        with patch.dict(installation_set.__builtins__, {'dict': patched_dict}):
+            manager.load()
+            for set_ in manager:
+                for obj in set_:
+                    self.assertEqual(obj.size, 100)
+                    self.assertEqual(obj.md5, 'md5')
+                    self.assertEqual(obj.sha256sum, 'sha256sum')
+                    self.assertEqual(obj.version, '2.0')

@@ -96,8 +96,16 @@ class InstallationSetManager:
 
     def load(self, callback=None):
         call(callback, 'pre_package_load')
+        cache = dict()
         for obj in self.all():
-            obj.load(callback)
+            obj_cache = cache.get(obj.filename, {})
+            obj.load(cache=obj_cache, callback=callback)
+            # updates cache
+            obj_cache['size'] = obj.size
+            obj_cache['md5'] = obj.md5
+            obj_cache['sha256sum'] = obj.sha256sum
+            obj_cache['version'] = obj.version
+            cache[obj.filename] = obj_cache
             call(callback, 'package_load')
         call(callback, 'post_package_load')
 

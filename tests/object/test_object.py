@@ -74,3 +74,18 @@ class ObjectTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
         obj.load()
         self.assertEqual(obj.size, 4)
         self.assertEqual(obj.sha256sum, sha256sum)
+
+    def test_can_load_object_from_cache(self):
+        cache = {
+            'size': 100,
+            'md5': 'md5',
+            'sha256sum': 'sha256sum',
+            'version': '2.0',
+        }
+        fn = self.create_file(b'spam')
+        obj = Object(fn, 'raw', {'target-device': '/dev/sda'})
+        obj.load(cache=cache)
+        self.assertEqual(obj.size, 100)
+        self.assertEqual(obj.md5, 'md5')
+        self.assertEqual(obj.sha256sum, 'sha256sum')
+        self.assertEqual(obj.version, '2.0')
