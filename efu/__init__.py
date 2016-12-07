@@ -15,7 +15,7 @@ def get_efu_version():
     """
     try:
         output = subprocess.check_output(
-            ['git', 'describe'], stderr=subprocess.PIPE)
+            ['git', 'describe', '--always'], stderr=subprocess.PIPE)
         version = output.decode().strip()
     except (subprocess.CalledProcessError, OSError):
         try:
