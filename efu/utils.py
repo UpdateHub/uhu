@@ -109,7 +109,8 @@ COMPRESSORS = {
     'gzip': {
         'signature': b'\x1f\x8b',
         'test': 'gzip -t %s',
-        'cmd': "gzip -l %s | tail -n 1 | awk '{ print $2}'"
+        # gzip requires -f if pigz is used.
+        'cmd': "gzip -lf %s | tail -n 1 | awk '{ print $2}'"
     },
     # LZO format: http://www.lzop.org/download/lzop-1.03.tar.gz
     'lzop': {
