@@ -18,7 +18,7 @@ class PackageSerializationsTestCase(PackageTestCase):
         pkg.objects.create(self.obj_fn, self.obj_mode, self.obj_options)
         pkg.add_supported_hardware(
             name=self.hardware, revisions=self.hardware_revision)
-        pkg.load()
+        pkg.objects.load()
         metadata = pkg.metadata()
         self.assertEqual(metadata['version'], self.version)
         self.assertEqual(metadata['product'], self.product)

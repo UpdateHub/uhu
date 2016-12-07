@@ -17,13 +17,13 @@ class PushTestCase(BasePushTestCase):
 
     def test_upload_metadata_returns_None_when_successful(self):
         self.start_push_url(self.product, self.package_uid)
-        self.package.load()
+        self.package.objects.load()
         observed = self.package.upload_metadata()
         self.assertIsNone(observed)
 
     def test_upload_metadata_raises_exception_when_fail(self):
         self.start_push_url(self.product, self.package_uid, success=False)
-        self.package.load()
+        self.package.objects.load()
         with self.assertRaises(UploadError):
             self.package.upload_metadata()
 
@@ -31,7 +31,7 @@ class PushTestCase(BasePushTestCase):
         self.start_push_url(self.product, self.package_uid)
         start_url = self.httpd.url(
             '/products/{}/packages'.format(self.product))
-        self.package.load()
+        self.package.objects.load()
         self.package.upload_metadata()
 
         request = self.httpd.requests[0]
@@ -44,7 +44,7 @@ class PushTestCase(BasePushTestCase):
 
     def test_upload_metadata_updates_package_uid(self):
         self.start_push_url(self.product, self.package_uid)
-        self.package.load()
+        self.package.objects.load()
         self.assertIsNone(self.package.uid)
         self.package.upload_metadata()
         self.assertEqual(self.package.uid, self.package_uid)

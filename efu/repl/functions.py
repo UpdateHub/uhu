@@ -93,7 +93,7 @@ def push_package(ctx):
     helpers.check_version(ctx)
     from ..cli._push import PushCallback
     callback = PushCallback()
-    ctx.package.load(callback)
+    ctx.package.objects.load(callback)
     ctx.package.push(callback)
 
 

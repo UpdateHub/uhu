@@ -104,7 +104,7 @@ def push_command():
     """Pushes a package file to server with the given version."""
     with open_package(read_only=True) as package:
         callback = PushCallback()
-        package.load(callback)
+        package.objects.load(callback)
         try:
             package.push(callback)
         except UploadError as err:

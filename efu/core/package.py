@@ -122,13 +122,6 @@ class Package:
             err = 'Revision {} for {} does not exist or is already removed'
             raise ValueError(err.format(revision, hardware))
 
-    def load(self, callback=None):
-        call(callback, 'pre_package_load')
-        for obj in self.objects.all():
-            obj.load(callback)
-            call(callback, 'package_load')
-        call(callback, 'post_package_load')
-
     def metadata(self):
         """Serialize package as metadata."""
         metadata = {

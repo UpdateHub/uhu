@@ -6,7 +6,7 @@ from enum import Enum, unique
 from .object import Object
 from .options import ASYMMETRIC_OPTIONS
 
-from ..utils import indent
+from ..utils import call, indent
 
 
 class InstallationSet:
@@ -93,6 +93,13 @@ class InstallationSetManager:
             return self._sets[index]
         except IndexError:
             raise ValueError('Installation set not found')
+
+    def load(self, callback=None):
+        call(callback, 'pre_package_load')
+        for obj in self.all():
+            obj.load(callback)
+            call(callback, 'package_load')
+        call(callback, 'post_package_load')
 
     def create(self, *args, **kw):
         """Creates a new object in a given installation set."""
