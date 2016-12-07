@@ -31,7 +31,6 @@ class PackageConstructorsTestCase(PackageTestCase):
                     {
                         'filename': self.obj_fn,
                         'mode': 'copy',
-                        'compressed': False,
                         'options': {
                             'target-device': '/dev/sda',
                             'target-path': '/boot',
@@ -43,7 +42,6 @@ class PackageConstructorsTestCase(PackageTestCase):
                     {
                         'filename': self.obj_fn,
                         'mode': 'copy',
-                        'compressed': False,
                         'options': {
                             'target-device': '/dev/sda',
                             'target-path': '/boot',
@@ -62,7 +60,6 @@ class PackageConstructorsTestCase(PackageTestCase):
         obj = pkg.objects.get(index=0, installation_set=0)
         self.assertEqual(obj.filename, self.obj_fn)
         self.assertEqual(obj.mode, 'copy')
-        self.assertFalse(obj.compressed)
         self.assertEqual(obj.options['target-device'], '/dev/sda')
         self.assertEqual(obj.options['target-path'], '/boot')
         self.assertEqual(obj.options['filesystem'], 'ext4')

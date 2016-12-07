@@ -45,8 +45,9 @@ class Package:
             for obj in installation_set:
                 set_ = package.objects.get_installation_set(set_index)
                 set_.create(
-                    fn=obj['filename'], mode=obj['mode'],
-                    options=obj['options'], compressed=obj.get('compressed'))
+                    fn=obj['filename'],
+                    mode=obj['mode'],
+                    options=obj['options'])
         return package
 
     @classmethod
@@ -61,18 +62,20 @@ class Package:
             'active-inactive-backend')
         for set_index, installation_set in enumerate(objects):
             for obj in installation_set:
-                settings = (
+                blacklist = (
                     'filename', 'mode', 'compressed', 'install-if-different')
                 options = {option: value
                            for option, value in obj.items()
-                           if option not in settings}
+                           if option not in blacklist}
                 install_if_different = obj.get('install-if-different')
                 if install_if_different is not None:
                     options.update(Object.to_install_condition(obj))
                 set_ = package.objects.get_installation_set(set_index)
                 set_.create(
-                    fn=obj['filename'], mode=obj['mode'],
-                    sha256sum=obj['sha256sum'], options=options)
+                    fn=obj['filename'],
+                    mode=obj['mode'],
+                    options=options,
+                    sha256sum=obj['sha256sum'])
         return package
 
     @property

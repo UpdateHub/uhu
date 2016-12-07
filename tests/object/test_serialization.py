@@ -114,10 +114,9 @@ class ObjectSerializationTestCase(unittest.TestCase):
     def test_can_serialize_as_template(self):
         obj = Object(self.fn, 'raw', {'target-device': '/dev/sda'})
         template = obj.template()
-        self.assertEqual(len(template), 4)
+        self.assertEqual(len(template), 3)
         self.assertEqual(template['filename'], self.fn)
         self.assertEqual(template['mode'], 'raw')
-        self.assertFalse(template['compressed'])
         options = template['options']
         self.assertEqual(len(options), 7)
         self.assertEqual(options['target-device'], '/dev/sda')

@@ -169,6 +169,8 @@ def is_valid_compressed_file(fn, compressor_name):
 
 def get_uncompressed_size(fn, compressor_name):
     """Returns uncompressed size of a given compressed file."""
+    if compressor_name is None:
+        return  # It is not a compressed file
     compressor = COMPRESSORS.get(compressor_name)
     if compressor is None:
         err = '"{}" is not supported'

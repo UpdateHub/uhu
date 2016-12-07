@@ -320,7 +320,6 @@ class ExportCommandTestCase(PackageTestCase):
                     {
                         'filename': self.obj_fn,
                         'mode': 'raw',
-                        'compressed': False,
                         'options': {
                             'chunk-size': 131072,
                             'count': -1,

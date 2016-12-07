@@ -85,15 +85,6 @@ OBJECT_STRING_TEMPLATE = OrderedDict([
 ])
 
 
-# Doesn't implement/support compression
-# - Copy object cannot be set as compressed since it can misslead user
-# when just copying a compressed file (instead of decompress
-# and copy).
-# - Flash object doesn't implement compression.
-# - imxkobs object doesn't implement compression.
-NO_COMPRESSION = ['copy', 'flash', 'imxkobs']
-
-
 class ObjectUploadResult:
     SUCCESS = 1
     EXISTS = 2
@@ -116,7 +107,7 @@ class Object:
     VOLATILE_OPTIONS = ('size', 'sha256sum', 'required-uncompressed-size')
     DEVICE_OPTIONS = ['truncate', 'seek', 'filesystem']
 
-    def __init__(self, fn, mode, options, compressed=None, sha256sum=None):
+    def __init__(self, fn, mode, options, sha256sum=None):
         self.filename = self.validate_filename(fn)
         self.mode = mode
         self.options = OptionsParser(self.mode, options).clean()
@@ -126,9 +117,6 @@ class Object:
         self.size = None
         self.sha256sum = sha256sum
         self.md5 = None
-
-        self.compressor = None
-        self._compressed = compressed
 
         self.chunk_size = get_chunk_size()
 
@@ -164,20 +152,6 @@ class Object:
             'install-condition-seek': seek,
             'install-condition-buffer-size': buffer_size,
         }
-
-    @property
-    def compressed(self):
-        if self.mode in NO_COMPRESSION:
-            return False
-        if self._compressed is None or self._compressed is True:
-            self.compressor = get_compressor_format(self.filename)
-            self._compressed = bool(self.compressor)
-        return self._compressed
-
-    @property
-    def uncompressed_size(self):
-        if self.compressed:
-            return get_uncompressed_size(self.filename, self.compressor)
 
     @property
     def install_if_different(self):
@@ -221,6 +195,23 @@ class Object:
             condition['install-condition-buffer-size'] = pattern.get('buffer-size', -1)  # nopep8
         return condition
 
+    def get_uncompressed_size(self):
+        """Returns object uncompressed size.
+
+        If object mode supports compression, EFU supports compression
+        format and object is not corrupted returns the uncompressed
+        size, otherwise None.
+        """
+        # Modes which do not implement/supoprt compression:
+        # - Copy object cannot be set as compressed since it can mislead user
+        # when just copying a compressed file (instead of decompress
+        # and copy).
+        # - Flash object doesn't implement compression.
+        # - imxkobs object doesn't implement compression.
+        if self.mode not in ['copy', 'flash', 'imxkobs']:
+            compressor = get_compressor_format(self.filename)
+            return get_uncompressed_size(self.filename, compressor)
+
     def metadata(self):
         """Serialize object as metadata."""
         metadata = {
@@ -229,10 +220,10 @@ class Object:
             'sha256sum': self.sha256sum,
             'size': self.size,
         }
-        compressed = self.compressed
-        if compressed:
-            metadata['compressed'] = compressed
-            metadata['required-uncompressed-size'] = self.uncompressed_size
+        uncompressed_size = self.get_uncompressed_size()
+        if uncompressed_size is not None:
+            metadata['compressed'] = True
+            metadata['required-uncompressed-size'] = uncompressed_size
         if self.install_if_different is not None:
             metadata['install-if-different'] = self.install_if_different
         metadata.update(self.options)
@@ -250,15 +241,12 @@ class Object:
             'mode': self.mode,
             'options': options,
         }
-        if self.mode not in NO_COMPRESSION:
-            template['compressed'] = self.compressed
         return template
 
     def update(self, option, value):
         """Updates an object option."""
         if option == 'filename':
             self.filename = self.validate_filename(value)
-            self._compressed = None
         else:
             options = deepcopy(self.options)
             options[option] = value

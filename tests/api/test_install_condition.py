@@ -157,7 +157,6 @@ class AlwaysObjectIntegrationTestCase(FileFixtureMixin, EFUTestCase):
     def test_can_represent_as_template(self):
         obj = Object(self.fn, 'raw', self.options)
         expected = {
-            'compressed': False,
             'filename': self.fn,
             'mode': 'raw',
             'options': {
@@ -218,7 +217,6 @@ class ContentDivergesObjectIntegrationTestCase(FileFixtureMixin, EFUTestCase):
     def test_can_represent_as_template(self):
         obj = Object(__file__, 'raw', self.options)
         expected = {
-            'compressed': False,
             'filename': __file__,
             'mode': 'raw',
             'options': {
@@ -277,7 +275,6 @@ class KnownVersionPatternObjectIntegrationTestCase(unittest.TestCase):
             'target-device': '/dev/sda'
         }
         self.template = {
-            'compressed': False,
             'filename': None,  # to be replaced by tests
             'mode': 'raw',
             'options': {
@@ -429,7 +426,6 @@ class CustomVersionPatternObjectIntegrationTestCase(
             'target-device': '/dev/sda',
         }
         self.template = {
-            'compressed': False,
             'filename': self.fn,
             'mode': 'raw',
             'options': {
