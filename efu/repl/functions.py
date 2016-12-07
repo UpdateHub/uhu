@@ -5,6 +5,7 @@
 from ..config import config
 from ..core.options import ASYMMETRIC_OPTIONS
 from ..core.package import Package
+from ..ui import PushCallback
 
 from . import helpers
 from .helpers import prompt
@@ -92,7 +93,6 @@ def push_package(ctx):
     """Upload the current package to server."""
     helpers.check_product(ctx)
     helpers.check_version(ctx)
-    from ..cli._push import PushCallback
     callback = PushCallback()
     ctx.package.objects.load(callback)
     ctx.package.push(callback)

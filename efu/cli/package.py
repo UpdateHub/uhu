@@ -11,10 +11,10 @@ from jsonschema.exceptions import ValidationError
 from ..core.options import MODES
 from ..core.package import Package
 from ..exceptions import DownloadError, UploadError
+from ..ui import PushCallback
 from ..utils import get_local_config_file
 
 from ._object import ClickOptionsParser, CLICK_OPTIONS
-from ._push import PushCallback
 from .utils import error, open_package
 
 

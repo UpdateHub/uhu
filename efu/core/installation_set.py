@@ -95,7 +95,7 @@ class InstallationSetManager:
             raise ValueError('Installation set not found')
 
     def load(self, callback=None):
-        call(callback, 'pre_package_load')
+        call(callback, 'start_objects_load')
         cache = dict()
         for obj in self.all():
             obj_cache = cache.get(obj.filename, {})
@@ -106,8 +106,7 @@ class InstallationSetManager:
             obj_cache['sha256sum'] = obj.sha256sum
             obj_cache['version'] = obj.version
             cache[obj.filename] = obj_cache
-            call(callback, 'package_load')
-        call(callback, 'post_package_load')
+        call(callback, 'finish_objects_load')
 
     def create(self, *args, **kw):
         """Creates a new object in a given installation set."""

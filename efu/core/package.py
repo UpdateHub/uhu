@@ -171,9 +171,8 @@ class Package:
         response = Request(self.get_finish_push_url(), 'POST').send()
         call(callback, 'push_finish', self, response)
         if response.status_code != 202:
-            errors = '\n'.join(response.json()['errors'])
-            error_msg = 'It was not possible to finish pushing:\n{}'
-            raise UploadError(error_msg.format(errors))
+            error_msg = 'Push failed\n{}'
+            raise UploadError(error_msg.format(response.text))
 
     def get_finish_push_url(self):
         return get_server_url('/products/{}/packages/{}/finish'.format(

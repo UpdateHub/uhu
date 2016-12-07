@@ -32,5 +32,5 @@ def open_package(read_only=False):
 
 def error(code, msg):
     """Terminates cli with an error code and message for the user."""
-    print('ERROR: {}'.format(msg))
+    print('Error: {}'.format(msg))
     sys.exit(code)

@@ -258,8 +258,6 @@ class Object:
         """Reads object to set its size, sha256sum, MD5 and version."""
         cache = {} if cache is None else cache
         self.size = cache.get('size', os.path.getsize(self.filename))
-        call(callback, 'pre_object_read', self)
-
         self.sha256sum = cache.get('sha256sum')
         self.md5 = cache.get('md5')
         if not all((self.sha256sum, self.md5)):
@@ -272,7 +270,6 @@ class Object:
             self.sha256sum = sha256sum.hexdigest()
             self.md5 = md5.hexdigest()
         self.load_install_condition(cache)
-        call(callback, 'post_object_read')
 
     def load_install_condition(self, cache=None):
         cache = {} if cache is None else cache
@@ -300,30 +297,28 @@ class Object:
                 )
 
     def upload(self, product_uid, package_uid, callback=None):
-        call(callback, 'pre_object_upload', self)
+        call(callback, 'start_object_upload', self)
         url = get_server_url('/products/{}/packages/{}/objects/{}'.format(
             product_uid, package_uid, self.sha256sum))
         body = json.dumps({'etag': self.md5})
         response = Request(url, 'POST', body, json=True).send()
         if response.status_code == 200:
-            call(callback, 'post_object_upload',
-                 self, ObjectUploadResult.EXISTS)
-            return ObjectUploadResult.EXISTS
+            result = ObjectUploadResult.EXISTS
         elif response.status_code == 201:
             body = response.json()
             upload = STORAGES[body['storage']]
             success = upload(self, body['url'], callback)
             if success:
-                call(callback, 'post_object_upload',
-                     self, ObjectUploadResult.SUCCESS)
-                return ObjectUploadResult.SUCCESS
-            call(callback, 'post_object_upload', self, ObjectUploadResult.FAIL)
-            return ObjectUploadResult.FAIL
+                result = ObjectUploadResult.SUCCESS
+            else:
+                result = ObjectUploadResult.FAIL
         else:
             call(callback, 'post_object_upload', self, ObjectUploadResult.FAIL)
             errors = response.json().get('errors', [])
             error_msg = 'It was not possible to get url:\n{}'
             raise UploadError(error_msg.format('\n'.join(errors)))
+        call(callback, 'finish_object_upload', self, result)
+        return result
 
     def exists(self):
         return os.path.exists(self.filename)
@@ -397,8 +392,6 @@ class ObjectReader:
         return os.path.getsize(self.obj.filename)
 
     def __iter__(self):
-        call(self.callback, 'pre_object_read', self.obj)
         for chunk in self.obj:
             call(self.callback, 'object_read')
             yield chunk
-        call(self.callback, 'post_object_read')
