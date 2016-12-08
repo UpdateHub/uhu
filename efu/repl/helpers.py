@@ -14,14 +14,13 @@ from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.keys import Keys
 
 from ..core.options import MODES, Option
-from ..core.package import ACTIVE_INACTIVE_MODES
 from ..core.package import MODES as PKG_MODES
 from ..utils import indent
 
 from .completers import (
     ObjectFilenameCompleter, ObjectModeCompleter, ObjectOptionCompleter,
     ObjectOptionValueCompleter, ObjectUIDCompleter, YesNoCompleter,
-    PackageModeCompleter, ActiveInactiveCompleter)
+    PackageModeCompleter)
 from .exceptions import CancelPromptException
 from .validators import (
     FileValidator, ObjectUIDValidator, ContainerValidator,
@@ -259,12 +258,3 @@ def prompt_package_mode():
     validator = ContainerValidator('mode', PKG_MODES)
     mode = prompt(msg, completer=completer, validator=validator)
     return mode.strip().lower()
-
-
-def prompt_active_inactive_backend():
-    """Prompts for a valid active inactive backend."""
-    msg = 'Choose an active inactive backend: '
-    completer = ActiveInactiveCompleter()
-    validator = ContainerValidator('backend', ACTIVE_INACTIVE_MODES)
-    backend = prompt(msg, completer=completer, validator=validator)
-    return backend.strip().lower()

@@ -9,7 +9,7 @@ from click.testing import CliRunner
 from efu.cli.package import (
     add_object_command, edit_object_command, remove_object_command,
     export_command, show_command, set_version_command, status_command,
-    set_active_inactive_backend, metadata_command)
+    metadata_command)
 from efu.cli.utils import open_package
 from efu.core import Package
 from efu.core.installation_set import InstallationSetMode
@@ -31,27 +31,6 @@ class PackageTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
         self.set_env_var(LOCAL_CONFIG_VAR, self.pkg_fn)
         self.obj_fn = __file__
         self.obj_options = {'target-device': '/dev/sda'}
-
-
-class SetActiveInactiveBackendTestCase(PackageTestCase):
-
-    def setUp(self):
-        super().setUp()
-        pkg = Package(InstallationSetMode.Single)
-        pkg.dump(self.pkg_fn)
-
-    def test_can_set_active_inactive_backend(self):
-        pkg = Package.from_file(self.pkg_fn)
-        self.assertIsNone(pkg.active_inactive_backend)
-        result = self.runner.invoke(set_active_inactive_backend, ['u-boot'])
-        self.assertEqual(result.exit_code, 0)
-        pkg = Package.from_file(self.pkg_fn)
-        self.assertEqual(pkg.active_inactive_backend, 'u-boot')
-
-    def test_set_active_inactive_backend_returns_2_if_invalid_backend(self):
-        pkg = Package.from_file(self.pkg_fn)
-        result = self.runner.invoke(set_active_inactive_backend, ['invalid'])
-        self.assertEqual(result.exit_code, 2)
 
 
 class AddObjectCommandTestCase(PackageTestCase):
@@ -304,7 +283,6 @@ class ExportCommandTestCase(PackageTestCase):
         super().setUp()
         pkg = Package(InstallationSetMode.Single, version='1.0')
         pkg.objects.create(self.obj_fn, 'raw', self.obj_options)
-        pkg.active_inactive_backend = 'u-boot'
         pkg.dump(self.pkg_fn)
         self.dest_pkg_fn = '/tmp/pkg-dump'
         self.addCleanup(self.remove_file, self.dest_pkg_fn)
@@ -314,7 +292,6 @@ class ExportCommandTestCase(PackageTestCase):
             'product': None,
             'version': None,
             'supported-hardware': {},
-            'active-inactive-backend': 'u-boot',
             'objects': [
                 [
                     {

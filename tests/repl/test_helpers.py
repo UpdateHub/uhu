@@ -147,9 +147,3 @@ class PromptsTestCase(unittest.TestCase):
             prompt.return_value = value
             observed = helpers.prompt_package_mode()
             self.assertIn(observed, modes)
-
-    @patch('efu.repl.helpers.prompt')
-    def test_can_prompt_active_inactive_backend(self, prompt):
-        prompt.return_value = 'u-boot'
-        observed = helpers.prompt_active_inactive_backend()
-        self.assertEqual(observed, 'u-boot')

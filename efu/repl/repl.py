@@ -100,10 +100,7 @@ class EFURepl:
         elif os.path.exists(self.local_config):
             self.package = self.load_package(self.local_config)
         else:
-            # We currently only support active-inactive with u-boot
-            # backend.
             self.package = Package(InstallationSetMode.ActiveInactive)
-            self.package.active_inactive_backend = 'u-boot'
 
         if self.package.product:
             self.prompt = set_product_prompt(self.package.product)

@@ -25,7 +25,6 @@ class PackageConstructorsTestCase(PackageTestCase):
             'product': self.product,
             'version': self.version,
             'supported-hardware': self.supported_hardware,
-            'active-inactive-backend': 'u-boot',
             'objects': [
                 [
                     {
@@ -55,7 +54,6 @@ class PackageConstructorsTestCase(PackageTestCase):
         self.assertEqual(pkg.version, self.version)
         self.assertEqual(pkg.product, self.product)
         self.assertEqual(pkg.supported_hardware, self.supported_hardware)
-        self.assertEqual(pkg.active_inactive_backend, 'u-boot')
         self.assertEqual(len(pkg.objects.all()), 2)
         obj = pkg.objects.get(index=0, installation_set=0)
         self.assertEqual(obj.filename, self.obj_fn)
@@ -68,7 +66,6 @@ class PackageConstructorsTestCase(PackageTestCase):
         metadata = {
             'product': self.product,
             'version': self.version,
-            'active-inactive-backend': 'u-boot',
             'objects': [
                 [
                     {
@@ -97,7 +94,6 @@ class PackageConstructorsTestCase(PackageTestCase):
         pkg = Package.from_metadata(metadata)
         self.assertEqual(pkg.version, self.version)
         self.assertEqual(pkg.product, self.product)
-        self.assertEqual(pkg.active_inactive_backend, 'u-boot')
         self.assertEqual(len(pkg.objects.all()), 2)
         obj = pkg.objects.get(index=0, installation_set=0)
         self.assertEqual(obj.filename, self.obj_fn)

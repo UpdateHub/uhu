@@ -9,7 +9,7 @@ import requests
 from jsonschema.exceptions import ValidationError
 
 from ..core.options import MODES
-from ..core.package import ACTIVE_INACTIVE_MODES, Package
+from ..core.package import Package
 from ..exceptions import DownloadError, UploadError
 from ..utils import get_local_config_file
 
@@ -44,14 +44,6 @@ def export_command(filename):
     """Copy package file to the given filename."""
     with open_package() as package:
         package.export(filename)
-
-
-@package_cli.command('active-inactive-backend')
-@click.argument('backend', type=click.Choice(ACTIVE_INACTIVE_MODES))
-def set_active_inactive_backend(backend):
-    """Sets active-inactive backend."""
-    with open_package() as package:
-        package.active_inactive_backend = backend
 
 
 # Object commands

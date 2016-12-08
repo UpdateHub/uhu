@@ -24,10 +24,6 @@
             },
             "minItems": 1
         },
-        "active-inactive-backend": {
-            "type": "string",
-            "enum": ["u-boot", "grub2"]
-        },
         "objects": {
             "type": "array",
             "items": {
@@ -55,43 +51,5 @@
         "version"
     ],
 
-    "additionalProperties": false,
-
-    "dependencies": {
-        "active-inactive-backend": {
-            "properties": {
-                "objects": {
-                    "minItems": 2,
-                    "maxItems": 2
-                }
-            }
-        }
-    },
-    "oneOf": [
-        {
-            "dependencies": {
-                "objects": {
-                    "properties": {
-                        "objects": {
-                            "minItems": 2,
-                            "maxItems": 2
-                        }
-                    },
-                    "required": ["active-inactive-backend"]
-                }
-            }
-        },
-        {
-            "dependencies": {
-                "objects": {
-                    "properties": {
-                        "objects": {
-                            "minItems": 1,
-                            "maxItems": 1
-                        }
-                    }
-                }
-            }
-        }
-    ]
+    "additionalProperties": false
 }

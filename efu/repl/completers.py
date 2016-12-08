@@ -7,7 +7,6 @@ from prompt_toolkit.contrib.completers import PathCompleter, WordCompleter
 
 from ..core.options import MODES
 from ..core.package import MODES as PKG_MODES
-from ..core.package import ACTIVE_INACTIVE_MODES
 
 
 class ObjectFilenameCompleter(PathCompleter):
@@ -56,9 +55,3 @@ class PackageModeCompleter(WordCompleter):
 
     def __init__(self):
         super().__init__(PKG_MODES)
-
-
-class ActiveInactiveCompleter(WordCompleter):
-
-    def __init__(self):
-        super().__init__(ACTIVE_INACTIVE_MODES)

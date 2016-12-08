@@ -93,7 +93,6 @@ class PackageSerializationsTestCase(PackageTestCase):
         package = Package(
             InstallationSetMode.Single, version='2.0',
             product='e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')  # nopep8
-        package.active_inactive_backend = 'u-boot'
         package.objects.create('files/pkg.json', mode='raw', options={
             'target-device': '/dev/sda',
             'chunk-size': 1234,
@@ -130,10 +129,10 @@ class PackageSerializationsTestCase(PackageTestCase):
 
     def test_package_as_string_when_empty(self):
         cwd = os.getcwd()
-        os.chdir('tests/fixtures')
+        os.chdir('tests/fixtures/package')
         self.addCleanup(os.chdir, cwd)
         pkg = Package(InstallationSetMode.Single)
         observed = str(pkg)
-        with open('local_empty_config.txt') as fp:
+        with open('package_empty.txt') as fp:
             expected = fp.read().strip()
         self.assertEqual(observed, expected)

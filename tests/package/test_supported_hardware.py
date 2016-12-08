@@ -102,6 +102,6 @@ class PackageSupportedHardwareManagementTestCase(PackageTestCase):
         pkg.add_supported_hardware(
             name='PowerZ', revisions=['PZ250', 'PZ240', 'PZ230'])
         observed = str(pkg)
-        with open('tests/fixtures/supported_hardware.txt') as fp:
+        with open('tests/fixtures/package/supported_hardware.txt') as fp:
             expected = fp.read().strip()
         self.assertEqual(observed, expected)

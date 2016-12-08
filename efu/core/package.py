@@ -16,7 +16,6 @@ from .installation_set import InstallationSetManager, InstallationSetMode
 
 
 MODES = ['single', 'active-inactive']
-ACTIVE_INACTIVE_MODES = ['u-boot']
 
 
 class Package:
@@ -29,7 +28,6 @@ class Package:
         self.product = product
         self.objects = InstallationSetManager(self.mode)
         self.supported_hardware = {}
-        self._active_inactive_backend = None
 
     @classmethod
     def from_file(cls, fn):
@@ -42,7 +40,6 @@ class Package:
             version=dump.get('version'),
             product=dump.get('product'))
         package.supported_hardware = dump.get('supported-hardware', {})
-        package.active_inactive_backend = dump.get('active-inactive-backend')
         for set_index, installation_set in enumerate(objects):
             for obj in installation_set:
                 set_ = package.objects.get_installation_set(set_index)
@@ -60,8 +57,6 @@ class Package:
             mode=InstallationSetMode.from_objects(objects),
             version=metadata['version'],
             product=metadata['product'])
-        package.active_inactive_backend = metadata.get(
-            'active-inactive-backend')
         for set_index, installation_set in enumerate(objects):
             for obj in installation_set:
                 blacklist = (
@@ -79,17 +74,6 @@ class Package:
                     options=options,
                     sha256sum=obj['sha256sum'])
         return package
-
-    @property
-    def active_inactive_backend(self):
-        return self._active_inactive_backend
-
-    @active_inactive_backend.setter
-    def active_inactive_backend(self, backend):
-        if backend not in ACTIVE_INACTIVE_MODES and backend is not None:
-            err = '"{}" is not a valid active-inactive backend mode'
-            raise ValueError(err.format(backend))
-        self._active_inactive_backend = backend
 
     def add_supported_hardware(self, name, revisions=None):
         revisions = revisions if revisions is not None else []
@@ -133,8 +117,6 @@ class Package:
         }
         if self.supported_hardware:
             metadata['supported-hardware'] = self.supported_hardware
-        if self.active_inactive_backend:
-            metadata['active-inactive-backend'] = self.active_inactive_backend
         return metadata
 
     def template(self):
@@ -144,7 +126,6 @@ class Package:
             'product': self.product,
             'supported-hardware': self.supported_hardware,
             'objects': self.objects.template(),
-            'active-inactive-backend': self.active_inactive_backend,
         }
 
     def export(self, dest):
@@ -282,9 +263,6 @@ class Package:
                 s.append('')
         else:
             s.append('Supported hardware: all')
-        # ActiveInactive
-        s.append('Active-Inactive Backend: {}'.format(
-            self.active_inactive_backend))
         # Objects
         if len(self.objects.all()):
             s.append(str(self.objects))
