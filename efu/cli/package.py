@@ -2,6 +2,7 @@
 # This software is released under the MIT License
 
 import json
+import os
 
 import click
 import requests
@@ -9,7 +10,8 @@ from jsonschema.exceptions import ValidationError
 
 from ..core.options import MODES
 from ..core.package import ACTIVE_INACTIVE_MODES
-from ..exceptions import UploadError
+from ..exceptions import DownloadError, UploadError
+from ..utils import get_local_config_file
 
 from ._object import ClickOptionsParser, CLICK_OPTIONS
 from ._push import PushCallback
@@ -119,23 +121,39 @@ def push_command():
 
 @package_cli.command(name='pull')
 @click.argument('package-uid')
-@click.option('--full/--metadata', required=True,
-              help='if pull should include all files or only the metadata.')
-def pull_command(package_uid, full):
-    """Downloads a package from server."""
-    with open_package() as package:
-        package.uid = package_uid
+@click.option('--metadata', is_flag=True,
+              help='Downloads metadata.json too.')
+@click.option('--objects', is_flag=True,
+              help='Downloads all objects too.')
+@click.option('--output', type=click.Path(
+                  file_okay=False, writable=True, resolve_path=True),
+              help='Output directory', default='.')
+def pull_command(package_uid, metadata, objects, output):
+    """Pulls a package from server."""
+    with open_package(read_only=True) as package:
         if not package.product:
-            error(2, 'Product not set')
+            error(2, 'You need to set a product before to pull.')
         if len(package.objects.all()) != 0:
-            error(3, ('ERROR: You have a local package that '
-                      'would be overwritten by this action.'))
+            error(3, 'Your local package will be overwritten.')
+        path_exists = os.path.exists(output)
+        if not path_exists:
+            os.mkdir(output)
+        os.chdir(output)
         try:
-            package.pull(full=full)
+            package = package.pull(package_uid, objects, metadata)
+        except requests.exceptions.ConnectionError:
+            error(4, 'Can\'t reach server')
         except ValueError as err:
-            error(4, err)
-        except FileExistsError as err:
             error(5, err)
+        except FileExistsError as err:
+            error(6, err)
+        except DownloadError as err:
+            error(7, err)
+        else:
+            package.dump(get_local_config_file())
+        finally:
+            if not path_exists:
+                os.rmdir(output)
 
 
 @package_cli.command(name='status')

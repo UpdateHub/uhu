@@ -201,11 +201,11 @@ class Package:
         self.upload_objects(callback)
         self.finish_push(callback)
 
-    def download_metadata(self):
-        path = '/products/{}/packages/{}'.format(self.product, self.uid)
+    def download_metadata(self, uid):
+        path = '/products/{}/packages/{}'.format(self.product, uid)
         response = Request(get_server_url(path), 'GET').send()
         if not response.ok:
-            raise ValueError('Package not found')
+            raise ValueError(response.text)
         return response.json()
 
     def get_download_list(self):
@@ -229,7 +229,7 @@ class Package:
             if sha256sum.hexdigest() != obj.sha256sum:
                 # Local object diverges from server object, must abort
                 raise FileExistsError(
-                    '{} will be overwritten', obj.filename)
+                    '{} will be overwritten'.format(obj.filename))
             # If we got here, means that object exists locally and
             # is equal to remote object. Therefore, it must be not
             # downloaded.
@@ -239,18 +239,28 @@ class Package:
         return get_server_url(
             '/products/{}/packages'.format(self.product))
 
-    def get_object_download_url(self, obj):
+    def get_object_download_url(self, uid, obj):
         path = '/products/{}/packages/{}/objects/{}'.format(
-            self.product, self.uid, obj.sha256sum)
+            self.product, uid, obj.sha256sum)
         return get_server_url(path)
 
-    def pull(self, full=True):
-        metadata = self.download_metadata()
-        package = Package.from_metadata(metadata)
-        if full:
-            objects = package.get_download_list()
-            for obj in objects:
-                obj.download(self.get_object_download_url(obj))
+    def pull(self, package_uid, objects=True, metadata=False):
+        """Downloads a package from server.
+
+        If objects is True, download all objects too.
+
+        If metadata is True, saves a copy of downloaded metadata (only
+        for debugging).
+        """
+        pkg_metadata = self.download_metadata(package_uid)
+        package = Package.from_metadata(pkg_metadata)
+        if metadata:
+            with open('metadata.json', 'w') as fp:
+                json.dump(pkg_metadata, fp, indent=4, sort_keys=True)
+        if objects:
+            for obj in package.get_download_list():
+                url = self.get_object_download_url(package_uid, obj)
+                obj.download(url)
         return package
 
     def get_status(self):

@@ -8,6 +8,7 @@ import os
 from collections import OrderedDict
 from copy import deepcopy
 
+import requests
 from humanize.filesize import naturalsize
 
 from ..exceptions import DownloadError, UploadError
@@ -330,13 +331,12 @@ class Object:
     def download(self, url):
         if self.exists():
             return
-        response = Request(url, 'GET', stream=True).send()
+        response = requests.get(url, stream=True)
         if not response.ok:
-            errors = response.json().get('errors', [])
             error_msg = 'It was not possible to download object:\n{}'
-            raise DownloadError(error_msg.format('\n'.join(errors)))
+            raise DownloadError(error_msg.format(response.text))
         with open(self.filename, 'wb') as fp:
-            for chunk in response.iter_content():
+            for chunk in response.iter_content(chunk_size=self.chunk_size):
                 fp.write(chunk)
 
     def __len__(self):
