@@ -9,7 +9,7 @@ from click.testing import CliRunner
 from efu.cli.package import (
     add_object_command, edit_object_command, remove_object_command,
     export_command, show_command, set_version_command, status_command,
-    set_active_inactive_backend)
+    set_active_inactive_backend, metadata_command)
 from efu.cli.utils import open_package
 from efu.core import Package
 from efu.core.installation_set import InstallationSetMode
@@ -424,3 +424,12 @@ class UtilsTestCase(FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase):
         with self.assertRaises(SystemExit):
             with open_package() as pkg:
                 pass
+
+
+class MetadataTestCase(PackageTestCase):
+
+    def test_metadata_commands_returns_0_when_successful(self):
+        pkg = Package(InstallationSetMode.ActiveInactive)
+        pkg.dump(self.pkg_fn)
+        result = self.runner.invoke(metadata_command, catch_exceptions=False)
+        self.assertEqual(result.exit_code, 0)

@@ -1,6 +1,8 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+import json
+
 import click
 import requests
 from jsonschema.exceptions import ValidationError
@@ -146,3 +148,11 @@ def status_command(package_uid):
             print(package.get_status())
         except ValueError as err:
             error(2, err)
+
+
+@package_cli.command(name='metadata')
+def metadata_command():
+    """Loads package and prints its metadata."""
+    with open_package(read_only=True) as package:
+        package.objects.load()
+        print(json.dumps(package.metadata(), indent=4, sort_keys=True))
