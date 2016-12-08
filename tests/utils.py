@@ -195,13 +195,13 @@ class BasePullTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
         self.addCleanup(os.chdir, os.getcwd())
         os.chdir(wd)
 
-        self.pkg_fn = os.path.join(wd, '.efu')
+        self.pkg_fn = os.path.join(wd, 'efu')
         self.set_env_var(LOCAL_CONFIG_VAR, self.pkg_fn)
 
         self.product = 'product-uid'
         self.pkg_uid = 'package-uid'
         self.package = Package(
-            InstallationSetMode.Single, uid=self.pkg_uid, product=self.product)
+            InstallationSetMode.Single, product=self.product)
 
         # object
         self.obj_fn = 'image.bin'
@@ -229,7 +229,7 @@ class BasePullTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
         self.set_env_var(SERVER_URL_VAR, self.httpd.url(''))
         # url to download metadata
         self.httpd.register_response(
-            '/products/{}/packages/{}'.format(self.product, self.pkg_uid),
+            '/packages/{}'.format(self.pkg_uid),
             'GET', body=json.dumps(self.metadata), status_code=200)
 
         # url to download object

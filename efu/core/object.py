@@ -331,7 +331,10 @@ class Object:
     def download(self, url):
         if self.exists():
             return
-        response = requests.get(url, stream=True)
+        try:
+            response = requests.get(url, stream=True)
+        except requests.exceptions.ConnectionError:
+            raise DownloadError('Can\'t reach the server.')
         if not response.ok:
             error_msg = 'It was not possible to download object:\n{}'
             raise DownloadError(error_msg.format(response.text))

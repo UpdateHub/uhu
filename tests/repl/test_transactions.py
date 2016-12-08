@@ -1,8 +1,9 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-import json
 import copy
+import json
+import os
 from unittest.mock import Mock, patch
 
 from efu.repl.repl import EFURepl
@@ -81,23 +82,25 @@ class PullTestCase(BasePullTestCase):
     def setUp(self):
         super().setUp()
         self.repl = EFURepl()
-        helpers.prompt = Mock()
 
-    def test_can_pull_package_fully(self):
-        self.repl.package.product = self.product
-        self.repl.package.pull = Mock()
-        helpers.prompt.side_effect = [self.pkg_uid, 'yes']
+    @patch('efu.repl.helpers.prompt')
+    def test_can_download_package_fully(self, prompt):
+        prompt.side_effect = [self.pkg_uid, 'yes']
+        self.assertIsNone(self.repl.package.product)
         functions.pull_package(self.repl)
-        self.repl.package.pull.assert_called_once_with(True)
+        print(os.getcwd())
+        print(os.listdir())
+        self.assertTrue(os.path.exists(self.pkg_fn))
+        self.assertEqual(self.repl.package.product, self.product)
+        self.assertTrue(os.path.exists(self.obj_fn))
 
-    def test_can_pull_package_metadata_only(self):
-        self.repl.package.product = self.product
-        self.repl.package.pull = Mock()
-        helpers.prompt.side_effect = [self.pkg_uid, 'no']
+    @patch('efu.repl.helpers.prompt')
+    def test_can_download_only_metadata_package(self, prompt):
+        prompt.side_effect = [self.pkg_uid, 'no']
+        self.assertIsNone(self.repl.package.product)
         functions.pull_package(self.repl)
-        self.repl.package.pull.assert_called_once_with(False)
-
-    def test_pull_raises_error_if_missing_product(self):
-        self.repl.package.version = '2.0'
-        with self.assertRaises(ValueError):
-            functions.pull_package(self.repl)
+        print(os.getcwd())
+        print(os.listdir())
+        self.assertTrue(os.path.exists(self.pkg_fn))
+        self.assertFalse(os.path.exists(self.obj_fn))
+        self.assertEqual(self.repl.package.product, self.product)

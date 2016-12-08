@@ -4,6 +4,8 @@
 import os
 
 from efu.core.package import Package
+from efu.exceptions import DownloadError
+from efu.utils import SERVER_URL_VAR
 
 from utils import BasePullTestCase
 
@@ -14,11 +16,15 @@ class PackagePullTestCase(BasePullTestCase):
         metadata = self.package.download_metadata(self.pkg_uid)
         self.assertEqual(metadata, self.metadata)
 
-    def test_get_metadata_raises_error_when_metadata_does_not_exist(self):
+    def test_download_metadata_raises_error_when_package_does_not_exist(self):
         self.httpd.register_response(
-            '/products/{}/packages/{}'.format(self.product, self.pkg_uid),
-            'GET', status_code=404)
-        with self.assertRaises(ValueError):
+            '/packages/{}'.format(self.pkg_uid), 'GET', status_code=404)
+        with self.assertRaises(DownloadError):
+            self.package.download_metadata(self.pkg_uid)
+
+    def test_download_metadata_raises_error_if_cant_reach_server(self):
+        self.set_env_var(SERVER_URL_VAR, 'http://easyfota-unreachable.com')
+        with self.assertRaises(DownloadError):
             self.package.download_metadata(self.pkg_uid)
 
     def test_get_download_list_returns_empty_list_with_identical_file(self):
@@ -40,23 +46,13 @@ class PackagePullTestCase(BasePullTestCase):
         with open(self.obj_fn, 'w') as fp:
             fp.write(content)
         package = Package.from_metadata(self.metadata)
-        with self.assertRaises(FileExistsError):
+        with self.assertRaises(DownloadError):
             package.get_download_list()
         with open(self.obj_fn) as fp:
             self.assertEqual(fp.read(), content)
 
-    def test_pull_raises_error_when_objects_diverges(self):
-        with open(self.obj_fn, 'w') as fp:
-            fp.write('overwritten')
-        with self.assertRaises(FileExistsError):
-            self.package.pull(self.pkg_uid, objects=True)
-
-    def test_pull_downloads_files_if_full_is_True(self):
+    def test_can_download_objects(self):
         self.assertFalse(os.path.exists(self.obj_fn))
-        self.package.pull(self.pkg_uid, objects=True)
+        package = Package.from_metadata(self.metadata)
+        package.download_objects(self.pkg_uid)
         self.assertTrue(os.path.exists(self.obj_fn))
-
-    def test_pull_does_not_download_files_if_full_is_False(self):
-        self.assertFalse(os.path.exists(self.obj_fn))
-        self.package.pull(self.pkg_uid, objects=False)
-        self.assertFalse(os.path.exists(self.obj_fn))

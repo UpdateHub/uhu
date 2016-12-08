@@ -5,7 +5,9 @@ import hashlib
 import json
 from collections import OrderedDict
 
-from ..exceptions import UploadError
+import requests
+
+from ..exceptions import DownloadError, UploadError
 from ..http.request import Request
 from ..utils import call, get_server_url, validate_schema
 
@@ -201,12 +203,21 @@ class Package:
         self.upload_objects(callback)
         self.finish_push(callback)
 
-    def download_metadata(self, uid):
-        path = '/products/{}/packages/{}'.format(self.product, uid)
-        response = Request(get_server_url(path), 'GET').send()
-        if not response.ok:
-            raise ValueError(response.text)
-        return response.json()
+    @classmethod
+    def download_metadata(cls, uid):
+        path = '/packages/{}'.format(uid)
+        try:
+            response = Request(get_server_url(path), 'GET').send()
+        except requests.exceptions.ConnectionError:
+            raise DownloadError('Can\'t reach server.')
+        if response.ok:
+            return response.json()
+        raise DownloadError(response.text)
+
+    def download_objects(self, uid):
+        for obj in self.get_download_list():
+            url = self.get_object_download_url(uid, obj)
+            obj.download(url)
 
     def get_download_list(self):
         """Returns a list with all objects that must be downloaded.
@@ -228,40 +239,21 @@ class Package:
                 sha256sum.update(chunk)
             if sha256sum.hexdigest() != obj.sha256sum:
                 # Local object diverges from server object, must abort
-                raise FileExistsError(
+                raise DownloadError(
                     '{} will be overwritten'.format(obj.filename))
             # If we got here, means that object exists locally and
             # is equal to remote object. Therefore, it must be not
             # downloaded.
         return objects
 
-    def get_metadata_upload_url(self):
-        return get_server_url(
-            '/products/{}/packages'.format(self.product))
-
     def get_object_download_url(self, uid, obj):
         path = '/products/{}/packages/{}/objects/{}'.format(
             self.product, uid, obj.sha256sum)
         return get_server_url(path)
 
-    def pull(self, package_uid, objects=True, metadata=False):
-        """Downloads a package from server.
-
-        If objects is True, download all objects too.
-
-        If metadata is True, saves a copy of downloaded metadata (only
-        for debugging).
-        """
-        pkg_metadata = self.download_metadata(package_uid)
-        package = Package.from_metadata(pkg_metadata)
-        if metadata:
-            with open('metadata.json', 'w') as fp:
-                json.dump(pkg_metadata, fp, indent=4, sort_keys=True)
-        if objects:
-            for obj in package.get_download_list():
-                url = self.get_object_download_url(package_uid, obj)
-                obj.download(url)
-        return package
+    def get_metadata_upload_url(self):
+        return get_server_url(
+            '/products/{}/packages'.format(self.product))
 
     def get_status(self):
         path = '/products/{product}/packages/{package}/status'

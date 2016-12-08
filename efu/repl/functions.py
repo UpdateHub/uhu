@@ -4,6 +4,7 @@
 
 from ..config import config
 from ..core.options import ASYMMETRIC_OPTIONS
+from ..core.package import Package
 
 from . import helpers
 from .helpers import prompt
@@ -100,10 +101,14 @@ def push_package(ctx):
 @helpers.cancellable
 def pull_package(ctx):
     """Download and load a package from server."""
-    helpers.check_product(ctx)
-    ctx.package.uid = helpers.prompt_package_uid()
+    uid = helpers.prompt_package_uid()
     full = helpers.prompt_pull()
-    ctx.package.pull(full)
+    metadata = ctx.package.download_metadata(uid)
+    package = Package.from_metadata(metadata)
+    if full:
+        package.download_objects(uid)
+    ctx.package = package
+    ctx.package.dump(ctx.local_config)
 
 
 def get_package_status(ctx):

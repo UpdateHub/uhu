@@ -9,7 +9,7 @@ import requests
 from jsonschema.exceptions import ValidationError
 
 from ..core.options import MODES
-from ..core.package import ACTIVE_INACTIVE_MODES
+from ..core.package import ACTIVE_INACTIVE_MODES, Package
 from ..exceptions import DownloadError, UploadError
 from ..utils import get_local_config_file
 
@@ -130,30 +130,25 @@ def push_command():
               help='Output directory', default='.')
 def pull_command(package_uid, metadata, objects, output):
     """Pulls a package from server."""
-    with open_package(read_only=True) as package:
-        if not package.product:
-            error(2, 'You need to set a product before to pull.')
-        if len(package.objects.all()) != 0:
-            error(3, 'Your local package will be overwritten.')
-        path_exists = os.path.exists(output)
-        if not path_exists:
-            os.mkdir(output)
-        os.chdir(output)
-        try:
-            package = package.pull(package_uid, objects, metadata)
-        except requests.exceptions.ConnectionError:
-            error(4, 'Can\'t reach server')
-        except ValueError as err:
-            error(5, err)
-        except FileExistsError as err:
-            error(6, err)
-        except DownloadError as err:
-            error(7, err)
-        else:
-            package.dump(get_local_config_file())
-        finally:
-            if not path_exists:
-                os.rmdir(output)
+    if not os.path.exists(output):
+        os.mkdir(output)
+    os.chdir(output)
+
+    pkg_file = get_local_config_file()
+    if os.path.exists(pkg_file):
+        error(1, 'You have a local configuration that would be overwritten.')
+
+    try:
+        pkg_metadata = Package.download_metadata(package_uid)
+        package = Package.from_metadata(pkg_metadata)
+        if objects:
+            package.download_objects(package_uid)
+        if metadata:
+            with open('metadata.json', 'w') as fp:
+                json.dump(pkg_metadata, fp, indent=4, sort_keys=True)
+        package.dump(pkg_file)
+    except DownloadError as err:
+        error(2, err)
 
 
 @package_cli.command(name='status')
