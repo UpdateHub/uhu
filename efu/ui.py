@@ -9,26 +9,30 @@ class PushCallback:
 
     def __init__(self):
         self.progress = None
-        self.spinner = None
+        self.parcel = 1
+        self.total = 0
 
     def start_objects_load(self):
-        self.spinner = Spinner('Loading objects: ')
+        self.progress = Spinner('Loading objects: ')
 
     def object_read(self):
+        self.total += 1
+        # updates only when parcel is reached
+        if (self.total % self.parcel) != 0:
+            return
         if self.progress is not None:
             self.progress.next()
-        if self.spinner is not None:
-            self.spinner.next()
+        self.total = 0
 
     def finish_objects_load(self):
-        self.spinner.finish()
+        self.progress.finish()
         print('\rLoading objects: ok')
 
     def start_package_upload(self, objects):
-        self.spinner = None
         total = sum(len(obj) for obj in objects)
+        self.parcel = total / 100
         self.progress = Bar(
-            'Uploading objects:', max=total,
+            'Uploading objects:', max=100,
             suffix='%(percent)d%% ETA: %(eta)ds')
 
     def finish_package_upload(self):
