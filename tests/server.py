@@ -6,6 +6,7 @@ import sys
 from itertools import count
 
 from efu.core import Package
+from efu.core.installation_set import InstallationSetMode
 from efu.utils import LOCAL_CONFIG_VAR, CHUNK_SIZE_VAR
 
 from tests.utils import (
@@ -24,11 +25,11 @@ def push_cmd(cmd):
         pkg_fn = self.create_file('')
         self.set_env_var(LOCAL_CONFIG_VAR, pkg_fn)
         self.set_env_var(CHUNK_SIZE_VAR, 1)
-        pkg = Package(version='1', product=product)
-        pkg.objects.add_list()
+        pkg = Package(
+            InstallationSetMode.ActiveInactive, version='1', product=product)
         for _ in range(3):
             fn = self.create_file('spam')
-            pkg.objects.add(fn, 'raw', {'target-device': '/'})
+            pkg.objects.create(fn, 'raw', {'target-device': '/'})
         pkg.dump(pkg_fn)
         kwargs = cmd(self)
         self.set_push(pkg, '100',  **kwargs)
@@ -40,7 +41,7 @@ class EFUTestServer(PushFixtureMixin, FileFixtureMixin, UploadFixtureMixin,
                     EnvironmentFixtureMixin, HTTPTestCaseMixin, EFUTestCase):
 
     def __init__(self):
-        self.start_server(simulate_application=True)
+        self.start_server(port=8000, simulate_application=True)
         super().__init__()
         signal.signal(signal.SIGINT, self.shutdown)
 
