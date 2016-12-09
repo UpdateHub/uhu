@@ -160,7 +160,7 @@ class Package:
 
     def upload_objects(self, callback=None):
         results = []
-        for obj in self.objects.all():
+        for obj in self.objects.get_installation_set(index=0):
             results.append(obj.upload(self.product, self.uid, callback))
         for result in results:
             if not ObjectUploadResult.is_ok(result):
