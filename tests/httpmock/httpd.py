@@ -148,8 +148,8 @@ class HTTPMockServer(HTTPServer):
     responses = {}  # where responses are registered
     requests = []  # where request history is storaged
 
-    def __init__(self, simulate_application=False):
-        super().__init__(('0.0.0.0', 0), RequestHandler)
+    def __init__(self, port=0, simulate_application=False):
+        super().__init__(('0.0.0.0', port), RequestHandler)
         self.simulate_application = simulate_application
 
     def start(self):

@@ -19,8 +19,8 @@ from httpmock.httpd import HTTPMockServer
 class HTTPTestCaseMixin:
 
     @classmethod
-    def start_server(cls, simulate_application=False):
-        cls.httpd = HTTPMockServer(simulate_application)
+    def start_server(cls, port=0, simulate_application=False):
+        cls.httpd = HTTPMockServer(port, simulate_application)
         cls.httpd.start()
 
     @classmethod
