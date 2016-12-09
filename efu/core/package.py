@@ -34,7 +34,7 @@ class Package:
         """Creates a package from a dumped package."""
         with open(fn) as fp:
             dump = json.load(fp, object_pairs_hook=OrderedDict)
-        objects = dump.get('objects')
+        objects = dump.get('objects', [])
         package = Package(
             mode=InstallationSetMode.from_objects(objects),
             version=dump.get('version'),

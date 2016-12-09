@@ -28,11 +28,6 @@ class PushCommandTestCase(PushCommandMixin, BasePushTestCase):
         result = self.runner.invoke(push_command, catch_exceptions=False)
         self.assertEqual(result.exit_code, 0)
 
-    def test_push_command_returns_1_if_package_dosnt_exist(self):
-        self.set_env_var(LOCAL_CONFIG_VAR, 'dosnt-exist')
-        result = self.runner.invoke(push_command, catch_exceptions=False)
-        self.assertEqual(result.exit_code, 1)
-
     def test_push_command_returns_2_if_error_on_start(self):
         self.set_push(self.package, self.package_uid, start_success=False)
         result = self.runner.invoke(push_command, catch_exceptions=False)

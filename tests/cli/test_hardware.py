@@ -19,12 +19,6 @@ class SupportedHardwareCommandsTestCase(PackageTestCase):
             product=self.product)
         self.pkg.dump(self.pkg_fn)
 
-    def test_add_supported_hardware_returns_1_if_package_dosnt_exist(self):
-        self.set_env_var(LOCAL_CONFIG_VAR, 'no-exist')
-        result = self.runner.invoke(
-            add_supported_hardware_command, args=['PowerX'])
-        self.assertEqual(result.exit_code, 1)
-
     def test_can_add_supported_hardware_without_revisions(self):
         result = self.runner.invoke(
             add_supported_hardware_command, args=['PowerX'])
@@ -61,12 +55,6 @@ class SupportedHardwareCommandsTestCase(PackageTestCase):
         hardware = pkg.supported_hardware['PowerX']
         self.assertEqual(len(hardware['revisions']), 2)
         self.assertEqual(hardware['revisions'], ['1', '2'])
-
-    def test_remove_supported_hardware_returns_1_if_package_dosnt_exist(self):
-        self.set_env_var(LOCAL_CONFIG_VAR, 'no-exist')
-        result = self.runner.invoke(
-            remove_supported_hardware_command, args=['PowerX'])
-        self.assertEqual(result.exit_code, 1)
 
     def test_remove_supported_hardware_returns_2_if_hardware_is_invalid(self):
         self.pkg.add_supported_hardware('PowerX', revisions=['exists'])

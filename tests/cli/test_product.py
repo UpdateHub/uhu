@@ -28,13 +28,3 @@ class ProductTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
     def test_use_command_returns_0_when_successful(self):
         result = self.runner.invoke(use_command, args=['42'])
         self.assertEqual(result.exit_code, 0)
-
-    def test_use_command_returns_1_if_config_exists(self):
-        open(self.config_fn, 'w').close()
-        result = self.runner.invoke(use_command, args=['42'])
-        self.assertEqual(result.exit_code, 1)
-
-    def test_use_command_returns_0_when_forcing(self):
-        open(self.config_fn, 'w').close()
-        result = self.runner.invoke(use_command, args=['42', '--force'])
-        self.assertEqual(result.exit_code, 0)

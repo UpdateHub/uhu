@@ -51,12 +51,6 @@ class AddObjectCommandTestCase(PackageTestCase):
         self.assertEqual(obj.mode, 'raw')
         self.assertEqual(obj.options['target-device'], '/dev/sda')
 
-    def test_add_command_returns_1_if_package_does_not_exist(self):
-        self.set_env_var(LOCAL_CONFIG_VAR, 'doesnt-exist')
-        cmd = [self.obj_fn, '-m', 'raw', '-td', '/dev/sda']
-        result = self.runner.invoke(add_object_command, cmd)
-        self.assertEqual(result.exit_code, 1)
-
     def test_cannot_add_object_if_callback_fails(self):
         cmd = [self.obj_fn,
                '-m', 'copy',
@@ -211,16 +205,6 @@ class EditObjectCommandTestCase(PackageTestCase):
         result = self.runner.invoke(edit_object_command, args=args)
         self.assertEqual(result.exit_code, 0)
 
-    def test_edit_command_returns_1_if_package_does_not_exist(self):
-        self.set_env_var(LOCAL_CONFIG_VAR, 'doesnt-exist')
-        args = [
-            '--index', '0',
-            '--installation-set', '0',
-            '--option', 'target-device',
-            '--value', '/dev/sdb']
-        result = self.runner.invoke(edit_object_command, args=args)
-        self.assertEqual(result.exit_code, 1)
-
     def test_edit_command_returns_2_if_object_does_not_exist(self):
         args = ['42', 'target-device', '/dev/sdb']
         result = self.runner.invoke(edit_object_command, args=args)
@@ -255,12 +239,6 @@ class RemoveObjectCommandTestCase(PackageTestCase):
             remove_object_command, args=['0'])
         self.assertEqual(result.exit_code, 0)
 
-    def test_remove_command_returns_1_if_package_does_not_exist(self):
-        self.set_env_var(LOCAL_CONFIG_VAR, 'doesnt-exist')
-        result = self.runner.invoke(
-            remove_object_command, args=['100'])
-        self.assertEqual(result.exit_code, 1)
-
 
 class ShowCommandTestCase(PackageTestCase):
 
@@ -270,11 +248,6 @@ class ShowCommandTestCase(PackageTestCase):
         pkg.dump(self.pkg_fn)
         result = self.runner.invoke(show_command)
         self.assertEqual(result.exit_code, 0)
-
-    def test_show_command_returns_1_if_package_does_not_exist(self):
-        self.set_env_var(LOCAL_CONFIG_VAR, 'doesnt-exist')
-        result = self.runner.invoke(show_command)
-        self.assertEqual(result.exit_code, 1)
 
 
 class ExportCommandTestCase(PackageTestCase):
@@ -322,13 +295,6 @@ class ExportCommandTestCase(PackageTestCase):
             export_command, args=[self.dest_pkg_fn])
         self.assertEqual(result.exit_code, 0)
 
-    def test_export_command_returns_1_if_package_does_not_exist(self):
-        self.set_env_var(LOCAL_CONFIG_VAR, 'doesnt-exist')
-        result = self.runner.invoke(
-            export_command, args=[self.dest_pkg_fn])
-        self.assertFalse(os.path.exists(self.dest_pkg_fn))
-        self.assertEqual(result.exit_code, 1)
-
 
 class SetVersionCommandTestCase(PackageTestCase):
 
@@ -349,12 +315,6 @@ class SetVersionCommandTestCase(PackageTestCase):
             set_version_command, args=[self.version])
         self.assertEqual(result.exit_code, 0)
 
-    def test_new_package_version_comands_returns_1_without_package_file(self):
-        self.set_env_var(LOCAL_CONFIG_VAR, 'doesnt-exist')
-        result = self.runner.invoke(
-            set_version_command, args=[self.version])
-        self.assertEqual(result.exit_code, 1)
-
 
 class StatusCommandTestCase(HTTPTestCaseMixin, PackageTestCase):
 
@@ -372,11 +332,6 @@ class StatusCommandTestCase(HTTPTestCaseMixin, PackageTestCase):
             path, status_code=200, body=json.dumps({'status': 'finished'}))
         result = self.runner.invoke(status_command, args=[self.pkg_uid])
         self.assertEqual(result.exit_code, 0)
-
-    def test_status_command_returns_1_if_package_doesnt_exist(self):
-        self.set_env_var(LOCAL_CONFIG_VAR, 'doesnt-exist')
-        result = self.runner.invoke(status_command, args=[self.pkg_uid])
-        self.assertEqual(result.exit_code, 1)
 
     def test_status_command_returns_2_if_status_doesnt_exist(self):
         path = '/products/{}/packages/{}/status'.format(

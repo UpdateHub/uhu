@@ -3,8 +3,7 @@
 
 import click
 
-from ..core.product import Product
-from .utils import error
+from .utils import open_package
 
 
 @click.group(name='product')
@@ -14,10 +13,7 @@ def product_cli():
 
 @product_cli.command(name='use')
 @click.argument('uid')
-@click.option('--force', '-f', is_flag=True)
-def use_command(uid, force):
+def use_command(uid):
     """Sets the product."""
-    try:
-        Product.use(uid, force=force)
-    except FileExistsError as err:
-        error(1, err)
+    with open_package() as package:
+        package.product = uid

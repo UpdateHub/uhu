@@ -3,4 +3,3 @@
 
 from .object import Object
 from .package import Package
-from .product import Product

@@ -4,7 +4,8 @@
 import sys
 from contextlib import contextmanager
 
-from ..core import Package
+from ..core.installation_set import InstallationSetMode
+from ..core.package import Package
 from ..utils import get_local_config_file
 
 
@@ -19,9 +20,7 @@ def open_package(read_only=False):
     try:
         package = Package.from_file(pkg_file)
     except FileNotFoundError:
-        print('Package file does not exist. '
-              'Create one with <efu use> command')
-        sys.exit(1)
+        package = Package(InstallationSetMode.ActiveInactive)
     except ValueError:
         print('Invalid configuration file.')
         sys.exit(1)
