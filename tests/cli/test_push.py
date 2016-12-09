@@ -49,7 +49,7 @@ class PushCommandTestCase(PushCommandMixin, BasePushTestCase):
         self.assertEqual(result.exit_code, 2)
 
     def test_push_command_returns_3_if_cant_establish_connection(self):
-        self.set_env_var(SERVER_URL_VAR, 'http://0.0.0.0:8000')
+        self.set_env_var(SERVER_URL_VAR, 'http://easyfota-unreachable.com')
         self.set_push(self.package, self.package_uid)
         result = self.runner.invoke(push_command, catch_exceptions=False)
         self.assertEqual(result.exit_code, 3)
