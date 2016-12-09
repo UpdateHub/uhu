@@ -297,7 +297,6 @@ class Object:
                 )
 
     def upload(self, product_uid, package_uid, callback=None):
-        call(callback, 'start_object_upload', self)
         url = get_server_url('/products/{}/packages/{}/objects/{}'.format(
             product_uid, package_uid, self.sha256sum))
         body = json.dumps({'etag': self.md5})
@@ -313,11 +312,9 @@ class Object:
             else:
                 result = ObjectUploadResult.FAIL
         else:
-            call(callback, 'post_object_upload', self, ObjectUploadResult.FAIL)
             errors = response.json().get('errors', [])
             error_msg = 'It was not possible to get url:\n{}'
             raise UploadError(error_msg.format('\n'.join(errors)))
-        call(callback, 'finish_object_upload', self, result)
         return result
 
     def exists(self):

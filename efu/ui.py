@@ -4,8 +4,6 @@
 from progress.spinner import Spinner
 from progress.bar import Bar
 
-from .core.object import ObjectUploadResult
-
 
 class PushCallback:
 
@@ -16,34 +14,28 @@ class PushCallback:
     def start_objects_load(self):
         self.spinner = Spinner('Loading objects: ')
 
-    def finish_objects_load(self):
-        self.spinner.finish()
-        print('\rLoading objects: ok')
-
     def object_read(self):
         if self.progress is not None:
             self.progress.next()
         if self.spinner is not None:
             self.spinner.next()
 
-    def start_object_upload(self, obj):
+    def finish_objects_load(self):
+        self.spinner.finish()
+        print('\rLoading objects: ok')
+
+    def start_package_upload(self, objects):
         self.spinner = None
+        total = sum(len(obj) for obj in objects)
         self.progress = Bar(
-            obj.filename, max=len(obj), suffix='%(percent)d%% ETA: %(eta)ds')
+            'Uploading objects:', max=total,
+            suffix='%(percent)d%% ETA: %(eta)ds')
 
-    def finish_object_upload(self, obj, status):
-        if status == ObjectUploadResult.EXISTS:
-            print(obj.filename, 'already uploaded', flush=True, end='')
-        self.progress.finish()
-
-    def push_start(self, response):
-        print('Uploading objects: ', end='')
-        if response.ok:
-            print()
-        else:
-            print('failed.')
+    def finish_package_upload(self):
+        print('\033[1K', end='')
+        print('\rUploading objects: ok')
 
     def push_finish(self, pkg, response):
         if response.ok:
-            print('Package UID: {}'.format(pkg.uid))
-            print('Finished!')
+            print('Finished! Your package UID is {}'.format(pkg.uid))
+        print('\033[?25h', end='')

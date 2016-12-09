@@ -143,14 +143,13 @@ class Package:
         with open(fn, 'w') as fp:
             json.dump(dict_, fp, indent=4, sort_keys=True)
 
-    def upload_metadata(self, callback=None):
+    def upload_metadata(self):
         metadata = self.metadata()
         validate_schema('metadata.json', metadata)
         payload = json.dumps(metadata)
         url = self.get_metadata_upload_url()
         response = Request(
             url, method='POST', payload=payload, json=True).send()
-        call(callback, 'push_start', response)
         response_body = response.json()
         if response.status_code != 201:
             errors = '\n'.join(response_body.get('errors', []))
@@ -160,8 +159,11 @@ class Package:
 
     def upload_objects(self, callback=None):
         results = []
-        for obj in self.objects.get_installation_set(index=0):
+        objects = self.objects.get_installation_set(index=0)
+        call(callback, 'start_package_upload', objects)
+        for obj in objects:
             results.append(obj.upload(self.product, self.uid, callback))
+        call(callback, 'finish_package_upload')
         for result in results:
             if not ObjectUploadResult.is_ok(result):
                 err = 'Some objects has not been fully uploaded'
@@ -179,7 +181,7 @@ class Package:
             self.product, self.uid))
 
     def push(self, callback=None):
-        self.upload_metadata(callback)
+        self.upload_metadata()
         self.upload_objects(callback)
         self.finish_push(callback)
 
