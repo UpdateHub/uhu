@@ -60,16 +60,47 @@ class PromptsTestCase(unittest.TestCase):
         option = helpers.prompt_object_option(obj)
         self.assertEqual(option.metadata, 'target-device')
 
-    @patch('efu.repl.helpers.prompt_object_option_value')
+    @patch('efu.repl.helpers.prompt')
     def test_can_prompt_object_options(self, prompt):
-        prompt.side_effect = ['always', '/dev/sda', 1000, 300, 100, 200, False]
+        prompt.side_effect = [
+            'always',  # install-condition
+            '/dev/sda',  # target-device
+            '1000',  # chunk-size
+            '300',  # count
+            '100',  # seek
+            '200',  # skip
+            'yes',  # truncate
+        ]
         expected = {
             'target-device': '/dev/sda',
-            'truncate': False,
+            'truncate': True,
             'seek': 100,
             'skip': 200,
             'count': 300,
             'chunk-size': 1000,
+            'install-condition': 'always',
+        }
+        observed = helpers.prompt_object_options('raw')
+        self.assertEqual(expected, observed)
+
+    @patch('efu.repl.helpers.prompt')
+    def test_can_prompt_object_options_with_empty_prompts(self, prompt):
+        prompt.side_effect = [
+            '',  # install-condition
+            '/dev/sda',  # target-device
+            '',  # chunk-size
+            '',  # count
+            '',  # seek
+            '',  # skip
+            '',  # truncate
+        ]
+        expected = {
+            'target-device': '/dev/sda',
+            'truncate': False,
+            'seek': 0,
+            'skip': 0,
+            'count': -1,
+            'chunk-size': 131072,
             'install-condition': 'always',
         }
         observed = helpers.prompt_object_options('raw')
@@ -105,6 +136,36 @@ class PromptsTestCase(unittest.TestCase):
         prompt.return_value = __file__
         option = Option({'metadata': 'filename'})
         observed = helpers.prompt_object_option_value(option, 'raw')
+        self.assertEqual(observed, __file__)
+
+    @patch('efu.repl.helpers.prompt')
+    def test_prompt_object_option_without_default_and_empty_prompt(self, prompt):  # nopep8
+        # This case must return None so OptionsParser cleans it for
+        # us.
+        prompt.return_value = ''
+        option = Option({
+            'metadata': 'mount-options',
+            'modes': ['copy'],
+            'type': 'str',
+            'verbose-name': 'mount options'
+        })
+        observed = helpers.prompt_object_option_value(option, 'copy')
+        self.assertIsNone(observed)
+
+    @patch('efu.repl.helpers.prompt')
+    def test_prompt_object_option_with_default_and_empty_prompt(self, prompt):
+        # This case must return Option.default
+        prompt.return_value = ''
+        default_value = 'default-value'
+        option = Option({
+            'metadata': 'mount-options',
+            'modes': ['copy'],
+            'default': default_value,
+            'type': 'str',
+            'verbose-name': 'mount options'
+        })
+        observed = helpers.prompt_object_option_value(option, 'copy')
+        self.assertEqual(observed, default_value)
 
     @patch('efu.repl.helpers.prompt')
     def test_can_prompt_package_uid(self, prompt):

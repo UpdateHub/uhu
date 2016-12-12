@@ -210,8 +210,7 @@ def prompt_object_option_value(option, mode, default='', indent_level=0):
 
     value = prompt(
         msg, completer=completer, default=default, validator=validator).strip()
-    value = value if value != '' else option.default
-    return option.convert(value)
+    return option.convert(value) if value != '' else option.default
 
 
 def prompt_package_uid():
