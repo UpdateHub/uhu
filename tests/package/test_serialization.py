@@ -16,14 +16,17 @@ class PackageSerializationsTestCase(PackageTestCase):
         pkg = Package(InstallationSetMode.Single, version=self.version,
                       product=self.product)
         pkg.objects.create(self.obj_fn, self.obj_mode, self.obj_options)
-        pkg.add_supported_hardware(
-            name=self.hardware, revisions=self.hardware_revision)
+        pkg.hardwares.add(name=self.hardware, revisions=self.hardware_revision)
         pkg.objects.load()
         metadata = pkg.metadata()
         self.assertEqual(metadata['version'], self.version)
         self.assertEqual(metadata['product'], self.product)
-        self.assertEqual(
-            metadata['supported-hardware'], self.supported_hardware)
+        # Supported hardware
+        self.assertEqual(len(metadata['supported-hardware']), 1)
+        hardware = metadata['supported-hardware'][0]
+        self.assertEqual(hardware['hardware'], self.hardware)
+        self.assertEqual([hardware['hardware-rev']], self.hardware_revision)
+        # Objects
         objects = metadata['objects']
         self.assertEqual(len(objects), 1)
         obj = objects[0][0]
@@ -40,8 +43,7 @@ class PackageSerializationsTestCase(PackageTestCase):
             self.obj_fn, self.obj_mode, self.obj_options)
         obj = pkg.objects.get(index=index, installation_set=0)
         expected_obj_template = obj.template()
-        pkg.add_supported_hardware(
-            name=self.hardware, revisions=self.hardware_revision)
+        pkg.hardwares.add(name=self.hardware, revisions=self.hardware_revision)
         template = pkg.template()
         self.assertEqual(template['version'], self.version)
         self.assertEqual(template['product'], self.product)

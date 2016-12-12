@@ -157,71 +157,69 @@ class HardwareManagementTestCase(BaseTestCase):
     @patch('efu.repl.functions.prompt')
     def test_can_add_hardware_without_revision(self, prompt):
         prompt.side_effect = ['PowerX', '']
-        self.assertEqual(len(self.repl.package.supported_hardware), 0)
+        self.assertEqual(self.repl.package.hardwares.count(), 0)
         functions.add_hardware(self.repl)
-        self.assertEqual(len(self.repl.package.supported_hardware), 1)
-        hardware = self.repl.package.supported_hardware['PowerX']
+        self.assertEqual(self.repl.package.hardwares.count(), 1)
+        hardware = self.repl.package.hardwares.get('PowerX')
         self.assertEqual(len(hardware['revisions']), 0)
 
     @patch('efu.repl.functions.prompt')
     def test_can_add_hardware_with_revision(self, prompt):
         functions.prompt.side_effect = ['PowerX', 'rev.1']
-        self.assertEqual(len(self.repl.package.supported_hardware), 0)
+        self.assertEqual(self.repl.package.hardwares.count(), 0)
         functions.add_hardware(self.repl)
-        self.assertEqual(len(self.repl.package.supported_hardware), 1)
-        hardware = self.repl.package.supported_hardware['PowerX']
+        self.assertEqual(self.repl.package.hardwares.count(), 1)
+        hardware = self.repl.package.hardwares.get('PowerX')
         self.assertEqual(len(hardware['revisions']), 1)
 
     @patch('efu.repl.functions.prompt')
     def test_can_add_multiple_hardwares_and_revisions(self, prompt):
         functions.prompt.side_effect = ['PowerX PowerY', 'PX1 PX2', 'PY1']
-        self.assertEqual(len(self.repl.package.supported_hardware), 0)
+        self.assertEqual(self.repl.package.hardwares.count(), 0)
         functions.add_hardware(self.repl)
-        self.assertEqual(len(self.repl.package.supported_hardware), 2)
-        hardware_1 = self.repl.package.supported_hardware['PowerX']
+        self.assertEqual(self.repl.package.hardwares.count(), 2)
+        hardware_1 = self.repl.package.hardwares.get('PowerX')
         self.assertEqual(len(hardware_1['revisions']), 2)
-        hardware_2 = self.repl.package.supported_hardware['PowerY']
+        hardware_2 = self.repl.package.hardwares.get('PowerY')
         self.assertEqual(len(hardware_2['revisions']), 1)
 
     @patch('efu.repl.functions.prompt')
     def test_can_remove_supported_hardware(self, prompt):
         functions.prompt.side_effect = ['PowerX', '']
-        self.repl.package.add_supported_hardware('PowerX')
-        self.repl.package.add_supported_hardware('PowerY')
-        self.assertEqual(len(self.repl.package.supported_hardware), 2)
+        self.repl.package.hardwares.add('PowerX')
+        self.repl.package.hardwares.add('PowerY')
+        self.assertEqual(self.repl.package.hardwares.count(), 2)
         functions.remove_hardware(self.repl)
-        self.assertEqual(len(self.repl.package.supported_hardware), 1)
-        self.assertIsNone(self.repl.package.supported_hardware.get('PowerX'))
+        self.assertEqual(self.repl.package.hardwares.count(), 1)
+        self.assertIsNone(self.repl.package.hardwares.get('PowerX'))
 
     @patch('efu.repl.functions.prompt')
     def test_can_remove_many_supported_hardwares(self, prompt):
         functions.prompt.side_effect = ['PowerX PowerY', '', '']
-        self.repl.package.add_supported_hardware('PowerX')
-        self.repl.package.add_supported_hardware('PowerY')
-        self.assertEqual(len(self.repl.package.supported_hardware), 2)
+        self.repl.package.hardwares.add('PowerX')
+        self.repl.package.hardwares.add('PowerY')
+        self.assertEqual(self.repl.package.hardwares.count(), 2)
         functions.remove_hardware(self.repl)
-        self.assertEqual(len(self.repl.package.supported_hardware), 0)
+        self.assertEqual(self.repl.package.hardwares.count(), 0)
 
     @patch('efu.repl.functions.prompt')
     def test_can_remove_only_one_hardware_revision(self, prompt):
         functions.prompt.side_effect = ['PowerX', '1']
-        self.repl.package.add_supported_hardware(
-            'PowerX', revisions=['1', '2'])
-        self.assertEqual(len(self.repl.package.supported_hardware), 1)
-        hardware = self.repl.package.supported_hardware['PowerX']
+        self.repl.package.hardwares.add('PowerX', revisions=['1', '2'])
+        self.assertEqual(self.repl.package.hardwares.count(), 1)
+        hardware = self.repl.package.hardwares.get('PowerX')
         self.assertEqual(len(hardware['revisions']), 2)
         functions.remove_hardware(self.repl)
-        self.assertEqual(len(self.repl.package.supported_hardware), 1)
+        self.assertEqual(self.repl.package.hardwares.count(), 1)
         self.assertEqual(len(hardware['revisions']), 1)
 
     @patch('efu.repl.functions.prompt')
     def test_can_remove_many_hardware_revisions(self, prompt):
         functions.prompt.side_effect = ['PowerX', '1 2']
-        self.repl.package.add_supported_hardware(
-            'PowerX', revisions=['1', '2'])
-        self.assertEqual(len(self.repl.package.supported_hardware), 1)
-        hardware = self.repl.package.supported_hardware['PowerX']
+        self.repl.package.hardwares.add('PowerX', revisions=['1', '2'])
+        self.assertEqual(self.repl.package.hardwares.count(), 1)
+        hardware = self.repl.package.hardwares.get('PowerX')
         self.assertEqual(len(hardware['revisions']), 2)
         functions.remove_hardware(self.repl)
-        self.assertEqual(len(self.repl.package.supported_hardware), 1)
+        self.assertEqual(self.repl.package.hardwares.count(), 1)
         self.assertEqual(len(hardware['revisions']), 0)

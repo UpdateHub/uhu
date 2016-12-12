@@ -128,10 +128,10 @@ def add_hardware(ctx):
     print('You can pass many hardware as you want, separated by spaces.')
     hardwares = prompt('Hardwares: ').split()
     for hardware in hardwares:
-        ctx.package.add_supported_hardware(hardware.strip())
+        ctx.package.hardwares.add(hardware.strip())
         revisions = prompt('Specify a revision for {}: '.format(hardware))
         for rev in revisions.split():
-            ctx.package.add_supported_hardware_revision(hardware, rev.strip())
+            ctx.package.hardwares.add_revision(hardware, rev.strip())
 
 
 @helpers.cancellable
@@ -145,8 +145,7 @@ def remove_hardware(ctx):
     for hardware in hardwares:
         revisions = prompt('Hardware {}: '.format(hardware)).strip()
         if not revisions:
-            ctx.package.remove_supported_hardware(hardware)
+            ctx.package.hardwares.remove(hardware)
             continue
         for revision in revisions.split():
-            ctx.package.remove_supported_hardware_revision(
-                hardware, revision.strip())
+            ctx.package.hardwares.remove_revision(hardware, revision.strip())

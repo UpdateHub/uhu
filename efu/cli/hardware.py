@@ -20,10 +20,10 @@ def hardware_cli():
 def add_supported_hardware_command(hardware, revision):
     """Add a supported hardware for the current package."""
     with open_package() as package:
-        if hardware not in package.supported_hardware:
-            package.add_supported_hardware(hardware)
+        if hardware not in package.hardwares.all():
+            package.hardwares.add(hardware)
         for rev in revision:
-            package.add_supported_hardware_revision(hardware, rev)
+            package.hardwares.add_revision(hardware, rev)
 
 
 @hardware_cli.command(name='remove')
@@ -37,9 +37,9 @@ def remove_supported_hardware_command(hardware, revision):
     with open_package() as package:
         try:
             if not revision:
-                package.remove_supported_hardware(hardware)
+                package.hardwares.remove(hardware)
             else:
                 for rev in revision:
-                    package.remove_supported_hardware_revision(hardware, rev)
+                    package.hardwares.remove_revision(hardware, rev)
         except ValueError as err:
             error(2, err)

@@ -11,6 +11,7 @@ from ..exceptions import DownloadError, UploadError
 from ..http.request import Request
 from ..utils import call, get_server_url, validate_schema
 
+from .hardware import HardwareManager
 from .object import Object, ObjectUploadResult
 from .installation_set import InstallationSetManager, InstallationSetMode
 
@@ -27,7 +28,7 @@ class Package:
         self.version = version
         self.product = product
         self.objects = InstallationSetManager(self.mode)
-        self.supported_hardware = {}
+        self.hardwares = HardwareManager()
 
     @classmethod
     def from_file(cls, fn):
@@ -39,7 +40,7 @@ class Package:
             mode=InstallationSetMode.from_objects(objects),
             version=dump.get('version'),
             product=dump.get('product'))
-        package.supported_hardware = dump.get('supported-hardware', {})
+        package.hardwares = HardwareManager(dump.get('supported-hardware'))
         for set_index, installation_set in enumerate(objects):
             for obj in installation_set:
                 set_ = package.objects.get_installation_set(set_index)
@@ -57,6 +58,17 @@ class Package:
             mode=InstallationSetMode.from_objects(objects),
             version=metadata['version'],
             product=metadata['product'])
+        # Supported hardwares
+        hardwares = metadata.get('supported-hardware', [])
+        for hardware in hardwares:
+            name = hardware['hardware']
+            revision = hardware.get('hardware-rev')
+            hardware = package.hardwares.get(name)
+            if hardware is None:
+                package.hardwares.add(name)
+            if revision is not None:
+                package.hardwares.add_revision(name, revision)
+        # Objects
         for set_index, installation_set in enumerate(objects):
             for obj in installation_set:
                 blacklist = ('filename', 'mode', 'install-if-different')
@@ -74,39 +86,6 @@ class Package:
                     sha256sum=obj['sha256sum'])
         return package
 
-    def add_supported_hardware(self, name, revisions=None):
-        revisions = revisions if revisions is not None else []
-        self.supported_hardware[name] = {
-            'name': name,
-            'revisions': sorted([rev for rev in revisions])
-        }
-
-    def remove_supported_hardware(self, hardware):
-        supported_hardware = self.supported_hardware.pop(hardware, None)
-        if supported_hardware is None:
-            err = 'Hardware {} does not exist or is already removed.'
-            raise ValueError(err.format(hardware))
-
-    def add_supported_hardware_revision(self, hardware, revision):
-        supported_hardware = self.supported_hardware.get(hardware)
-        if supported_hardware is None:
-            err = 'Hardware {} does not exist'.format(hardware)
-            raise ValueError(err)
-        if revision not in supported_hardware['revisions']:
-            supported_hardware['revisions'].append(revision)
-        supported_hardware['revisions'].sort()
-
-    def remove_supported_hardware_revision(self, hardware, revision):
-        supported_hardware = self.supported_hardware.get(hardware)
-        if supported_hardware is None:
-            err = 'Hardware {} does not exist'.format(hardware)
-            raise ValueError(err)
-        try:
-            supported_hardware['revisions'].remove(revision)
-        except ValueError:
-            err = 'Revision {} for {} does not exist or is already removed'
-            raise ValueError(err.format(revision, hardware))
-
     def metadata(self):
         """Serialize package as metadata."""
         metadata = {
@@ -114,8 +93,8 @@ class Package:
             'version': self.version,
             'objects': self.objects.metadata(),
         }
-        if self.supported_hardware:
-            metadata['supported-hardware'] = self.supported_hardware
+        if self.hardwares.count():
+            metadata['supported-hardware'] = self.hardwares.metadata()
         return metadata
 
     def template(self):
@@ -123,7 +102,7 @@ class Package:
         return {
             'version': self.version,
             'product': self.product,
-            'supported-hardware': self.supported_hardware,
+            'supported-hardware': self.hardwares.template(),
             'objects': self.objects.template(),
         }
 
@@ -252,17 +231,7 @@ class Package:
         # Version
         s.append('Version: {}'.format(self.version))
         # Supported hardware
-        if self.supported_hardware:
-            s.append('Supported hardware:')
-            s.append('')
-            for i, name in enumerate(sorted(self.supported_hardware), 1):
-                revisions = ', '.join(
-                    self.supported_hardware[name]['revisions'])
-                revisions = revisions if revisions else 'all'
-                s.append('  {}# {} [revisions: {}]'.format(i, name, revisions))
-                s.append('')
-        else:
-            s.append('Supported hardware: all')
+        s.append(str(self.hardwares))
         # Objects
         if len(self.objects.all()):
             s.append(str(self.objects))
