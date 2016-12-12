@@ -227,5 +227,15 @@
         "metadata": "size",
         "is_volatile": true,
         "verbose-name": "file size"
+    },
+    {
+        "metadata": "compressed",
+        "is_volatile": true,
+        "verbose-name": "Compressed file"
+    },
+    {
+        "metadata": "required-uncompressed-size",
+        "is_volatile": true,
+        "verbose-name": "Uncompressed size"
     }
 ]

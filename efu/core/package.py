@@ -59,8 +59,7 @@ class Package:
             product=metadata['product'])
         for set_index, installation_set in enumerate(objects):
             for obj in installation_set:
-                blacklist = (
-                    'filename', 'mode', 'compressed', 'install-if-different')
+                blacklist = ('filename', 'mode', 'install-if-different')
                 options = {option: value
                            for option, value in obj.items()
                            if option not in blacklist}

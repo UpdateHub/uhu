@@ -102,7 +102,7 @@ class PackageConstructorsTestCase(PackageTestCase):
         self.assertEqual(obj.options['target-path'], '/boot')
         self.assertEqual(obj.options['filesystem'], 'ext4')
 
-    def test_can_dump_package_and_load_from_file(self):
+    def test_can_dump_package_with_compression_and_load_from_file(self):
         compressed_fn = os.path.join(
             os.path.dirname(__file__), '../fixtures/compressed/base.txt.gz')
 
@@ -110,9 +110,22 @@ class PackageConstructorsTestCase(PackageTestCase):
         pkg = Package(InstallationSetMode.ActiveInactive)
         pkg.objects.create(__file__, 'raw', {'target-device': '/'})
         pkg.objects.create(compressed_fn, 'raw', {'target-device': '/'})
-        observed = pkg.template(), pkg.metadata()
+        expected = pkg.template(), pkg.metadata()
 
         pkg.dump(pkg_fn)
         pkg = Package.from_file(pkg_fn)
-        expected = pkg.template(), pkg.metadata()
+        observed = pkg.template(), pkg.metadata()
+        self.assertEqual(observed, expected)
+
+    def test_can_load_from_metadata_with_compression(self):
+        compressed_fn = os.path.join(
+            os.path.dirname(__file__), '../fixtures/compressed/base.txt.gz')
+        pkg = Package(InstallationSetMode.ActiveInactive)
+        pkg.objects.create(compressed_fn, 'raw', {'target-device': '/'})
+        pkg.objects.load()
+        expected = pkg.metadata()
+
+        pkg = Package.from_metadata(pkg.metadata())
+        pkg.objects.load()
+        observed = pkg.metadata()
         self.assertEqual(observed, expected)
