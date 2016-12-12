@@ -21,8 +21,8 @@ def open_package(read_only=False):
         package = Package.from_file(pkg_file)
     except FileNotFoundError:
         package = Package(InstallationSetMode.ActiveInactive)
-    except ValueError:
-        print('Invalid configuration file.')
+    except ValueError as err:
+        print('Invalid configuration file: {}'.format(err))
         sys.exit(1)
     yield package
     if not read_only:

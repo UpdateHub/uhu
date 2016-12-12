@@ -113,8 +113,8 @@ class EFURepl:
     def load_package(self, fn):
         try:
             return Package.from_file(fn)
-        except ValueError:
-            print('Error: Invalid configuration file.')
+        except ValueError as err:
+            print('Error: Invalid configuration file: {}'.format(err))
             sys.exit(1)
 
     def repl(self):
