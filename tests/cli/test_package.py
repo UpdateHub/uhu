@@ -360,8 +360,17 @@ class UtilsTestCase(FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase):
 
 class MetadataTestCase(PackageTestCase):
 
-    def test_metadata_commands_returns_0_when_successful(self):
+    def test_metadata_commands_returns_0_when_metadata_is_valid(self):
+        pkg = Package(InstallationSetMode.ActiveInactive)
+        pkg.objects.create(__file__, 'raw', {'target-device': '/'})
+        pkg.product = '0' * 64
+        pkg.version = '2.0'
+        pkg.dump(self.pkg_fn)
+        result = self.runner.invoke(metadata_command)
+        self.assertEqual(result.exit_code, 0)
+
+    def test_metadata_commands_returns_1_when_metadata_is_invalid(self):
         pkg = Package(InstallationSetMode.ActiveInactive)
         pkg.dump(self.pkg_fn)
-        result = self.runner.invoke(metadata_command, catch_exceptions=False)
-        self.assertEqual(result.exit_code, 0)
+        result = self.runner.invoke(metadata_command)
+        self.assertEqual(result.exit_code, 1)

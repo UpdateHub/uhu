@@ -12,7 +12,7 @@ from ..core.options import MODES
 from ..core.package import Package
 from ..exceptions import DownloadError, UploadError
 from ..ui import PushCallback
-from ..utils import get_local_config_file
+from ..utils import get_local_config_file, validate_schema
 
 from ._object import ClickOptionsParser, CLICK_OPTIONS
 from .utils import error, open_package
@@ -160,4 +160,10 @@ def metadata_command():
     """Loads package and prints its metadata."""
     with open_package(read_only=True) as package:
         package.objects.load()
-        print(json.dumps(package.metadata(), indent=4, sort_keys=True))
+        metadata = package.metadata()
+        print(json.dumps(metadata, indent=4, sort_keys=True))
+    try:
+        validate_schema('metadata.json', metadata)
+        print('Valid metadata.')
+    except ValidationError as err:
+        error(1, err)
