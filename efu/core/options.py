@@ -153,6 +153,14 @@ class OptionsParser:
         self.options = MODES[self.mode]
         self.values = options
 
+    def remove_null_values(self):
+        """Removes all null values."""
+        self.values = {
+            option: value
+            for option, value in self.values.items()
+            if value is not None
+        }
+
     def inject_default_values(self):
         """Add default option value for missing options."""
         for option in self.options:
@@ -218,7 +226,9 @@ class OptionsParser:
 
         Raises ValueError in case something is wrong.
         """
-        # First we need to inject default values
+        # First, we remove all nullable values
+        self.remove_null_values()
+        # With all trash removed,  we need to inject the default values
         self.inject_default_values()
         # Then, we check if there are invalid options for the given mode
         self.check_allowed_options()

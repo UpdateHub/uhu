@@ -7,6 +7,17 @@ from efu.core.options import OptionsParser
 
 class OptionsParserTestCase(unittest.TestCase):
 
+    def test_can_remove_null_values(self):
+        parser = OptionsParser('raw', {
+            'target-device': '/dev/sda',
+            'mount-options': None
+        })
+        self.assertEqual(len(parser.values), 2)
+        self.assertIn('mount-options', parser.values)
+        parser.remove_null_values()
+        self.assertEqual(len(parser.values), 1)
+        self.assertNotIn('mount-options', parser.values)
+
     def test_can_inject_default_values(self):
         parser = OptionsParser('raw', {'target-device': '/dev/sda'})
         self.assertEqual(len(parser.values), 1)
@@ -70,10 +81,21 @@ class OptionsParserTestCase(unittest.TestCase):
         options = parser.clean()
         self.assertEqual(len(options), 7)
 
-    def test_clean_raises_error_if_passed_allowed_options(self):
+    def test_clean_returns_options_without_null_values(self):
+        parser = OptionsParser('copy', {
+            'target-device': '/dev/sda',
+            'target-path': '/',
+            'filesystem': 'ext4',
+            'mount-options': None
+        })
+        self.assertIn('mount-options', parser.values)
+        options = parser.clean()
+        self.assertNotIn('mount-options', options)
+
+    def test_clean_raises_error_if_passed_not_allowed_options(self):
         parser = OptionsParser('raw', {
             'target-device': '/dev/sda',
-            'target-path': '/dev/sdb'  # not valid in raw mode
+            'target-path': '/dev/sdb'  # not allowed in raw mode
         })
         with self.assertRaises(ValueError):
             parser.clean()
