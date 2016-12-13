@@ -266,7 +266,7 @@ class Object:
             for chunk in self:
                 sha256sum.update(chunk)
                 md5.update(chunk)
-                call(callback, 'object_read')
+                call(callback, 'object_read', self)
             self.sha256sum = sha256sum.hexdigest()
             self.md5 = md5.hexdigest()
         self.load_install_condition(cache)
@@ -303,6 +303,7 @@ class Object:
         response = Request(url, 'POST', body, json=True).send()
         if response.status_code == 200:
             result = ObjectUploadResult.EXISTS
+            call(callback, 'object_read', self, full=True)
         elif response.status_code == 201:
             body = response.json()
             upload = STORAGES[body['storage']]
@@ -390,5 +391,5 @@ class ObjectReader:
 
     def __iter__(self):
         for chunk in self.obj:
-            call(self.callback, 'object_read')
+            call(self.callback, 'object_read', self.obj)
             yield chunk

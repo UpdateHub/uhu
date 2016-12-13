@@ -16,7 +16,12 @@ class BaseCallback:
         self.total = 0
         self.parcel = 0
 
-    def object_read(self):
+    def object_read(self, obj, full=False):
+        n = len(obj) if full else 1
+        for _ in range(n):
+            self._object_read()
+
+    def _object_read(self):
         if self.uploading:
             self.total += 1
             if (self.total % self.parcel) == 0:
