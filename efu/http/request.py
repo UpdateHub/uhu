@@ -7,6 +7,7 @@ from urllib.parse import quote, urlparse, parse_qs
 
 import requests
 
+from .. import get_efu_version
 from ..config import config
 
 from .auth import EFOTAV1Signature
@@ -25,6 +26,7 @@ class Request(object):
         self.payload_sha256 = self._generate_payload_sha256()
 
         self.headers = {
+            'User-Agent': 'easyfota-utils/{}'.format(get_efu_version()),
             'Host': self._url.netloc,
             'Timestamp': self.date.timestamp(),
             'Content-sha256': self.payload_sha256,

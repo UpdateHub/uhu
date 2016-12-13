@@ -21,24 +21,21 @@ class RequestTestCase(HTTPTestCaseMixin, EFUTestCase):
         self.assertAlmostEqual(observed, expected, delta=60)
 
     @patch('efu.http.request.datetime')
-    def test_request_has_minimal_headers(self, mock):
-        mock_date = datetime(1970, 1, 1, tzinfo=timezone.utc)
-        mock.now.return_value = mock_date
-
+    @patch('efu.http.request.get_efu_version', return_value='2.0')
+    def test_request_has_minimal_headers(self, mock_version, mock_date):
+        mock_date.now.return_value = datetime(1970, 1, 1, tzinfo=timezone.utc)
         request = Request('https://localhost/', 'POST', b'\0')
-
-        host = request.headers.get('Host')
-        timestamp = request.headers.get('Timestamp')
-        sha256 = request.headers.get('Content-sha256')
-        api = request.headers.get('Api-Content-Type')
-
-        self.assertEqual(len(request.headers), 5)
-        self.assertEqual(host, 'localhost')
-        self.assertEqual(timestamp, 0)
-        self.assertEqual(api, 'application/vnd.easyfota-v1+json')
+        self.assertEqual(len(request.headers), 6)
+        self.assertEqual(request.headers.get('Host'), 'localhost')
+        self.assertEqual(request.headers.get('Timestamp'), 0)
         self.assertEqual(
-            sha256,
+            request.headers.get('Api-Content-Type'),
+            'application/vnd.easyfota-v1+json')
+        self.assertEqual(
+            request.headers.get('Content-sha256'),
             '6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d')
+        self.assertEqual(
+            request.headers.get('User-Agent'), 'easyfota-utils/2.0')
 
     def test_request_does_not_send_json_content_type_by_default(self):
         request = Request('https://localhost/', 'POST')
@@ -112,9 +109,9 @@ class RequestTestCase(HTTPTestCaseMixin, EFUTestCase):
 class CanonicalRequestTestCase(unittest.TestCase):
 
     @patch('efu.http.request.datetime')
-    def test_canonical_request(self, mock):
-        date = datetime(1970, 1, 1, tzinfo=timezone.utc)
-        mock.now.return_value = date
+    @patch('efu.http.request.get_efu_version', return_value='2.0')
+    def test_canonical_request(self, mock_version, mock_date):
+        mock_date.now.return_value = datetime(1970, 1, 1, tzinfo=timezone.utc)
         request = Request(
             'http://localhost/upload?c=3&b=2&a=1',
             'POST',
@@ -128,6 +125,7 @@ api-content-type:application/vnd.easyfota-v1+json
 content-sha256:6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d
 host:localhost
 timestamp:0.0
+user-agent:easyfota-utils/2.0
 
 6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d'''
         self.assertEqual(request.canonical(), expected)
