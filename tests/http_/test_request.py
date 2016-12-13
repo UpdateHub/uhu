@@ -38,8 +38,7 @@ class RequestTestCase(HTTPTestCaseMixin, EFUTestCase):
         self.assertEqual(api, 'application/vnd.easyfota-v1+json')
         self.assertEqual(
             sha256,
-            '6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d'
-        )
+            '6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d')
 
     def test_request_does_not_send_json_content_type_by_default(self):
         request = Request('https://localhost/', 'POST')
