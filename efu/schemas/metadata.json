@@ -22,7 +22,8 @@
             "items": {
                 "$ref": "supported-hardware.json"
             },
-            "minItems": 1
+            "minItems": 1,
+            "uniqueItems": true
         },
         "objects": {
             "type": "array",
