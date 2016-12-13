@@ -52,6 +52,10 @@ class ObjectDownloadTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
             observed = hashlib.sha256(fp.read()).hexdigest()
         self.assertEqual(observed, self.sha256)
 
+    def test_download_raises_error_if_cant_reach_server(self):
+        with self.assertRaises(DownloadError):
+            self.obj.download('http://easyfota-unreach.com')
+
     def test_download_raises_error_if_bad_response(self):
         self.httpd.register_response(
             self.path, 'GET', body='{}', status_code=500)
