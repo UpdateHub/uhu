@@ -11,7 +11,7 @@ from jsonschema.exceptions import ValidationError
 from ..core.options import MODES
 from ..core.package import Package
 from ..exceptions import DownloadError, UploadError
-from ..ui import PushCallback
+from ..ui import get_callback
 from ..utils import get_local_config_file, validate_schema
 
 from ._object import ClickOptionsParser, CLICK_OPTIONS
@@ -99,7 +99,7 @@ def remove_object_command(object_id):
 def push_command():
     """Pushes a package file to server with the given version."""
     with open_package(read_only=True) as package:
-        callback = PushCallback()
+        callback = get_callback()
         package.objects.load(callback)
         try:
             package.push(callback)
