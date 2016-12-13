@@ -77,6 +77,28 @@ class TTYCallback(BaseCallback):
         print('\033[1K\rUploading objects: ok\033[?25h')
 
 
+class NoTTYCallback(BaseCallback):
+
+    coeficient = 5
+
+    def start_objects_load(self):
+        print('Loading objects: ', end='', flush=True)
+
+    def object_read_upload_callback(self):
+        progress = int((self.total // self.parcel) * self.coeficient)
+        print('{}% '.format(progress), end='', flush=True)
+
+    def finish_objects_load(self):
+        print('ok', flush=True)
+
+    def start_package_upload_callback(self):
+        print('Uploading objects:', flush=True)
+
+    def finish_package_upload_callback(self):
+        print()
+
+
 def get_callback():
     if sys.stdout.isatty():
         return TTYCallback()
+    return NoTTYCallback()
