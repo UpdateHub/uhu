@@ -1,6 +1,7 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+import math
 import sys
 
 from progress.spinner import Spinner
@@ -9,12 +10,9 @@ from progress.bar import Bar
 
 class BaseCallback:
 
-    coeficient = 1
-
     def __init__(self):
         self.uploading = False
-        self.total = 0
-        self.parcel = 0
+        self.max = None
 
     def object_read(self, obj, full=False):
         n = len(obj) if full else 1
@@ -23,16 +21,13 @@ class BaseCallback:
 
     def _object_read(self):
         if self.uploading:
-            self.total += 1
-            if (self.total % self.parcel) == 0:
-                self.object_read_upload_callback()
+            self.object_read_upload_callback()
         else:
             self.object_read_load_callback()
 
     def start_package_upload(self, objects):
         self.uploading = True
-        total = sum(len(obj) for obj in objects)
-        self.parcel = (total / 100) * self.coeficient
+        self.max = sum(len(obj) for obj in objects)
         self.start_package_upload_callback()
 
     def finish_package_upload(self):
@@ -76,7 +71,7 @@ class TTYCallback(BaseCallback):
 
     def start_package_upload_callback(self):
         suffix = '%(percent)d%% ETA: %(eta)ds'
-        self.progress = Bar('Uploading objects:', max=100, suffix=suffix)
+        self.progress = Bar('Uploading objects:', max=self.max, suffix=suffix)
 
     def finish_package_upload_callback(self):
         print('\033[1K\rUploading objects: ok\033[?25h')
@@ -84,14 +79,24 @@ class TTYCallback(BaseCallback):
 
 class NoTTYCallback(BaseCallback):
 
-    coeficient = 5
+    def __init__(self):
+        super().__init__()
+        self.current = 0
+        self.coeficient = 5
+        self.next_step = 0
 
     def start_objects_load(self):
         print('Loading objects: ', end='', flush=True)
 
     def object_read_upload_callback(self):
-        progress = int((self.total // self.parcel) * self.coeficient)
-        print('{}% '.format(progress), end='', flush=True)
+        self.current += 1
+        progress = math.floor((self.current / self.max) * 100)
+        if progress >= self.next_step:
+            steps = progress // self.coeficient
+            until = steps * self.coeficient
+            for step in range(self.next_step, until, self.coeficient):
+                print('{}% '.format(step), end='', flush=True)
+            self.next_step = until
 
     def finish_objects_load(self):
         print('ok', flush=True)
@@ -100,7 +105,7 @@ class NoTTYCallback(BaseCallback):
         print('Uploading objects:', flush=True)
 
     def finish_package_upload_callback(self):
-        print()
+        print('100%', flush=True)
 
 
 def get_callback():
