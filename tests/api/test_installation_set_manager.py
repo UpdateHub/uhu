@@ -102,6 +102,17 @@ class InstallationSetManagerTestCase(unittest.TestCase):
             self.assertEqual(obj.mode, 'raw')
             self.assertEqual(obj.options['target-device'], '/dev/sda')
 
+    def test_can_create_object_with_different_values(self):
+        manager = InstallationSetManager(InstallationSetMode.ActiveInactive)
+        self.assertEqual(len(manager.all()), 0)
+        index = manager.create(__file__, 'raw', {
+            'target-device': ('/dev/sda', '/dev/sdb')
+        })
+        obj0 = manager.get(index=0, installation_set=0)
+        obj1 = manager.get(index=0, installation_set=1)
+        self.assertEqual(obj0.options['target-device'], '/dev/sda')
+        self.assertEqual(obj1.options['target-device'], '/dev/sdb')
+
     @verify_all_modes
     def test_can_get_object(self, mode):
         manager = InstallationSetManager(mode)

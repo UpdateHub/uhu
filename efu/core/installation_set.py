@@ -108,11 +108,16 @@ class InstallationSetManager:
             cache[obj.filename] = obj_cache
         call(callback, 'finish_objects_load')
 
-    def create(self, *args, **kw):
+    def create(self, fn, mode, options):
         """Creates a new object in a given installation set."""
-        for installation_set in self:
-            index = installation_set.create(*args, **kw)
-        return index
+        for index, installation_set in enumerate(self):
+            index_options = {}
+            for opt, value in options.items():
+                if isinstance(value, tuple):
+                    value = value[index]
+                index_options[opt] = value
+            obj_index = installation_set.create(fn, mode, index_options)
+        return obj_index
 
     def get(self, index, installation_set):
         """Retrives an object from an given installation set."""
