@@ -160,6 +160,8 @@ class InstallationSetManager:
         return len(self._sets)
 
     def __str__(self):
+        if len(self.all()) == 0:
+            return 'Objects: None'
         s = []
         s.append('Objects:\n')
         for index, installation_set in enumerate(self):

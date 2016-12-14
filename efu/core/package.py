@@ -225,16 +225,9 @@ class Package:
         return response.json().get('status')
 
     def __str__(self):
-        s = []
-        # Product
-        s.append('Product: {}'.format(self.product))
-        # Version
-        s.append('Version: {}'.format(self.version))
-        # Supported hardware
-        s.append(str(self.hardwares))
-        # Objects
-        if len(self.objects.all()):
-            s.append(str(self.objects))
-        else:
-            s.append('Objects: None')
-        return '\n'.join(s)
+        return '\n'.join([
+            'Product: {}'.format(self.product),
+            'Version: {}'.format(self.version),
+            str(self.hardwares),
+            str(self.objects),
+        ])
