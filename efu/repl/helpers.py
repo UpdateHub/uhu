@@ -171,19 +171,8 @@ def prompt_object_option(obj):
     return options[option.strip()]
 
 
-def prompt_object_option_value(option, mode, default='', indent_level=0):
-    """Given an object and an option, prompts user for a valid value.
-
-    :param option: an efu `Option` instance.
-    :param mode: a valid Object mode string.
-    :param default: a default value to be displayed as placeholder.
-    :param indent_level: Controls how many spaces must be added before
-                         `msg`.
-    """
-    if option.metadata == 'filename':
-        return prompt_object_filename('Select a new file', indent_level=2)
-
-    # Message
+def _get_object_option_value_message(option, indent_level):
+    """Retuns a message for object_option_value prompt."""
     if option.default is not None:
         default_msg = option.default
         if option.type == 'bool':
@@ -196,21 +185,42 @@ def prompt_object_option_value(option, mode, default='', indent_level=0):
         msg = '{}'.format(option.verbose_name.title())
     msg = indent(msg, indent_level, all_lines=True)
     msg = '{}: '.format(msg)
+    return msg
 
-    # Completer
-    if option.choices:
-        completer = ObjectOptionValueCompleter(option)
-    elif option.type == 'bool':
-        completer = YesNoCompleter()
-    else:
-        completer = None
 
-    # Validation
-    validator = ObjectOptionValueValidator(option, mode)
-
+def _prompt_object_option_value(option, msg, completer, default, validator):
+    """Retuns a value for object_option_value prompt."""
     value = prompt(
         msg, completer=completer, default=default, validator=validator).strip()
-    return option.convert(value) if value != '' else option.default
+    if value == '':
+        return option.default
+    return option.convert(value)
+
+
+def _get_object_option_value_completer(option):
+    """Retuns a completer for object_option_value prompt."""
+    if option.choices:
+        return ObjectOptionValueCompleter(option)
+    elif option.type == 'bool':
+        return YesNoCompleter()
+
+
+def prompt_object_option_value(option, mode, default='', indent_level=0):
+    """Given an object and an option, prompts user for a valid value.
+
+    :param option: an efu `Option` instance.
+    :param mode: a valid Object mode string.
+    :param default: a default value to be displayed as placeholder.
+    :param indent_level: Controls how many spaces must be added before
+                         `msg`.
+    """
+    if option.metadata == 'filename':
+        return prompt_object_filename('Select a new file', indent_level=2)
+    msg = _get_object_option_value_message(option, indent_level)
+    completer = _get_object_option_value_completer(option)
+    validator = ObjectOptionValueValidator(option, mode)
+    return _prompt_object_option_value(
+        option, msg, completer, default, validator)
 
 
 def prompt_package_uid():
