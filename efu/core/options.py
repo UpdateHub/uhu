@@ -34,6 +34,9 @@ class Option:
         self.required_in = tuple(conf.get('required_in', []))
         self.requirements = conf.get('requirements', {})
 
+    def is_asymmetric(self):
+        return self.metadata in ASYMMETRIC_OPTIONS
+
     def validate_bool(self, value):
         if isinstance(value, bool):
             return value

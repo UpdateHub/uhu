@@ -3,7 +3,6 @@
 """Main EFU REPL command functions."""
 
 from ..config import config
-from ..core.options import ASYMMETRIC_OPTIONS
 from ..core.package import Package
 from ..ui import get_callback
 
@@ -75,7 +74,7 @@ def edit_object(ctx):
     option = helpers.prompt_object_option(obj)
 
     installation_set = None
-    if option.metadata in ASYMMETRIC_OPTIONS:
+    if option.is_asymmetric():
         installation_set = helpers.prompt_installation_set(ctx.package)
         obj = ctx.package.objects.get(
             index=index, installation_set=installation_set)
