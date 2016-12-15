@@ -92,7 +92,7 @@
         "modes": ["copy", "tarball"],
         "required_in": ["copy", "tarball"],
         "type": "str",
-        "choices": ["btrfs", "ext2", "ext3", "ext4", "vfat", "fsfs", "jffs2", "ubifs", "xfs"],
+        "choices": ["btrfs", "ext2", "ext3", "ext4", "vfat", "f2fs", "jffs2", "ubifs", "xfs"],
         "help": "Filesystem type that must be used to mount the target-device",
         "cli": ["--filesystem", "-fs"],
         "verbose-name": "filesystem"
