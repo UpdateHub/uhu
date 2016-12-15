@@ -48,11 +48,28 @@ class ObjectManagementTestCase(BaseTestCase):
 
     @patch('efu.repl.helpers.prompt')
     def test_can_add_object(self, prompt):
-        values = [__file__, 'copy', '', '/', '/', 'ext4', '', '', '']
+        values = [
+            __file__,
+            'copy',
+            '',  # install condition (always)
+            '/dev/sda',  # target device (set 0)
+            '/dev/sdb',  # target device (set 1)
+            '/home/user1',  # target path (set 0)
+            '/home/user2',  # target path (set 1)
+            'ext4',  # filesystem
+            '',  # mount options
+            '',  # format device
+        ]
         prompt.side_effect = values
         self.assertEqual(len(self.repl.package.objects.all()), 0)
         functions.add_object(self.repl)
         self.assertEqual(len(self.repl.package.objects.all()), 2)
+        obj0 = self.repl.package.objects.get(index=0, installation_set=0)
+        obj1 = self.repl.package.objects.get(index=0, installation_set=1)
+        self.assertEqual(obj0.options['target-device'], '/dev/sda')
+        self.assertEqual(obj1.options['target-device'], '/dev/sdb')
+        self.assertEqual(obj0.options['target-path'], '/home/user1')
+        self.assertEqual(obj1.options['target-path'], '/home/user2')
 
     @patch('efu.repl.helpers.prompt')
     def test_can_remove_object_using_uid(self, prompt):

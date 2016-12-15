@@ -55,8 +55,8 @@ def add_object(ctx):
     """Add an object into the current package."""
     filename = helpers.prompt_object_filename()
     mode = helpers.prompt_object_mode()
-    options = helpers.prompt_object_options(mode)
-    ctx.package.objects.create(filename, mode, options)
+    options = helpers.prompt_object_options(ctx.package.mode, mode)
+    ctx.package.objects.create(filename, mode, options=options)
 
 
 @helpers.cancellable

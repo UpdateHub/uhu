@@ -104,18 +104,30 @@ def parse_prompt_object_uid(value):
     return int(value.split('#')[0].strip())
 
 
-def prompt_object_options(mode):
+def prompt_object_options(package_mode, object_mode):
     """Prompts user for object options.
 
-    :param mode: A string indicating the object mode.
+    :param pacakge_mode: A efu `InstallationSetMode` instance.
+    :param object_mode: A string indicating the object mode.
     """
     options = {}
-    for option in MODES[mode]:
+    for option in MODES[object_mode]:
         try:
             option.validate_requirements(options)
         except ValueError:
             continue  # requirements not satisfied, skip this option
-        options[option.metadata] = prompt_object_option_value(option, mode)
+        if option.is_asymmetric():
+            value = []
+            for installation_set in range(package_mode.value):
+                value.append(
+                    prompt_object_option_value(
+                        option=option,
+                        mode=object_mode,
+                        installation_set=installation_set))
+            value = tuple(value)
+        else:
+            value = prompt_object_option_value(option, object_mode)
+        options[option.metadata] = value
     return options
 
 
@@ -171,7 +183,7 @@ def prompt_object_option(obj):
     return options[option.strip()]
 
 
-def _get_object_option_value_message(option, indent_level):
+def _get_object_option_value_message(option, indent_level, set_=None):
     """Retuns a message for object_option_value prompt."""
     if option.default is not None:
         default_msg = option.default
@@ -184,7 +196,10 @@ def _get_object_option_value_message(option, indent_level):
     else:
         msg = '{}'.format(option.verbose_name.title())
     msg = indent(msg, indent_level, all_lines=True)
-    msg = '{}: '.format(msg)
+    set_msg = ''
+    if set_ is not None:
+        set_msg = ' (installation set {})'.format(set_)
+    msg = '{}{}: '.format(msg, set_msg)
     return msg
 
 
@@ -205,22 +220,26 @@ def _get_object_option_value_completer(option):
         return YesNoCompleter()
 
 
-def prompt_object_option_value(option, mode, default='', indent_level=0):
+def prompt_object_option_value(
+        option, mode, installation_set=None, default='', indent_level=0):
     """Given an object and an option, prompts user for a valid value.
 
     :param option: an efu `Option` instance.
     :param mode: a valid Object mode string.
+    :param installation_set: an int indicating the installation set.
     :param default: a default value to be displayed as placeholder.
     :param indent_level: Controls how many spaces must be added before
                          `msg`.
     """
     if option.metadata == 'filename':
         return prompt_object_filename('Select a new file', indent_level=2)
-    msg = _get_object_option_value_message(option, indent_level)
+    msg = _get_object_option_value_message(
+        option, indent_level, installation_set)
     completer = _get_object_option_value_completer(option)
     validator = ObjectOptionValueValidator(option, mode)
-    return _prompt_object_option_value(
+    value = _prompt_object_option_value(
         option, msg, completer, default, validator)
+    return value
 
 
 def prompt_package_uid():

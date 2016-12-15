@@ -64,7 +64,8 @@ class PromptsTestCase(unittest.TestCase):
     def test_can_prompt_object_options(self, prompt):
         prompt.side_effect = [
             'always',  # install-condition
-            '/dev/sda',  # target-device
+            '/dev/sda',  # target-device (set 0)
+            '/dev/sdb',  # target-device (set 1)
             '1000',  # chunk-size
             '300',  # count
             '100',  # seek
@@ -72,7 +73,7 @@ class PromptsTestCase(unittest.TestCase):
             'yes',  # truncate
         ]
         expected = {
-            'target-device': '/dev/sda',
+            'target-device': ('/dev/sda', '/dev/sdb'),
             'truncate': True,
             'seek': 100,
             'skip': 200,
@@ -80,14 +81,16 @@ class PromptsTestCase(unittest.TestCase):
             'chunk-size': 1000,
             'install-condition': 'always',
         }
-        observed = helpers.prompt_object_options('raw')
+        pkg_mode = InstallationSetMode.ActiveInactive
+        observed = helpers.prompt_object_options(pkg_mode, 'raw')
         self.assertEqual(expected, observed)
 
     @patch('efu.repl.helpers.prompt')
     def test_can_prompt_object_options_with_empty_prompts(self, prompt):
         prompt.side_effect = [
             '',  # install-condition
-            '/dev/sda',  # target-device
+            '/dev/sda',  # target-device (set 0)
+            '/dev/sdb',  # target-device (set 1)
             '',  # chunk-size
             '',  # count
             '',  # seek
@@ -95,7 +98,7 @@ class PromptsTestCase(unittest.TestCase):
             '',  # truncate
         ]
         expected = {
-            'target-device': '/dev/sda',
+            'target-device': ('/dev/sda', '/dev/sdb'),
             'truncate': False,
             'seek': 0,
             'skip': 0,
@@ -103,7 +106,8 @@ class PromptsTestCase(unittest.TestCase):
             'chunk-size': 131072,
             'install-condition': 'always',
         }
-        observed = helpers.prompt_object_options('raw')
+        pkg_mode = InstallationSetMode.ActiveInactive
+        observed = helpers.prompt_object_options(pkg_mode, 'raw')
         self.assertEqual(expected, observed)
 
     @patch('efu.repl.helpers.prompt')
