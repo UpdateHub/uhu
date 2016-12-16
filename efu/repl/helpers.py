@@ -119,11 +119,14 @@ def prompt_object_options(package_mode, object_mode):
         if option.is_asymmetric():
             value = []
             for installation_set in range(package_mode.value):
+                default = value[-1] if len(value) else ''
                 value.append(
                     prompt_object_option_value(
                         option=option,
                         mode=object_mode,
-                        installation_set=installation_set))
+                        installation_set=installation_set,
+                        default=default,
+                    ))
             value = tuple(value)
         else:
             value = prompt_object_option_value(option, object_mode)
