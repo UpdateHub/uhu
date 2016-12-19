@@ -4,6 +4,7 @@ Objects:
 
         0# manager.txt [mode: raw]
 
+            Install condition: always install
             Target device:     /dev/sda [seek: 0, truncate: no]
             Chunk size:        128.0 KiB
             Skip from source:  0

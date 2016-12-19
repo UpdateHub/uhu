@@ -364,18 +364,39 @@ class Object:
             return '[{}]'.format(', '.join(s))
         return ''
 
+    def _str_install_condition(self):
+        s = []
+        condition = self.install_condition.get('install-condition')
+        if condition == 'always':
+            s.append('    Install condition: always install')
+        elif condition == 'content-diverges':
+            s.append('    Install condition: install when CONTENT diverges')
+        elif condition == 'version-diverges':
+            s.append('    Install condition: install when VERSION diverges')
+            type_ = self.install_condition['install-condition-pattern-type']
+            if type_ == 'regexp':
+                msg = '    Version pattern:   "{}" [seek: {}, buffer-size: {}]'
+                s.append(msg.format(
+                    self.install_condition['install-condition-pattern'],
+                    self.install_condition['install-condition-seek'],
+                    self.install_condition['install-condition-buffer-size'],
+                ))
+            else:
+                s.append('    Version pattern:   linux-kernel')
+        return '\n'.join(s)
+
     def __str__(self):
         s = []
         header = '{} [mode: {}]\n'.format(self.filename, self.mode)
         s.append(header)
+        if self.install_condition is not None:
+            s.append(self._str_install_condition())
         for option, conf in OBJECT_STRING_TEMPLATE.items():
             if option in self.options:
                 value = self._str_value(option, conf)
                 line = '    {:<18} {} {}'.format(
                     conf['display'], value, self._str_children(conf))
                 s.append(line.rstrip())
-        if len(s) == 1:  # no options
-            s.append('    No options.')
         return '\n'.join(s)
 
 

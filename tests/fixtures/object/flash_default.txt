@@ -1,3 +1,4 @@
  flash_default.txt [mode: flash]
 
+    Install condition: always install
     Target device:     /dev/sda

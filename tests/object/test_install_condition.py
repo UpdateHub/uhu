@@ -524,3 +524,57 @@ class CustomVersionPatternObjectIntegrationTestCase(
         }
         obj.load()
         self.assertEqual(obj.install_if_different, expected)
+
+
+class InstallConditionRepresentationTestCase(unittest.TestCase):
+
+    def setUp(self):
+        cwd = os.getcwd()
+        os.chdir('tests/fixtures/object')
+        self.addCleanup(os.chdir, cwd)
+
+    def get_fixture(self, fn):
+        with open(fn) as fp:
+            return fp.read().strip()
+
+    def test_object_with_install_condition_always(self):
+        expected = self.get_fixture('install_condition_always.txt')
+        obj = Object('file.txt', 'raw', {
+            'target-device': '/',
+            'install-condition': 'always',
+        })
+        self.assertEqual(str(obj), expected)
+
+    def test_object_with_install_condition_content_diverges(self):
+        expected = self.get_fixture('install_condition_content.txt')
+        obj = Object('file.txt', 'raw', {
+            'target-device': '/',
+            'install-condition': 'content-diverges',
+        })
+        self.assertEqual(str(obj), expected)
+
+    def test_object_with_install_condition_known_version_diverges(self):
+        expected = self.get_fixture('install_condition_known_version.txt')
+        obj = Object('file.txt', 'raw', {
+            'target-device': '/',
+            'install-condition': 'version-diverges',
+            'install-condition-pattern-type': 'linux-kernel',
+        })
+        self.assertEqual(str(obj), expected)
+
+    def test_object_with_install_condition_regexp_version_diverges(self):
+        expected = self.get_fixture('install_condition_version_regexp.txt')
+        obj = Object('file.txt', 'raw', {
+            'target-device': '/',
+            'install-condition': 'version-diverges',
+            'install-condition-pattern-type': 'regexp',
+            'install-condition-pattern': '.+',
+            'install-condition-seek': 0,
+            'install-condition-buffer-size': 100,
+        })
+        self.assertEqual(str(obj), expected)
+
+    def test_object_without_install_condition_support(self):
+        obj = Object('file.txt', 'ubifs', {'volume': 'system0'})
+        expected = self.get_fixture('install_condition_ubifs.txt')
+        self.assertEqual(str(obj), expected)

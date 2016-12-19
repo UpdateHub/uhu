@@ -1,5 +1,6 @@
 copy_full.txt [mode: copy]
 
+    Install condition: always install
     Target device:     /dev/sda [filesystem: ext4]
     Format device:     yes [options: "-b 1024"]
     Mount options:     "--all"

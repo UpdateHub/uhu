@@ -1,0 +1,8 @@
+file.txt [mode: raw]
+
+    Install condition: install when VERSION diverges
+    Version pattern:   ".+" [seek: 0, buffer-size: 100]
+    Target device:     / [seek: 0, truncate: no]
+    Chunk size:        128.0 KiB
+    Skip from source:  0
+    Count:             all content

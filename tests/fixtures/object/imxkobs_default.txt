@@ -1,3 +1,3 @@
 imxkobs_default.txt [mode: imxkobs]
 
-    No options.
+    Install condition: always install
