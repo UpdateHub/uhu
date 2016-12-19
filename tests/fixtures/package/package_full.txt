@@ -31,7 +31,6 @@ Objects:
 
         3# files/archive.tar.gz [mode: tarball]
 
-            Install condition: always install
             Target device:     /dev/sda3 [filesystem: ext4]
             Format device:     yes [options: "-i 100 -J size=500"]
             Mount options:     "--all --fstab=/etc/fstab2"
