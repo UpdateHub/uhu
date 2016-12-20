@@ -2,7 +2,7 @@
 # This software is released under the MIT License
 
 from efu.core.package import Package
-from efu.core.installation_set import InstallationSetMode
+from efu.core.manager import InstallationSetMode
 from efu.repl.repl import EFURepl
 from efu.utils import LOCAL_CONFIG_VAR
 

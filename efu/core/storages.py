@@ -1,11 +1,30 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
+import os
+
 import requests
+
+from ..utils import call
+
+
+class ObjectReader:
+    """Read-only object class. Used when uploading with requests."""
+
+    def __init__(self, obj, callback=None):
+        self.obj = obj
+        self.callback = callback
+
+    def __len__(self):
+        return os.path.getsize(self.obj.filename)
+
+    def __iter__(self):
+        for chunk in self.obj:
+            call(self.callback, 'object_read', self.obj)
+            yield chunk
 
 
 def dummy_object_upload(obj, url, callback=None):
-    from .object import ObjectReader
     data = ObjectReader(obj, callback)
     response = requests.put(url, data=data)
     return response.ok

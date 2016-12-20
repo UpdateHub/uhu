@@ -25,5 +25,8 @@ class PackageTestCase(FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase):
         self.obj_fn = self.create_file(self.obj_content)
         self.obj_sha256 = self.sha256sum(self.obj_content)
         self.obj_mode = 'raw'
-        self.obj_options = {'target-device': '/dev/sda'}
+        self.obj_options = {
+            'filename': self.obj_fn,
+            'target-device': '/dev/sda',
+        }
         self.obj_size = 4

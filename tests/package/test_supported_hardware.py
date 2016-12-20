@@ -2,12 +2,11 @@
 # This software is released under the MIT License
 
 import json
-import os
 import tempfile
 import unittest
 
 from efu.core.package import Package
-from efu.core.installation_set import InstallationSetMode
+from efu.core.manager import InstallationSetMode
 
 
 class PackageHardwareManagerIntegrationTestCase(unittest.TestCase):

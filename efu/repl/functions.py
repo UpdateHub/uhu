@@ -53,10 +53,9 @@ def save_package(ctx):
 @helpers.cancellable
 def add_object(ctx):
     """Add an object into the current package."""
-    filename = helpers.prompt_object_filename()
-    mode = helpers.prompt_object_mode()
-    options = helpers.prompt_object_options(ctx.package.mode, mode)
-    ctx.package.objects.create(filename, mode, options=options)
+    obj_mode = helpers.prompt_object_mode()
+    options = helpers.prompt_object_options(ctx.package.mode, obj_mode)
+    ctx.package.objects.create(obj_mode, options)
 
 
 @helpers.cancellable
@@ -74,12 +73,12 @@ def edit_object(ctx):
     option = helpers.prompt_object_option(obj)
 
     installation_set = None
-    if option.is_asymmetric():
+    if not option.symmetric:
         installation_set = helpers.prompt_installation_set(ctx.package)
         obj = ctx.package.objects.get(
             index=index, installation_set=installation_set)
-
-    default = obj.options.get(option.metadata, '')
+    current_value = obj[option.metadata]
+    default = current_value if current_value else ''
     value = helpers.prompt_object_option_value(
         option, obj.mode, default=default)
     ctx.package.objects.update(

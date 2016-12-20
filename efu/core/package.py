@@ -13,7 +13,7 @@ from ..utils import call, get_server_url, validate_schema
 
 from .hardware import HardwareManager
 from .object import Object, ObjectUploadResult
-from .installation_set import InstallationSetManager, InstallationSetMode
+from .manager import InstallationSetManager, InstallationSetMode
 
 
 MODES = ['single', 'active-inactive']
@@ -41,13 +41,14 @@ class Package:
             version=dump.get('version'),
             product=dump.get('product'))
         package.hardwares = HardwareManager(dump.get('supported-hardware'))
+        blacklist = ('mode',)
         for set_index, installation_set in enumerate(objects):
             for obj in installation_set:
+                options = {option: value
+                           for option, value in obj.items()
+                           if option not in blacklist}
                 set_ = package.objects.get_installation_set(set_index)
-                set_.create(
-                    fn=obj['filename'],
-                    mode=obj['mode'],
-                    options=obj['options'])
+                set_.create(mode=obj['mode'], options=options)
         return package
 
     @classmethod
@@ -71,7 +72,7 @@ class Package:
         # Objects
         for set_index, installation_set in enumerate(objects):
             for obj in installation_set:
-                blacklist = ('filename', 'mode', 'install-if-different')
+                blacklist = ('mode', 'install-if-different')
                 options = {option: value
                            for option, value in obj.items()
                            if option not in blacklist}
@@ -79,11 +80,7 @@ class Package:
                 if install_if_different is not None:
                     options.update(Object.to_install_condition(obj))
                 set_ = package.objects.get_installation_set(set_index)
-                set_.create(
-                    fn=obj['filename'],
-                    mode=obj['mode'],
-                    options=options,
-                    sha256sum=obj['sha256sum'])
+                set_.create(mode=obj['mode'], options=options)
         return package
 
     def metadata(self):
@@ -191,13 +188,13 @@ class Package:
         """
         objects = []
         for obj in self.objects.all():
-            if not obj.exists():
+            if not obj.exists:
                 objects.append(obj)
                 continue  # File does not exist, must be downloaded
             sha256sum = hashlib.sha256()
             for chunk in obj:
                 sha256sum.update(chunk)
-            if sha256sum.hexdigest() != obj.sha256sum:
+            if sha256sum.hexdigest() != obj['sha256sum']:
                 # Local object diverges from server object, must abort
                 raise DownloadError(
                     '{} will be overwritten'.format(obj.filename))
@@ -208,7 +205,7 @@ class Package:
 
     def get_object_download_url(self, uid, obj):
         path = '/products/{}/packages/{}/objects/{}'.format(
-            self.product, uid, obj.sha256sum)
+            self.product, uid, obj['sha256sum'])
         return get_server_url(path)
 
     def get_metadata_upload_url(self):

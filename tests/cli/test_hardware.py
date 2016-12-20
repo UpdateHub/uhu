@@ -4,8 +4,7 @@
 from efu.cli.hardware import (
     add_supported_hardware_command, remove_supported_hardware_command)
 from efu.core import Package
-from efu.core.installation_set import InstallationSetMode
-from efu.utils import LOCAL_CONFIG_VAR
+from efu.core.manager import InstallationSetMode
 
 from cli.test_package import PackageTestCase
 

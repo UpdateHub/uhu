@@ -4,7 +4,7 @@
 from enum import Enum, unique
 
 from .object import Object
-from .options import ASYMMETRIC_OPTIONS
+from ._options import Options
 
 from ..utils import call, indent
 
@@ -18,9 +18,9 @@ class InstallationSet:
     def __init__(self):
         self._objects = []
 
-    def create(self, *args, **kwargs):
+    def create(self, mode, options):
         """Adds an object into set, returns its index."""
-        self._objects.append(Object(*args, **kwargs))
+        self._objects.append(Object(mode, options))
         return len(self) - 1
 
     def get(self, index):
@@ -96,19 +96,11 @@ class InstallationSetManager:
 
     def load(self, callback=None):
         call(callback, 'start_objects_load')
-        cache = dict()
         for obj in self.all():
-            obj_cache = cache.get(obj.filename, {})
-            obj.load(cache=obj_cache, callback=callback)
-            # updates cache
-            obj_cache['size'] = obj.size
-            obj_cache['md5'] = obj.md5
-            obj_cache['sha256sum'] = obj.sha256sum
-            obj_cache['version'] = obj.version
-            cache[obj.filename] = obj_cache
+            obj.load(callback=callback)
         call(callback, 'finish_objects_load')
 
-    def create(self, fn, mode, options):
+    def create(self, mode, options):
         """Creates a new object in a given installation set."""
         for index, installation_set in enumerate(self):
             index_options = {}
@@ -116,7 +108,7 @@ class InstallationSetManager:
                 if isinstance(value, tuple):
                     value = value[index]
                 index_options[opt] = value
-            obj_index = installation_set.create(fn, mode, index_options)
+            obj_index = installation_set.create(mode, index_options)
         return obj_index
 
     def get(self, index, installation_set):
@@ -126,18 +118,19 @@ class InstallationSetManager:
 
     def update(self, index, option, value, installation_set=None):
         """Updates an object option value."""
-        if option in ASYMMETRIC_OPTIONS:
-            if installation_set is None:
-                raise ValueError(
-                    'You must specify an installation set for this option')
-            installation_set = self.get_installation_set(installation_set)
-            installation_set.update(index, option, value)
-        else:
+        option = Options.get(option)
+        if option.symmetric:
             if installation_set is not None:
                 raise ValueError(
                     'You must not pass an installation set for this option')
             for installation_set in self:
-                installation_set.update(index, option, value)
+                installation_set.update(index, option.metadata, value)
+        else:
+            if installation_set is None:
+                raise ValueError(
+                    'You must specify an installation set for this option')
+            installation_set = self.get_installation_set(installation_set)
+            installation_set.update(index, option.metadata, value)
 
     def remove(self, index):
         """Removes an object from all installation sets."""

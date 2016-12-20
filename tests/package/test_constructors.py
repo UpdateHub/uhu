@@ -4,7 +4,7 @@
 import json
 import os
 
-from efu.core.installation_set import InstallationSetMode
+from efu.core.manager import InstallationSetMode
 from efu.core.package import Package
 
 from . import PackageTestCase
@@ -30,22 +30,18 @@ class PackageConstructorsTestCase(PackageTestCase):
                     {
                         'filename': self.obj_fn,
                         'mode': 'copy',
-                        'options': {
-                            'target-device': '/dev/sda',
-                            'target-path': '/boot',
-                            'filesystem': 'ext4',
-                        }
+                        'target-device': '/dev/sda',
+                        'target-path': '/boot',
+                        'filesystem': 'ext4',
                     }
                 ],
                 [
                     {
                         'filename': self.obj_fn,
                         'mode': 'copy',
-                        'options': {
-                            'target-device': '/dev/sda',
-                            'target-path': '/boot',
-                            'filesystem': 'ext4',
-                        }
+                        'target-device': '/dev/sda',
+                        'target-path': '/boot',
+                        'filesystem': 'ext4',
                     }
                 ]
             ]
@@ -58,9 +54,9 @@ class PackageConstructorsTestCase(PackageTestCase):
         obj = pkg.objects.get(index=0, installation_set=0)
         self.assertEqual(obj.filename, self.obj_fn)
         self.assertEqual(obj.mode, 'copy')
-        self.assertEqual(obj.options['target-device'], '/dev/sda')
-        self.assertEqual(obj.options['target-path'], '/boot')
-        self.assertEqual(obj.options['filesystem'], 'ext4')
+        self.assertEqual(obj['target-device'], '/dev/sda')
+        self.assertEqual(obj['target-path'], '/boot')
+        self.assertEqual(obj['filesystem'], 'ext4')
 
     def test_can_create_package_from_metadata(self):
         metadata = {
@@ -98,9 +94,9 @@ class PackageConstructorsTestCase(PackageTestCase):
         obj = pkg.objects.get(index=0, installation_set=0)
         self.assertEqual(obj.filename, self.obj_fn)
         self.assertEqual(obj.mode, 'copy')
-        self.assertEqual(obj.options['target-device'], '/dev/sda')
-        self.assertEqual(obj.options['target-path'], '/boot')
-        self.assertEqual(obj.options['filesystem'], 'ext4')
+        self.assertEqual(obj['target-device'], '/dev/sda')
+        self.assertEqual(obj['target-path'], '/boot')
+        self.assertEqual(obj['filesystem'], 'ext4')
 
     def test_can_dump_package_with_compression_and_load_from_file(self):
         compressed_fn = os.path.join(
@@ -108,8 +104,14 @@ class PackageConstructorsTestCase(PackageTestCase):
 
         pkg_fn = self.create_file(b'')
         pkg = Package(InstallationSetMode.ActiveInactive)
-        pkg.objects.create(__file__, 'raw', {'target-device': '/'})
-        pkg.objects.create(compressed_fn, 'raw', {'target-device': '/'})
+        pkg.objects.create('raw', {
+            'filename': __file__,
+            'target-device': '/'
+        })
+        pkg.objects.create('raw', {
+            'filename': compressed_fn,
+            'target-device': '/'
+        })
         expected = pkg.template(), pkg.metadata()
 
         pkg.dump(pkg_fn)
@@ -121,7 +123,10 @@ class PackageConstructorsTestCase(PackageTestCase):
         compressed_fn = os.path.join(
             os.path.dirname(__file__), '../fixtures/compressed/base.txt.gz')
         pkg = Package(InstallationSetMode.ActiveInactive)
-        pkg.objects.create(compressed_fn, 'raw', {'target-device': '/'})
+        pkg.objects.create('raw', {
+            'filename': compressed_fn,
+            'target-device': '/',
+        })
         pkg.objects.load()
         expected = pkg.metadata()
 

@@ -10,7 +10,7 @@ import unittest
 from uuid import uuid4
 
 from efu.core import Package
-from efu.core.installation_set import InstallationSetMode
+from efu.core.manager import InstallationSetMode
 from efu.utils import CHUNK_SIZE_VAR, LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 from httpmock.httpd import HTTPMockServer
@@ -120,7 +120,7 @@ class UploadFixtureMixin:
         upload_url = self.generic_url(upload_success, method='PUT')
 
         start_upload_path = '/products/{}/packages/{}/objects/{}'.format(
-            product_uid, package_uid, obj.sha256sum)
+            product_uid, package_uid, obj['sha256sum'])
         start_upload_body = json.dumps({
             'url': upload_url,
             'storage': 'dummy',
@@ -182,8 +182,10 @@ class BasePushTestCase(
             product=self.product)
         for _ in range(3):
             fn = self.create_file('123')
-            self.package.objects.create(
-                fn, 'raw', {'target-device': '/dev/sda'})
+            self.package.objects.create('raw', {
+                'filename': fn,
+                'target-device': '/dev/sda',
+            })
 
 
 class BasePullTestCase(EnvironmentFixtureMixin, FileFixtureMixin,

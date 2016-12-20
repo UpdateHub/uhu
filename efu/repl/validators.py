@@ -6,6 +6,7 @@ import re
 
 from prompt_toolkit.validation import Validator
 
+from ..core.object import Modes
 from .exceptions import ValidationError
 
 
@@ -25,19 +26,6 @@ class ContainerValidator(Validator):
                 message='"{}" is not a valid {}'.format(element, self.name))
 
 
-class FileValidator(Validator):
-
-    def validate(self, document):
-        filename = document.text.strip()
-        if not filename:
-            raise ValidationError(message='You must specify a file')
-        if not os.path.exists(filename):
-            raise ValidationError(
-                message='"{}" does not exist'.format(filename))
-        if os.path.isdir(filename):
-            raise ValidationError(message='Only files are allowed')
-
-
 class ObjectUIDValidator(Validator):
 
     def validate(self, document):
@@ -53,7 +41,7 @@ class ObjectOptionValueValidator(Validator):
 
     def __init__(self, option, mode, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.mode = mode
+        self.mode = Modes.get(mode)
         self.option = option
 
     def validate(self, document):
@@ -61,12 +49,22 @@ class ObjectOptionValueValidator(Validator):
         if not value:
             if self.option.default is not None:
                 return None
-            if self.option.is_required(self.mode):
+            if self.mode.is_required(self.option):
                 raise ValidationError(message='You must provide a value')
         try:
-            self.option.convert(value)
+            if self.option.metadata == 'filename':
+                self.validate_filename(value)
+            else:
+                self.option.validate(value)
         except ValueError as err:
             raise ValidationError(message=str(err))
+
+    def validate_filename(self, filename):
+        if not os.path.exists(filename):
+            raise ValidationError(
+                message='"{}" does not exist'.format(filename))
+        if os.path.isdir(filename):
+            raise ValidationError(message='Only files are allowed')
 
 
 class PackageUIDValidator(Validator):

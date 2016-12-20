@@ -13,7 +13,9 @@ from prompt_toolkit.contrib.completers import WordCompleter
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.keys import Keys
 
-from ..core.options import MODES, Option
+from ..core.validators import validate_option_requirements
+from ..core.object import Modes
+from ..core._options import Options
 from ..core.package import MODES as PKG_MODES
 from ..utils import indent
 
@@ -23,8 +25,8 @@ from .completers import (
     PackageModeCompleter)
 from .exceptions import CancelPromptException
 from .validators import (
-    FileValidator, ObjectUIDValidator, ContainerValidator,
-    ObjectOptionValueValidator, PackageUIDValidator, YesNoValidator)
+    ObjectUIDValidator, ContainerValidator, ObjectOptionValueValidator,
+    PackageUIDValidator, YesNoValidator)
 
 
 manager = KeyBindingManager.for_prompt()
@@ -87,15 +89,6 @@ def set_product_prompt(product):
     return '[{}] efu> '.format(product[:6])
 
 
-def get_object_options(obj):
-    """Returns the possbile options for a given object."""
-    mode = MODES[obj.mode]
-    options = {option.verbose_name: option for option in mode}
-    # hack to let user update object filename
-    options['filename'] = Option({'metadata': 'filename'})
-    return options
-
-
 def parse_prompt_object_uid(value):
     """Parses value passed to a prompt using get_objects_completer.
 
@@ -111,12 +104,15 @@ def prompt_object_options(package_mode, object_mode):
     :param object_mode: A string indicating the object mode.
     """
     options = {}
-    for option in MODES[object_mode]:
+    mode = Modes.get(object_mode)
+    for option in [opt for opt in mode.options if not opt.volatile]:
         try:
-            option.validate_requirements(options)
+            validate_option_requirements(option, options)
         except ValueError:
             continue  # requirements not satisfied, skip this option
-        if option.is_asymmetric():
+        if option.symmetric:
+            value = prompt_object_option_value(option, object_mode)
+        else:
             value = []
             for installation_set in range(package_mode.value):
                 default = value[-1] if len(value) else ''
@@ -128,33 +124,15 @@ def prompt_object_options(package_mode, object_mode):
                         default=default,
                     ))
             value = tuple(value)
-        else:
-            value = prompt_object_option_value(option, object_mode)
         options[option.metadata] = value
     return options
-
-
-def prompt_object_filename(msg=None, indent_level=0):
-    """Prompts user for a valid filename.
-
-    :param msg: The prompt message to display to user.
-    :param indent_level: Controls how many spaces must be added before
-                         `msg`.
-    """
-    msg = 'Choose a file to add into your package' if msg is None else msg
-    msg = indent(msg, indent_level, all_lines=True)
-    msg = '{}: '.format(msg)
-    completer = ObjectFilenameCompleter()
-    validator = FileValidator()
-    filename = prompt(msg, completer=completer, validator=validator)
-    return filename.strip()
 
 
 def prompt_object_mode():
     """Prompts user for a object mode."""
     msg = 'Choose a mode: '
     completer = ObjectModeCompleter()
-    validator = ContainerValidator('mode', list(MODES))
+    validator = ContainerValidator('mode', Modes.names())
     mode = prompt(msg, completer=completer, validator=validator)
     return mode.strip()
 
@@ -178,19 +156,19 @@ def prompt_object_option(obj):
 
     :param obj: an efu `Object` instance.
     """
-    options = get_object_options(obj)
     msg = 'Choose an option: '
+    options = sorted(opt.metadata for opt in obj.options if not opt.symmetric)
     completer = ObjectOptionCompleter(options)
     validator = ContainerValidator('option', options)
     option = prompt(msg, completer=completer, validator=validator)
-    return options[option.strip()]
+    return Options.get(option.strip())
 
 
 def _get_object_option_value_message(option, indent_level, set_=None):
     """Retuns a message for object_option_value prompt."""
     if option.default is not None:
         default_msg = option.default
-        if option.type == 'bool':
+        if option.type_name == 'boolean':
             if default_msg:
                 default_msg = 'Y/n'
             else:
@@ -212,15 +190,17 @@ def _prompt_object_option_value(option, msg, completer, default, validator):
         msg, completer=completer, default=default, validator=validator).strip()
     if value == '':
         return option.default
-    return option.convert(value)
+    return option.validate(value)
 
 
 def _get_object_option_value_completer(option):
     """Retuns a completer for object_option_value prompt."""
     if option.choices:
         return ObjectOptionValueCompleter(option)
-    elif option.type == 'bool':
+    elif option.type_name == 'boolean':
         return YesNoCompleter()
+    elif option.metadata == 'filename':
+        return ObjectFilenameCompleter()
 
 
 def prompt_object_option_value(
@@ -234,8 +214,6 @@ def prompt_object_option_value(
     :param indent_level: Controls how many spaces must be added before
                          `msg`.
     """
-    if option.metadata == 'filename':
-        return prompt_object_filename('Select a new file', indent_level=2)
     msg = _get_object_option_value_message(
         option, indent_level, installation_set)
     completer = _get_object_option_value_completer(option)

@@ -1,0 +1,7 @@
+raw_full.txt [mode: raw]
+
+    Install condition:       always install
+    Target device:           /dev/sda [seek: 3, truncate: yes]
+    Chunk size:              1 Byte
+    Skip from source:        4
+    Count:                   2

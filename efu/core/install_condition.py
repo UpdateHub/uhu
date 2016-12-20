@@ -169,3 +169,14 @@ def get_object_version(fp, pattern, seek=0, buffer_size=-1):
     if result is not None:
         return result
     raise ValueError('Cannot retrive object version')
+
+
+def get_version(fn, type_, **kwargs):
+    with open(fn, 'rb') as fp:
+        if type_ == 'linux-kernel':
+            return get_kernel_version(fp)
+        elif type_ == 'u-boot':
+            return get_uboot_version(fp)
+        elif type_ == 'regexp':
+            kwargs = {k: v for k, v in kwargs.items() if v is not None}
+            return get_object_version(fp, **kwargs)

@@ -49,9 +49,8 @@ class ObjectManagementTestCase(BaseTestCase):
     @patch('efu.repl.helpers.prompt')
     def test_can_add_object(self, prompt):
         values = [
-            __file__,
             'copy',
-            '',  # install condition (always)
+            __file__,
             '/dev/sda',  # target device (set 0)
             '/dev/sdb',  # target device (set 1)
             '/home/user1',  # target path (set 0)
@@ -59,6 +58,7 @@ class ObjectManagementTestCase(BaseTestCase):
             'ext4',  # filesystem
             '',  # mount options
             '',  # format device
+            '',  # install condition (always)
         ]
         prompt.side_effect = values
         self.assertEqual(len(self.repl.package.objects.all()), 0)
@@ -66,16 +66,18 @@ class ObjectManagementTestCase(BaseTestCase):
         self.assertEqual(len(self.repl.package.objects.all()), 2)
         obj0 = self.repl.package.objects.get(index=0, installation_set=0)
         obj1 = self.repl.package.objects.get(index=0, installation_set=1)
-        self.assertEqual(obj0.options['target-device'], '/dev/sda')
-        self.assertEqual(obj1.options['target-device'], '/dev/sdb')
-        self.assertEqual(obj0.options['target-path'], '/home/user1')
-        self.assertEqual(obj1.options['target-path'], '/home/user2')
+        self.assertEqual(obj0['target-device'], '/dev/sda')
+        self.assertEqual(obj1['target-device'], '/dev/sdb')
+        self.assertEqual(obj0['target-path'], '/home/user1')
+        self.assertEqual(obj1['target-path'], '/home/user2')
 
     @patch('efu.repl.helpers.prompt')
     def test_can_remove_object_using_uid(self, prompt):
         prompt.side_effect = ['0']
-        self.repl.package.objects.create(
-            __file__, 'raw', {'target-device': '/'})
+        self.repl.package.objects.create('raw', {
+            'filename': __file__,
+            'target-device': '/'
+        })
         self.assertEqual(len(self.repl.package.objects.all()), 2)
         functions.remove_object(self.repl)
         self.assertEqual(len(self.repl.package.objects.all()), 0)
@@ -83,8 +85,10 @@ class ObjectManagementTestCase(BaseTestCase):
     @patch('efu.repl.helpers.prompt')
     def test_can_remove_object_using_autocompleter_suggestion(self, prompt):
         prompt.side_effect = ['0# {}'.format(__file__)]
-        self.repl.package.objects.create(
-            __file__, 'raw', {'target-device': '/'})
+        self.repl.package.objects.create('raw', {
+            'filename': __file__,
+            'target-device': '/'
+        })
         self.assertEqual(len(self.repl.package.objects.all()), 2)
         functions.remove_object(self.repl)
         self.assertEqual(len(self.repl.package.objects.all()), 0)
@@ -99,24 +103,26 @@ class ObjectManagementTestCase(BaseTestCase):
     def test_can_edit_asymmetrical_option(self, prompt):
         prompt.side_effect = [
             '0',  # object index
-            'target device',  # option
+            'target-device',  # option
             '0',  # installation set index
             '/dev/sdb',  # value
         ]
-        index = self.repl.package.objects.create(
-            __file__, 'raw', {'target-device': '/dev/sda'})
+        index = self.repl.package.objects.create('raw', {
+            'filename': __file__,
+            'target-device': '/dev/sda'
+        })
         for set_index in range(len(self.repl.package.objects)):
             obj = self.repl.package.objects.get(
                 index=index, installation_set=set_index)
-            self.assertEqual(obj.options['target-device'], '/dev/sda')
+            self.assertEqual(obj['target-device'], '/dev/sda')
 
         functions.edit_object(self.repl)
 
         obj = self.repl.package.objects.get(index=index, installation_set=0)
-        self.assertEqual(obj.options['target-device'], '/dev/sdb')
+        self.assertEqual(obj['target-device'], '/dev/sdb')
 
         obj = self.repl.package.objects.get(index=index, installation_set=1)
-        self.assertEqual(obj.options['target-device'], '/dev/sda')
+        self.assertEqual(obj['target-device'], '/dev/sda')
 
     @patch('efu.repl.helpers.prompt')
     def test_can_edit_symmetrical_option(self, prompt):
@@ -125,24 +131,29 @@ class ObjectManagementTestCase(BaseTestCase):
             'count',  # option
             '200',  # value
         ]
-        index = self.repl.package.objects.create(
-            __file__, 'raw', {'target-device': '/', 'count': 100})
+        index = self.repl.package.objects.create('raw', {
+            'filename': __file__,
+            'target-device': '/',
+            'count': 100
+        })
         for set_index in range(len(self.repl.package.objects)):
             obj = self.repl.package.objects.get(
                 index=index, installation_set=set_index)
-            self.assertEqual(obj.options['count'], 100)
+            self.assertEqual(obj['count'], 100)
 
         functions.edit_object(self.repl)
 
         for set_index in range(len(self.repl.package.objects)):
             obj = self.repl.package.objects.get(
                 index=index, installation_set=set_index)
-            self.assertEqual(obj.options['count'], 200)
+            self.assertEqual(obj['count'], 200)
 
     @patch('efu.repl.helpers.prompt')
     def test_can_edit_object_filename(self, prompt):
-        self.repl.package.objects.create(
-            __file__, 'raw', {'target-device': '/'})
+        self.repl.package.objects.create('raw', {
+            'filename': __file__,
+            'target-device': '/'
+        })
         with tempfile.NamedTemporaryFile() as fp:
             prompt.side_effect = [
                 '0',  # object index
@@ -163,8 +174,10 @@ class ObjectManagementTestCase(BaseTestCase):
     @patch('efu.repl.helpers.prompt')
     def test_edit_object_raises_error_if_invalid_option(self, prompt):
         prompt.side_effect = ['1', 'invalid']
-        self.repl.package.objects.create(
-            __file__, 'raw', {'target-device': '/'})
+        self.repl.package.objects.create('raw', {
+            'filename': __file__,
+            'target-device': '/'
+        })
         with self.assertRaises(ValueError):
             functions.edit_object(self.repl)
 

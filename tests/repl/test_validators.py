@@ -2,14 +2,13 @@
 # This software is released under the MIT License
 
 import hashlib
-import os
 import unittest
 from unittest.mock import Mock
 
 from prompt_toolkit.validation import ValidationError
 
+from efu.core._options import Options
 from efu.repl import validators
-from efu.core.options import OPTIONS
 
 
 def document(text):
@@ -36,28 +35,6 @@ class ContainerValidatorTestCase(unittest.TestCase):
             validator.validate(document('non-existent'))
 
 
-class FileValidatorTestCase(unittest.TestCase):
-
-    validator = validators.FileValidator()
-
-    def test_valid_filename_returns_None(self):
-        text = __file__
-        self.assertIsNone(self.validator.validate(document(text)))
-
-    def test_empty_value_raises_error(self):
-        with self.assertRaises(ValidationError):
-            self.validator.validate(document(''))
-
-    def test_non_existent_filename_raises_error(self):
-        with self.assertRaises(ValidationError):
-            self.validator.validate(document('non-existent'))
-
-    def test_directory_name_raises_error(self):
-        path = os.path.dirname(__file__)
-        with self.assertRaises(ValidationError):
-            self.validator.validate(document(path))
-
-
 class ObjectUIDValidatorTestCase(unittest.TestCase):
 
     validator = validators.ObjectUIDValidator()
@@ -78,24 +55,24 @@ class ObjectUIDValidatorTestCase(unittest.TestCase):
 class ObjectOptionValueValidator(unittest.TestCase):
 
     def test_valid_value_returns_None(self):
-        option = OPTIONS['format?']
+        option = Options.get('format?')
         validator = validators.ObjectOptionValueValidator(option, 'copy')
         for value in ['y', 'yes', 'n', 'no']:
             self.assertIsNone(validator.validate(document(value)))
 
     def test_empty_value_returns_None_if_option_has_default(self):
-        option = OPTIONS['format?']
+        option = Options.get('format?')
         validator = validators.ObjectOptionValueValidator(option, 'copy')
         self.assertIsNone(validator.validate(document('')))
 
     def test_empty_value_raises_error_if_required_and_has_no_default(self):
-        option = OPTIONS['target-device']
+        option = Options.get('target-device')
         validator = validators.ObjectOptionValueValidator(option, 'copy')
         with self.assertRaises(ValidationError):
             validator.validate(document(''))
 
     def test_invalid_value_raises_error(self):
-        option = OPTIONS['target-device']
+        option = Options.get('target-device')
         validator = validators.ObjectOptionValueValidator(option, 'copy')
         with self.assertRaises(ValidationError):
             validator.validate(document('not-an-absolut-path'))

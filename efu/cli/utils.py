@@ -4,7 +4,7 @@
 import sys
 from contextlib import contextmanager
 
-from ..core.installation_set import InstallationSetMode
+from ..core.manager import InstallationSetMode
 from ..core.package import Package
 from ..utils import get_local_config_file
 

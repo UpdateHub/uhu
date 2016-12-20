@@ -3,14 +3,14 @@
 
 import click
 
-from ..core.options import OPTIONS, OptionsParser
+from ..core._options import Options
 
 
 TYPES = {
-    'int': click.INT,
-    'str': click.STRING,
-    'bool': click.BOOL,
-    'path': click.Path(readable=False),
+    'absolute_path': click.Path(readable=False),
+    'boolean': click.BOOL,
+    'integer': click.INT,
+    'string': click.STRING,
 }
 
 
@@ -19,28 +19,23 @@ class ClickObjectOption(click.Option):
     def __init__(self, option):
         if option.choices:
             type_ = click.Choice(option.choices)
-        elif option.min or option.max:
+        elif option.min is not None or option.max is not None:
             type_ = click.IntRange(min=option.min, max=option.max)
         else:
-            type_ = TYPES[option.type]
+            type_ = TYPES[option.type_name]
         super().__init__(
             param_decls=option.cli, help=option.help,
             default=None, type=type_)
-        self.default_lazy = option.default
         self.metadata = option.metadata
 
 
-CLICK_OPTIONS = {}
-for opt in OPTIONS.values():
-    if not opt.is_volatile:
-        click_option = ClickObjectOption(opt)
-        CLICK_OPTIONS[click_option.name] = click_option
+def get_object_options():
+    options = {}
+    for option in Options.all():
+        if not option.volatile and option != Options.get('filename'):
+            click_option = ClickObjectOption(option)
+            options[click_option.name] = click_option
+    return options
 
 
-class ClickOptionsParser(OptionsParser):
-
-    def __init__(self, *args, **kw):
-        super().__init__(*args, **kw)
-        self.values = {CLICK_OPTIONS[opt].metadata: value
-                       for opt, value in self.values.items()
-                       if value is not None}
+CLICK_ADD_OPTIONS = get_object_options()

@@ -1,0 +1,4 @@
+ flash_full.txt [mode: flash]
+
+    Install condition:       always install
+    Target device:           /dev/sda

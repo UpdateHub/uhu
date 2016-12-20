@@ -2,6 +2,7 @@
 # This software is released under the MIT License
 
 import hashlib
+import os
 
 from efu.core.object import Object
 from efu.utils import CHUNK_SIZE_VAR
@@ -12,80 +13,130 @@ from utils import EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase
 class ObjectTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
 
     def test_can_create_object(self):
-        fn = __file__
-        mode = 'raw'
-        options = {'target-device': '/dev/sda'}
-        obj = Object(fn, mode, options)
-        self.assertEqual(obj.filename, fn)
-        self.assertEqual(obj.mode, mode)
-        self.assertEqual(obj.options['target-device'], '/dev/sda')
+        obj = Object('raw', {
+            'filename': __file__,
+            'target-device': '/dev/sda',
+        })
+        self.assertEqual(obj.filename, __file__)
+        self.assertEqual(obj.size, os.path.getsize(__file__))
+        self.assertEqual(obj['target-device'], '/dev/sda')
+
+    def test_create_object_raises_error_if_unknow_mode(self):
+        with self.assertRaises(ValueError):
+            Object('unknow', {})
 
     def test_can_get_object_length(self):
         self.set_env_var(CHUNK_SIZE_VAR, 2)
         fn = self.create_file(b'0' * 10)
-        obj = Object(fn, 'raw', {'target-device': '/dev/sda'})
-        obj.load()
+        obj = Object('raw', {
+            'filename': fn,
+            'target-device': '/dev/sda',
+        })
         self.assertEqual(len(obj), 5)
 
-    def test_object_size_raises_error_if_not_loaded(self):
-        fn = self.create_file(b'0' * 10)
-        obj = Object(fn, 'raw', {'target-device': '/dev/sda'})
-        with self.assertRaises(RuntimeError):
-            len(obj)
+    def test_can_iter_over_the_object_content(self):
+        self.set_env_var(CHUNK_SIZE_VAR, 1)
+        fn = self.create_file(b'spam')
+        obj = Object('raw', {
+            'filename': fn,
+            'target-device': '/dev/sda',
+        })
+        expected = [b's', b'p', b'a', b'm']
+        observed = list(obj)
+        self.assertEqual(expected, observed)
 
-    def test_can_update_object(self):
-        obj = Object(__file__, 'raw', {'target-device': '/dev/sda'})
-        self.assertEqual(obj.options['target-device'], '/dev/sda')
-        obj.update('target-device', '/dev/sdb')
-        self.assertEqual(obj.options['target-device'], '/dev/sdb')
+    def test_exists_return_True_if_file_do_exist(self):
+        obj = Object('raw', {
+            'filename': __file__,
+            'target-device': '/dev/sda',
+        })
+        self.assertEqual(obj.exists, True)
 
-    def test_update_object_raises_error_if_invalid_option(self):
-        obj = Object(__file__, 'raw', {'target-device': '/dev/sda'})
-        with self.assertRaises(ValueError):
-            obj.update('target-path', '/')  # invalid in raw mode
-        self.assertIsNone(obj.options.get('target-path'))
-
-    def test_can_update_object_filename(self):
-        obj = Object(__file__, 'raw', {'target-device': '/dev/sda'})
-        self.assertEqual(obj.filename, __file__)
-        obj.update('filename', 'new-filename')
-        self.assertEqual(obj.filename, 'new-filename')
-
-    def test_update_object_filename_raises_error_if_invalid_filename(self):
-        obj = Object(__file__, 'raw', {'target-device': '/dev/sda'})
-        with self.assertRaises(ValueError):
-            obj.update('filename', '')  # empty string is invalid
-        self.assertEqual(obj.filename, __file__)
-
-    def test_object_raises_error_if_invalid_filename(self):
-        with self.assertRaises(ValueError):
-            Object('', 'raw', {'target-device': '/'})
-        with self.assertRaises(TypeError):
-            Object(lambda: 'bad filename type', 'raw', {'target-device': '/'})
+    def test_exists_return_False_if_file_does_not_exist(self):
+        obj = Object('raw', {
+            'filename': 'doesnt-exist',
+            'target-device': '/dev/sda',
+        })
+        self.assertEqual(obj.exists, False)
 
     def test_can_load_object(self):
-        self.set_env_var(CHUNK_SIZE_VAR, 2)
+        content = b'spam'
+        sha256sum = hashlib.sha256(content).hexdigest()
+        md5 = hashlib.md5(content).hexdigest()
+        obj = Object('raw', {
+            'filename': self.create_file(content),
+            'target-device': '/dev/sda',
+        })
+        self.assertIsNone(obj.md5)
+        self.assertIsNone(obj['sha256sum'])
+        obj.load()
+        self.assertEqual(obj.md5, md5)
+        self.assertEqual(obj['sha256sum'], sha256sum)
+
+    def test_can_generate_metadata(self):
         content = b'spam'
         fn = self.create_file(content)
-        sha256sum = hashlib.sha256(content).hexdigest()
-        obj = Object(fn, 'raw', {'target-device': '/dev/sda'})
-        self.assertIsNone(obj.size)
-        self.assertIsNone(obj.sha256sum)
-        obj.load()
-        self.assertEqual(obj.size, 4)
-        self.assertEqual(obj.sha256sum, sha256sum)
-
-    def test_can_load_object_from_cache(self):
-        cache = {
-            'size': 100,
-            'md5': 'md5',
-            'sha256sum': 'sha256sum',
-            'version': '2.0',
+        obj = Object('raw', {
+            'filename': fn,
+            'target-device': '/dev/sda',
+            'chunk-size': 1,
+            'count': 2,
+            'seek': 3,
+            'skip': 4,
+            'truncate': True,
+        })
+        expected = {
+            'mode': 'raw',
+            'filename': fn,
+            'target-device': '/dev/sda',
+            'chunk-size': 1,
+            'count': 2,
+            'seek': 3,
+            'skip': 4,
+            'truncate': True,
+            'size': len(content),
+            'sha256sum': hashlib.sha256(content).hexdigest(),
         }
-        fn = self.create_file(b'spam')
-        obj = Object(fn, 'raw', {'target-device': '/dev/sda'})
-        obj.load(cache=cache)
-        self.assertEqual(obj.size, 100)
-        self.assertEqual(obj.md5, 'md5')
-        self.assertEqual(obj.sha256sum, 'sha256sum')
-        self.assertEqual(obj.version, '2.0')
+        self.assertEqual(obj.metadata(), expected)
+
+    def test_can_generate_template(self):
+        obj = Object('raw', {
+            'filename': __file__,
+            'target-device': '/dev/sda',
+            'chunk-size': 1,
+            'count': 2,
+            'seek': 3,
+            'skip': 4,
+            'truncate': True,
+        })
+        expected = {
+            'mode': 'raw',
+            'filename': __file__,
+            'install-condition': 'always',
+            'target-device': '/dev/sda',
+            'chunk-size': 1,
+            'count': 2,
+            'seek': 3,
+            'skip': 4,
+            'truncate': True,
+        }
+        self.assertEqual(obj.template(), expected)
+
+    def test_can_update_object(self):
+        obj = Object('raw', {
+            'filename': __file__,
+            'target-device': '/dev/sda',
+        })
+        self.assertEqual(obj['target-device'], '/dev/sda')
+        obj.update('target-device', '/dev/sdb')
+        self.assertEqual(obj['target-device'], '/dev/sdb')
+
+    def test_update_object_raises_error_if_invalid_option(self):
+        obj = Object('raw', {
+            'filename': __file__,
+            'target-device': '/dev/sda',
+        })
+        with self.assertRaises(ValueError):
+            obj.update('target-path', '/')  # invalid in raw mode
+        with self.assertRaises(ValueError):
+            obj['target-path']

@@ -1,8 +1,7 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-from efu.core import Object
-from efu.core.object import ObjectUploadResult
+from efu.core.object import Object, ObjectUploadResult
 from efu.exceptions import UploadError
 from efu.utils import CHUNK_SIZE_VAR, SERVER_URL_VAR
 
@@ -20,12 +19,15 @@ class UploadTestCase(
         self.set_env_var(SERVER_URL_VAR, self.httpd.url(''))
         self.set_env_var(CHUNK_SIZE_VAR, 1)
         self.obj_fn = self.create_file(b'spam')
-        self.obj = Object(self.obj_fn, 'raw', {'target-device': '/dev/sda'})
+        self.obj = Object('raw', {
+            'filename': self.obj_fn,
+            'target-device': '/dev/sda',
+        })
         self.obj.load()
         self.product_uid = '0' * 64
         self.package_uid = '1' * 64
 
-    def test_returns_success_when_upload_is_successful(self):
+    def test_upload_returns_success_when_successful(self):
         self.create_upload_conf(self.obj, self.product_uid, self.package_uid)
         result = self.obj.upload(self.product_uid, self.package_uid)
         self.assertEqual(result, ObjectUploadResult.SUCCESS)
@@ -52,7 +54,10 @@ class UploadTestCase(
 
     def test_can_upload_compressed_object_from_symbolic_link(self):
         fn = 'tests/fixtures/compressed/symbolic.gz'
-        obj = Object(fn, 'raw', {'target-device': '/dev/sda'})
+        obj = Object('raw', {
+            'filename': fn,
+            'target-device': '/dev/sda',
+        })
         self.create_upload_conf(obj, self.product_uid, self.package_uid)
         result = obj.upload(self.product_uid, self.package_uid)
         self.assertEqual(result, ObjectUploadResult.SUCCESS)

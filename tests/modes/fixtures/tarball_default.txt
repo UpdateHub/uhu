@@ -1,0 +1,5 @@
+tarball_default.txt [mode: tarball]
+
+    Target device:           /dev/sda [filesystem: ext4]
+    Format device:           no
+    Target path:             /usr/bin

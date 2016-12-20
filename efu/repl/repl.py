@@ -13,7 +13,7 @@ from prompt_toolkit.contrib.regular_languages import compiler
 from .. import get_efu_version
 from ..config import config, Sections
 from ..core.package import Package
-from ..core.installation_set import InstallationSetMode
+from ..core.manager import InstallationSetMode
 from ..utils import get_local_config_file
 
 from . import functions

@@ -12,7 +12,7 @@ from efu.cli.package import (
     metadata_command)
 from efu.cli.utils import open_package
 from efu.core import Package
-from efu.core.installation_set import InstallationSetMode
+from efu.core.manager import InstallationSetMode
 from efu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 
@@ -30,7 +30,10 @@ class PackageTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
         self.pkg_uid = '4321'
         self.set_env_var(LOCAL_CONFIG_VAR, self.pkg_fn)
         self.obj_fn = __file__
-        self.obj_options = {'target-device': '/dev/sda'}
+        self.obj_options = {
+            'filename': self.obj_fn,
+            'target-device': '/dev/sda',
+        }
 
 
 class AddObjectCommandTestCase(PackageTestCase):
@@ -49,7 +52,7 @@ class AddObjectCommandTestCase(PackageTestCase):
         obj = package.objects.get(index=0, installation_set=0)
         self.assertEqual(obj.filename, self.obj_fn)
         self.assertEqual(obj.mode, 'raw')
-        self.assertEqual(obj.options['target-device'], '/dev/sda')
+        self.assertEqual(obj['target-device'], '/dev/sda')
 
     def test_cannot_add_object_if_callback_fails(self):
         cmd = [self.obj_fn,
@@ -172,7 +175,7 @@ class EditObjectCommandTestCase(PackageTestCase):
     def setUp(self):
         super().setUp()
         pkg = Package(InstallationSetMode.Single)
-        pkg.objects.create(self.obj_fn, 'raw', self.obj_options)
+        pkg.objects.create('raw', self.obj_options)
         pkg.dump(self.pkg_fn)
 
     def test_can_edit_object_with_edit_object_command(self):
@@ -184,14 +187,14 @@ class EditObjectCommandTestCase(PackageTestCase):
         self.runner.invoke(edit_object_command, args=args)
         pkg = Package.from_file(self.pkg_fn)
         obj = pkg.objects.get(index=0, installation_set=0)
-        self.assertEqual(obj.options['target-device'], '/dev/sdb')
+        self.assertEqual(obj['target-device'], '/dev/sdb')
 
     def test_can_edit_object_filename_with_edit_object_command(self):
         args = [
             '--index', '0',
             '--option', 'filename',
             '--value', self.pkg_fn]
-        result = self.runner.invoke(edit_object_command, args=args)
+        self.runner.invoke(edit_object_command, args=args)
         pkg = Package.from_file(self.pkg_fn)
         obj = pkg.objects.get(index=0, installation_set=0)
         self.assertEqual(obj.filename, self.pkg_fn)
@@ -225,7 +228,7 @@ class RemoveObjectCommandTestCase(PackageTestCase):
     def setUp(self):
         super().setUp()
         pkg = Package(InstallationSetMode.Single)
-        pkg.objects.create(self.obj_fn, 'raw', self.obj_options)
+        pkg.objects.create('raw', self.obj_options)
         pkg.dump(self.pkg_fn)
 
     def test_can_remove_object_with_remove_command(self):
@@ -244,7 +247,7 @@ class ShowCommandTestCase(PackageTestCase):
 
     def test_show_command_returns_0_if_successful(self):
         pkg = Package(InstallationSetMode.Single)
-        pkg.objects.create(self.obj_fn, 'raw', self.obj_options)
+        pkg.objects.create('raw', self.obj_options)
         pkg.dump(self.pkg_fn)
         result = self.runner.invoke(show_command)
         self.assertEqual(result.exit_code, 0)
@@ -255,7 +258,7 @@ class ExportCommandTestCase(PackageTestCase):
     def setUp(self):
         super().setUp()
         pkg = Package(InstallationSetMode.Single, version='1.0')
-        pkg.objects.create(self.obj_fn, 'raw', self.obj_options)
+        pkg.objects.create('raw', self.obj_options)
         pkg.dump(self.pkg_fn)
         self.dest_pkg_fn = '/tmp/pkg-dump'
         self.addCleanup(self.remove_file, self.dest_pkg_fn)
@@ -270,15 +273,13 @@ class ExportCommandTestCase(PackageTestCase):
                     {
                         'filename': self.obj_fn,
                         'mode': 'raw',
-                        'options': {
-                            'chunk-size': 131072,
-                            'count': -1,
-                            'seek': 0,
-                            'skip': 0,
-                            'target-device': '/dev/sda',
-                            'truncate': False,
-                            'install-condition': 'always',
-                        }
+                        'chunk-size': 131072,
+                        'count': -1,
+                        'seek': 0,
+                        'skip': 0,
+                        'target-device': '/dev/sda',
+                        'truncate': False,
+                        'install-condition': 'always',
                     }
                 ]
             ]
@@ -362,7 +363,7 @@ class MetadataTestCase(PackageTestCase):
 
     def test_metadata_commands_returns_0_when_metadata_is_valid(self):
         pkg = Package(InstallationSetMode.ActiveInactive)
-        pkg.objects.create(__file__, 'raw', {'target-device': '/'})
+        pkg.objects.create('raw', self.obj_options)
         pkg.product = '0' * 64
         pkg.version = '2.0'
         pkg.dump(self.pkg_fn)

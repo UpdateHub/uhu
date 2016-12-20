@@ -5,7 +5,7 @@ import os
 import unittest
 
 from efu.core.object import Object
-from efu.core.installation_set import InstallationSet
+from efu.core.manager import InstallationSet
 
 
 class InstallationSetTestCase(unittest.TestCase):
@@ -13,27 +13,30 @@ class InstallationSetTestCase(unittest.TestCase):
     def setUp(self):
         self.fn = __file__
         self.mode = 'raw'
-        self.options = {'target-device': '/'}
-        self.obj = Object(self.fn, self.mode, self.options)
+        self.options = {
+            'filename': self.fn,
+            'target-device': '/dev/sda'
+        }
+        self.obj = Object(self.mode, self.options)
 
     def test_can_create_object(self):
         installation_set = InstallationSet()
         self.assertEqual(len(installation_set), 0)
-        index = installation_set.create(self.fn, self.mode, self.options)
+        index = installation_set.create(self.mode, self.options)
         self.assertEqual(index, 0)
         self.assertEqual(len(installation_set), 1)
         obj = installation_set.get(index)
         self.assertEqual(obj.filename, self.fn)
         self.assertEqual(obj.mode, self.mode)
-        self.assertEqual(obj.options['target-device'], '/')
+        self.assertEqual(obj['target-device'], '/dev/sda')
 
     def test_can_get_object_by_index(self):
         installation_set = InstallationSet()
-        installation_set.create(self.fn, self.mode, self.options)
+        installation_set.create(self.mode, self.options)
         obj = installation_set.get(0)
         self.assertEqual(obj.filename, self.fn)
         self.assertEqual(obj.mode, self.mode)
-        self.assertEqual(obj.options['target-device'], '/')
+        self.assertEqual(obj['target-device'], '/dev/sda')
 
     def test_get_object_raises_error_with_invalid_index(self):
         installation_set = InstallationSet()
@@ -42,11 +45,11 @@ class InstallationSetTestCase(unittest.TestCase):
 
     def test_can_update_object(self):
         installation_set = InstallationSet()
-        index = installation_set.create(self.fn, self.mode, self.options)
+        index = installation_set.create(self.mode, self.options)
         obj = installation_set.get(index)
-        self.assertEqual(obj.options['target-device'], '/')
-        installation_set.update(index, 'target-device', '/dev/sda')
-        self.assertEqual(obj.options['target-device'], '/dev/sda')
+        self.assertEqual(obj['target-device'], '/dev/sda')
+        installation_set.update(index, 'target-device', '/')
+        self.assertEqual(obj['target-device'], '/')
 
     def test_update_object_raises_with_invalid_index(self):
         installation_set = InstallationSet()
@@ -56,7 +59,7 @@ class InstallationSetTestCase(unittest.TestCase):
     def test_can_remove_object(self):
         installation_set = InstallationSet()
         self.assertEqual(len(installation_set), 0)
-        index = installation_set.create(self.fn, self.mode, self.options)
+        index = installation_set.create(self.mode, self.options)
         self.assertEqual(len(installation_set), 1)
         installation_set.remove(index)
         self.assertEqual(len(installation_set), 0)
@@ -68,7 +71,7 @@ class InstallationSetTestCase(unittest.TestCase):
 
     def test_installation_set_as_metadata(self):
         installation_set = InstallationSet()
-        installation_set.create(self.fn, self.mode, self.options)
+        installation_set.create(self.mode, self.options)
         metadata = installation_set.metadata()
         self.assertEqual(len(metadata), 1)
         # First object metadata
@@ -76,7 +79,7 @@ class InstallationSetTestCase(unittest.TestCase):
 
     def test_installation_set_as_template(self):
         installation_set = InstallationSet()
-        installation_set.create(self.fn, self.mode, self.options)
+        installation_set.create(self.mode, self.options)
         template = installation_set.template()
         self.assertEqual(len(template), 1)
         # First object template
@@ -84,13 +87,12 @@ class InstallationSetTestCase(unittest.TestCase):
 
     def test_installation_set_as_string(self):
         cwd = os.getcwd()
-        os.chdir('tests/fixtures/installation_set')
+        os.chdir('tests/manager/fixtures')
         self.addCleanup(os.chdir, cwd)
         with open('set.txt') as fp:
             expected = fp.read()
         installation_set = InstallationSet()
+        self.options['filename'] = 'set.txt'
         for _ in range(3):
-            installation_set.create(
-                'set.txt', 'raw', {'target-device': '/dev/sda'})
-        observed = str(installation_set)
-        self.assertEqual(observed, expected)
+            installation_set.create(self.mode, self.options)
+        self.assertEqual(str(installation_set), expected)

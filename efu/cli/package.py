@@ -8,13 +8,13 @@ import click
 import requests
 from jsonschema.exceptions import ValidationError
 
-from ..core.options import MODES
+from ..core.object import Modes
 from ..core.package import Package
 from ..exceptions import DownloadError, UploadError
 from ..ui import get_callback
 from ..utils import get_local_config_file, validate_schema
 
-from ._object import ClickOptionsParser, CLICK_OPTIONS
+from ._object import CLICK_ADD_OPTIONS
 from .utils import error, open_package
 
 
@@ -50,21 +50,23 @@ def export_command(filename):
 
 @package_cli.command('add')
 @click.argument('filename', type=click.Path(exists=True))
-@click.option('--mode', '-m', type=click.Choice(sorted(MODES)),
+@click.option('--mode', '-m', type=click.Choice(Modes.names()),
               help='How the object will be installed', required=True)
 def add_object_command(filename, mode, **options):
     """Adds an entry in the package file for the given artifact."""
+    options = {CLICK_ADD_OPTIONS[opt].metadata: value
+               for opt, value in options.items()
+               if value is not None}
+    options['filename'] = filename
     with open_package() as package:
-        parser = ClickOptionsParser(mode, options)
         try:
-            options = parser.clean()
+            package.objects.create(mode, options)
         except ValueError as err:
             error(2, err)
-        package.objects.create(filename, mode, options)
 
 
-# Adds all object options
-for opt in CLICK_OPTIONS.values():
+# Adds all object options into cmd
+for opt in CLICK_ADD_OPTIONS.values():
     add_object_command.params.append(opt)
 
 

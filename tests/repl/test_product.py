@@ -5,7 +5,7 @@ import os
 import tempfile
 import unittest
 
-from efu.core.installation_set import InstallationSetMode
+from efu.core.manager import InstallationSetMode
 from efu.core.package import Package
 from efu.repl.repl import EFURepl
 from efu.repl import functions

@@ -6,7 +6,7 @@ import os
 import tempfile
 import shutil
 
-from efu.core import Object
+from efu.core.object import Object
 from efu.exceptions import DownloadError
 from efu.utils import SERVER_URL_VAR
 
@@ -30,7 +30,10 @@ class ObjectDownloadTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
         self.fn = 'image.bin'
         self.content = b'spam'
         self.sha256 = hashlib.sha256(self.content).hexdigest()
-        self.obj = Object(self.fn, 'raw', {'target-device': '/dev/sda'})
+        self.obj = Object('raw', {
+            'filename': self.fn,
+            'target-device': '/dev/sda'
+        })
         self.addCleanup(self.remove_file, self.fn)
 
         self.set_env_var(SERVER_URL_VAR, self.httpd.url(''))
@@ -41,12 +44,12 @@ class ObjectDownloadTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
             self.path, 'GET', body=self.content, status_code=200)
 
     def test_can_download_object(self):
-        self.assertFalse(self.obj.exists())
+        self.assertFalse(self.obj.exists)
         self.obj.download(self.url)
-        self.assertTrue(self.obj.exists())
+        self.assertTrue(self.obj.exists)
 
     def test_object_integrity_after_download(self):
-        self.assertFalse(self.obj.exists())
+        self.assertFalse(self.obj.exists)
         self.obj.download(self.url)
         with open(self.fn, 'rb') as fp:
             observed = hashlib.sha256(fp.read()).hexdigest()
@@ -65,6 +68,6 @@ class ObjectDownloadTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
     def test_do_not_download_when_object_exists_locally(self):
         with open(self.fn, 'bw') as fp:
             fp.write(self.content)
-        self.assertTrue(self.obj.exists())
+        self.assertTrue(self.obj.exists)
         self.obj.download(self.url)
         self.assertEqual(len(self.httpd.requests), 0)

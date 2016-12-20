@@ -1,7 +1,0 @@
-imxkobs_full.txt [mode: imxkobs]
-
-    Install condition: always install
-    Add 1k-padding in the head: yes
-    Search exponent:   1
-    Chip-0 device path: /dev/mtd0
-    Chip-1 device path: /dev/mtd1

@@ -1,0 +1,3 @@
+ubifs_full.txt [mode: ubifs]
+
+    Volume name:             system0

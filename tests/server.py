@@ -6,7 +6,7 @@ import sys
 from itertools import count
 
 from efu.core import Package
-from efu.core.installation_set import InstallationSetMode
+from efu.core.manager import InstallationSetMode
 from efu.utils import LOCAL_CONFIG_VAR, CHUNK_SIZE_VAR
 
 from tests.utils import (
@@ -28,8 +28,10 @@ def push_cmd(cmd):
         pkg = Package(
             InstallationSetMode.ActiveInactive, version='1', product=product)
         for _ in range(3):
-            fn = self.create_file('spam')
-            pkg.objects.create(fn, 'raw', {'target-device': '/'})
+            pkg.objects.create('raw', {
+                'filename': self.create_file('spam'),
+                'target-device': '/'
+            })
         pkg.dump(pkg_fn)
         kwargs = cmd(self)
         self.set_push(pkg, '100',  **kwargs)

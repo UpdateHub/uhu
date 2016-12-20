@@ -1,7 +1,6 @@
 # Copyright (C) 2016 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-import json
 import os
 import shutil
 import tempfile
@@ -9,8 +8,7 @@ import tempfile
 from click.testing import CliRunner
 
 from efu.cli.package import pull_command
-from efu.core.installation_set import InstallationSetMode
-from efu.core.package import Package
+from efu.core.manager import InstallationSetMode
 from efu.utils import SERVER_URL_VAR
 
 from utils import BasePullTestCase

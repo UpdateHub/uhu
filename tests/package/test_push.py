@@ -3,7 +3,7 @@
 
 import json
 
-from efu.core.installation_set import InstallationSetMode
+from efu.core.manager import InstallationSetMode
 from efu.core.package import Package
 from efu.exceptions import UploadError
 from efu.utils import SERVER_URL_VAR

@@ -1,3 +1,0 @@
-ubifs_default.txt [mode: ubifs]
-
-    Volume name:       ubifs-volume

@@ -5,7 +5,7 @@ from click.testing import CliRunner
 
 from efu.cli.package import push_command
 from efu.core.package import Package
-from efu.core.installation_set import InstallationSetMode
+from efu.core.manager import InstallationSetMode
 from efu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 from utils import BasePushTestCase

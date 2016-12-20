@@ -7,7 +7,7 @@ import os
 from unittest.mock import Mock, patch
 
 from efu.repl.repl import EFURepl
-from efu.repl import functions, helpers
+from efu.repl import functions
 from efu.utils import SERVER_URL_VAR
 
 from utils import (
@@ -57,8 +57,10 @@ class PushTestCase(BasePushTestCase):
         self.repl = EFURepl()
 
     def test_can_push_package(self):
-        self.repl.package.objects.create(
-                __file__, 'raw', {'target-device': '/'})
+        self.repl.package.objects.create('raw', {
+            'filename': __file__,
+            'target-device': '/'
+        })
         self.repl.package.product = self.product
         self.repl.package.version = '2.0'
         self.set_push(self.repl.package, '100')

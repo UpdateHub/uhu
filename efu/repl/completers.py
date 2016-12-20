@@ -5,7 +5,7 @@ import os
 
 from prompt_toolkit.contrib.completers import PathCompleter, WordCompleter
 
-from ..core.options import MODES
+from ..core.object import Modes
 from ..core.package import MODES as PKG_MODES
 
 
@@ -18,13 +18,13 @@ class ObjectFilenameCompleter(PathCompleter):
 class ObjectModeCompleter(WordCompleter):
 
     def __init__(self):
-        super().__init__(sorted(MODES))
+        super().__init__(Modes.names())
 
 
 class ObjectOptionCompleter(WordCompleter):
 
     def __init__(self, options):
-        super().__init__(sorted(options))
+        super().__init__(options)
 
 
 class ObjectOptionValueCompleter(WordCompleter):
