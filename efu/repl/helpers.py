@@ -17,7 +17,6 @@ from ..core.validators import validate_option_requirements
 from ..core.object import Modes
 from ..core._options import Options
 from ..core.package import MODES as PKG_MODES
-from ..utils import indent
 
 from .completers import (
     ObjectFilenameCompleter, ObjectModeCompleter, ObjectOptionCompleter,
@@ -164,7 +163,7 @@ def prompt_object_option(obj):
     return Options.get(option.strip())
 
 
-def _get_object_option_value_message(option, indent_level, set_=None):
+def _get_object_option_value_message(option, set_=None):
     """Retuns a message for object_option_value prompt."""
     if option.default is not None:
         default_msg = option.default
@@ -176,7 +175,6 @@ def _get_object_option_value_message(option, indent_level, set_=None):
         msg = '{} [{}]'.format(option.verbose_name.title(), default_msg)
     else:
         msg = '{}'.format(option.verbose_name.title())
-    msg = indent(msg, indent_level, all_lines=True)
     set_msg = ''
     if set_ is not None:
         set_msg = ' (installation set {})'.format(set_)
@@ -204,18 +202,15 @@ def _get_object_option_value_completer(option):
 
 
 def prompt_object_option_value(
-        option, mode, installation_set=None, default='', indent_level=0):
+        option, mode, installation_set=None, default=''):
     """Given an object and an option, prompts user for a valid value.
 
     :param option: an efu `Option` instance.
     :param mode: a valid Object mode string.
     :param installation_set: an int indicating the installation set.
     :param default: a default value to be displayed as placeholder.
-    :param indent_level: Controls how many spaces must be added before
-                         `msg`.
     """
-    msg = _get_object_option_value_message(
-        option, indent_level, installation_set)
+    msg = _get_object_option_value_message(option, installation_set)
     completer = _get_object_option_value_completer(option)
     validator = ObjectOptionValueValidator(option, mode)
     value = _prompt_object_option_value(
