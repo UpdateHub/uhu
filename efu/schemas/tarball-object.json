@@ -19,8 +19,13 @@
         "sha256sum": {
             "$ref": "definitions.json#/sha256sum"
         },
-        "target-device": {
-            "$ref": "definitions.json#/target-device"
+        "target-type": {
+            "description": "The type of target (device, mtdname or ubivolume)",
+            "type": "string",
+            "enum": ["device", "mtdname", "ubivolume"]
+        },
+        "target": {
+            "$ref": "definitions.json#/target"
         },
         "compressed": {
             "$ref": "definitions.json#/compressed"
@@ -51,8 +56,9 @@
         "mode",
         "sha256sum",
         "size",
-        "target-device",
-        "target-path"
+        "target",
+        "target-path",
+        "target-type"
     ],
 
     "additionalProperties": false,

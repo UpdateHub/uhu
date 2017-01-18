@@ -27,6 +27,7 @@ class PackageTestCase(FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase):
         self.obj_mode = 'raw'
         self.obj_options = {
             'filename': self.obj_fn,
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
         }
         self.obj_size = 4

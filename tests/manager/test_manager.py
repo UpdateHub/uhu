@@ -37,7 +37,8 @@ class InstallationSetManagerTestCase(unittest.TestCase):
     def setUp(self):
         self.options = {
             'filename': __file__,
-            'target-device': '/dev/sda'
+            'target-type': 'device',
+            'target': '/dev/sda',
         }
 
     @verify_all_modes
@@ -107,17 +108,17 @@ class InstallationSetManagerTestCase(unittest.TestCase):
             obj = manager.get(index=index, installation_set=set_index)
             self.assertEqual(obj.filename, __file__)
             self.assertEqual(obj.mode, 'raw')
-            self.assertEqual(obj['target-device'], '/dev/sda')
+            self.assertEqual(obj['target'], '/dev/sda')
 
     def test_can_create_object_with_different_values(self):
         manager = InstallationSetManager(InstallationSetMode.ActiveInactive)
         self.assertEqual(len(manager.all()), 0)
-        self.options['target-device'] = ('/dev/sda', '/dev/sdb')
+        self.options['target'] = ('/dev/sda', '/dev/sdb')
         index = manager.create('raw', self.options)
         obj0 = manager.get(index=0, installation_set=0)
         obj1 = manager.get(index=0, installation_set=1)
-        self.assertEqual(obj0['target-device'], '/dev/sda')
-        self.assertEqual(obj1['target-device'], '/dev/sdb')
+        self.assertEqual(obj0['target'], '/dev/sda')
+        self.assertEqual(obj1['target'], '/dev/sdb')
 
     @verify_all_modes
     def test_can_get_object(self, mode):
@@ -127,7 +128,7 @@ class InstallationSetManagerTestCase(unittest.TestCase):
             obj = manager.get(index=index, installation_set=set_index)
             self.assertEqual(obj.filename, __file__)
             self.assertEqual(obj.mode, 'raw')
-            self.assertEqual(obj['target-device'], '/dev/sda')
+            self.assertEqual(obj['target'], '/dev/sda')
 
     @verify_all_modes
     def test_can_update_asymmetrical_object_option(self, mode):
@@ -135,18 +136,18 @@ class InstallationSetManagerTestCase(unittest.TestCase):
         index = manager.create('raw', self.options)
         for set_index, installation_set in enumerate(manager):
             obj = manager.get(index=index, installation_set=set_index)
-            self.assertEqual(obj['target-device'], '/dev/sda')
+            self.assertEqual(obj['target'], '/dev/sda')
 
         manager.update(
             index=0, installation_set=0,
-            option='target-device', value='/dev/sdb')
+            option='target', value='/dev/sdb')
 
         for set_index, installation_set in enumerate(manager):
             obj = manager.get(index=index, installation_set=set_index)
             if set_index == 0:
-                self.assertEqual(obj['target-device'], '/dev/sdb')
+                self.assertEqual(obj['target'], '/dev/sdb')
             else:
-                self.assertEqual(obj['target-device'], '/dev/sda')
+                self.assertEqual(obj['target'], '/dev/sda')
 
     @verify_all_modes
     def test_can_update_symmetrical_object_option(self, mode):
@@ -169,11 +170,11 @@ class InstallationSetManagerTestCase(unittest.TestCase):
         index = manager.create('raw', self.options)
 
         with self.assertRaises(ValueError):
-            manager.update(index, 'target-device', '/dev/sdb')
+            manager.update(index, 'target', '/dev/sdb')
 
         for set_index, installation_set in enumerate(manager):
             obj = manager.get(index=index, installation_set=set_index)
-            self.assertEqual(obj['target-device'], '/dev/sda')
+            self.assertEqual(obj['target'], '/dev/sda')
 
     @verify_all_modes
     def test_update_symmetrical_option_raises_error_if_install_set(self, mode):

@@ -21,7 +21,7 @@ def normalize(obj, values):
             if option not in obj.options:  # checks allowed options
                 err = '{} is a invalid option for {} mode'
                 raise ValueError(err.format(option, obj.mode))
-            cleaned[option] = option.validate(value)  # converts value
+            cleaned[option] = option.validate(value, obj)  # converts value
     return cleaned
 
 

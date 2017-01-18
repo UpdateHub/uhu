@@ -13,6 +13,14 @@
         "filename": {
             "$ref": "definitions.json#/filename"
         },
+        "target-type": {
+            "description": "The type of target (only ubivolume)",
+            "type": "string",
+            "enum": ["ubivolume"]
+        },
+        "target": {
+            "$ref": "definitions.json#/target"
+        },
         "size": {
             "$ref": "definitions.json#/size"
         },
@@ -24,9 +32,6 @@
         },
         "sha256sum": {
             "$ref": "definitions.json#/sha256sum"
-        },
-        "volume": {
-            "$ref": "definitions.json#/volume"
         }
     },
 
@@ -35,7 +40,8 @@
         "mode",
         "size",
         "sha256sum",
-        "volume"
+        "target",
+        "target-type"
     ],
 
     "additionalProperties": false,

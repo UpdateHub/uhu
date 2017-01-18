@@ -19,10 +19,12 @@ class UploadTestCase(
         self.set_env_var(SERVER_URL_VAR, self.httpd.url(''))
         self.set_env_var(CHUNK_SIZE_VAR, 1)
         self.obj_fn = self.create_file(b'spam')
-        self.obj = Object('raw', {
+        self.options = {
             'filename': self.obj_fn,
-            'target-device': '/dev/sda',
-        })
+            'target-type': 'device',
+            'target': '/dev/sda'
+        }
+        self.obj = Object('raw', self.options)
         self.obj.load()
         self.product_uid = '0' * 64
         self.package_uid = '1' * 64
@@ -53,11 +55,8 @@ class UploadTestCase(
         self.assertEqual(result, ObjectUploadResult.FAIL)
 
     def test_can_upload_compressed_object_from_symbolic_link(self):
-        fn = 'tests/fixtures/compressed/symbolic.gz'
-        obj = Object('raw', {
-            'filename': fn,
-            'target-device': '/dev/sda',
-        })
+        self.options['filename'] = 'tests/fixtures/compressed/symbolic.gz'
+        obj = Object('raw', self.options)
         self.create_upload_conf(obj, self.product_uid, self.package_uid)
         result = obj.upload(self.product_uid, self.package_uid)
         self.assertEqual(result, ObjectUploadResult.SUCCESS)

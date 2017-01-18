@@ -1,3 +1,3 @@
 file.txt [mode: ubifs]
 
-    Volume name:             system0
+    Target:                  system0

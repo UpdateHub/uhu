@@ -8,11 +8,13 @@ class CopyObject(BaseObject):
     mode = 'copy'
     allow_compression = True
     allow_install_condition = True
+    target_types = ['device']
     options = [
         'filename',
         'size',
         'sha256sum',
-        'target-device',
+        'target-type',
+        'target',
         'target-path',
         'filesystem',
         'mount-options',
@@ -21,7 +23,8 @@ class CopyObject(BaseObject):
     ]
     required_options = [
         'filename',
-        'target-device',
+        'target-type',
+        'target',
         'target-path',
         'filesystem',
     ]
@@ -29,7 +32,7 @@ class CopyObject(BaseObject):
         ('format?', 'format-options', True)
     ]
     string_template = [
-        ('target-device', ('filesystem',)),
+        ('target', ('filesystem',)),
         ('format?', ('format-options',)),
         ('mount-options', ()),
         ('target-path', ())
@@ -40,18 +43,21 @@ class FlashObject(BaseObject):
     mode = 'flash'
     allow_compression = False
     allow_install_condition = True
+    target_types = ['device', 'mtdname']
     options = [
         'filename',
         'sha256sum',
         'size',
-        'target-device',
+        'target-type',
+        'target',
     ]
     required_options = [
         'filename',
-        'target-device',
+        'target-type',
+        'target',
     ]
     string_template = [
-        ('target-device', ()),
+        ('target', ()),
     ]
 
 
@@ -83,11 +89,13 @@ class RawObject(BaseObject):
     mode = 'raw'
     allow_compression = True
     allow_install_condition = True
+    target_types = ['device']
     options = [
         'filename',
         'size',
         'sha256sum',
-        'target-device',
+        'target-type',
+        'target',
         'chunk-size',
         'count',
         'seek',
@@ -96,10 +104,11 @@ class RawObject(BaseObject):
     ]
     required_options = [
         'filename',
-        'target-device',
+        'target-type',
+        'target',
     ]
     string_template = [
-        ('target-device', ('seek', 'truncate')),
+        ('target', ('seek', 'truncate')),
         ('chunk-size', ()),
         ('skip', ()),
         ('count', ()),
@@ -110,11 +119,13 @@ class TarballObject(BaseObject):
     mode = 'tarball'
     allow_compression = False
     allow_install_condition = False
+    target_types = ['device', 'mtdname', 'ubivolume']
     options = [
         'filename',
         'size',
         'sha256sum',
-        'target-device',
+        'target-type',
+        'target',
         'target-path',
         'filesystem',
         'mount-options',
@@ -123,12 +134,13 @@ class TarballObject(BaseObject):
     ]
     required_options = [
         'filename',
-        'target-device',
+        'target-type',
+        'target',
         'target-path',
         'filesystem',
     ]
     string_template = [
-        ('target-device', ('filesystem',)),
+        ('target', ('filesystem',)),
         ('format?', ('format-options',)),
         ('mount-options', ()),
         ('target-path', ())
@@ -139,16 +151,19 @@ class UBIFSObject(BaseObject):
     mode = 'ubifs'
     allow_compression = True
     allow_install_condition = False
+    target_types = ['ubivolume']
     options = [
         'filename',
         'size',
         'sha256sum',
-        'volume',
+        'target-type',
+        'target',
     ]
     required_options = [
         'filename',
-        'volume',
+        'target-type',
+        'target',
     ]
     string_template = [
-        ('volume', ()),
+        ('target', ()),
     ]

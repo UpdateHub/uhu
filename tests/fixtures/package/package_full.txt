@@ -8,7 +8,7 @@ Objects:
         0# files/pkg.json [mode: raw]
 
             Install condition:       always install
-            Target device:           /dev/sda [seek: 0, truncate: no]
+            Target:                  /dev/sda [seek: 0, truncate: no]
             Chunk size:              1.2 KiB
             Skip from source:        0
             Count:                   all content
@@ -16,7 +16,7 @@ Objects:
         1# files/setup.py [mode: raw]
 
             Install condition:       always install
-            Target device:           /dev/sda [seek: 5, truncate: yes]
+            Target:                  /dev/sda [seek: 5, truncate: yes]
             Chunk size:              9.8 KiB
             Skip from source:        19
             Count:                   3
@@ -24,14 +24,14 @@ Objects:
         2# files/tox.ini [mode: copy]
 
             Install condition:       always install
-            Target device:           /dev/sda3 [filesystem: ext4]
+            Target:                  /dev/sda3 [filesystem: ext4]
             Format device:           yes [options: "-i 100 -J size=500"]
             Mount options:           "--all --fstab=/etc/fstab2"
             Target path:             /dev/null
 
         3# files/archive.tar.gz [mode: tarball]
 
-            Target device:           /dev/sda3 [filesystem: ext4]
+            Target:                  /dev/sda3 [filesystem: ext4]
             Format device:           yes [options: "-i 100 -J size=500"]
             Mount options:           "--all --fstab=/etc/fstab2"
             Target path:             /dev/null

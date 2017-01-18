@@ -142,12 +142,29 @@ class SkipOption(IntegerOption):
     verbose_name = 'Skip from source'
 
 
-class TargetDeviceOption(AbsolutePathOption):
-    metadata = 'target-device'
+class TargetOption(StringOption):
+    metadata = 'target'
     symmetric = False
-    cli = ['--target-device', '-td']
-    help = 'Target device for the object (e.g. /dev/sda1)'
-    verbose_name = 'Target device'
+    cli = ['--target', '-t']
+    help = 'The target itself'
+    verbose_name = 'Target'
+
+    @classmethod
+    def humanize(cls, value):
+        return value
+
+
+class TargetTypeOption(StringOption):
+    metadata = 'target-type'
+    cli = ['--target-type', '-tt']
+    help = 'The type of target'
+    verbose_name = 'Target type'
+
+    @classmethod
+    def get_choices(cls, obj):
+        if obj is None:
+            return cls.choices
+        return obj.target_types
 
 
 class TargetPathOption(AbsolutePathOption):

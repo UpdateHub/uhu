@@ -12,14 +12,20 @@ from utils import EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase
 
 class ObjectTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
 
-    def test_can_create_object(self):
-        obj = Object('raw', {
+    def setUp(self):
+        super().setUp()
+        self.options = {
             'filename': __file__,
-            'target-device': '/dev/sda',
-        })
+            'target-type': 'device',
+            'target': '/dev/sda',
+        }
+
+    def test_can_create_object(self):
+        obj = Object('raw', self.options)
         self.assertEqual(obj.filename, __file__)
         self.assertEqual(obj.size, os.path.getsize(__file__))
-        self.assertEqual(obj['target-device'], '/dev/sda')
+        self.assertEqual(obj['target-type'], 'device')
+        self.assertEqual(obj['target'], '/dev/sda')
 
     def test_create_object_raises_error_if_unknow_mode(self):
         with self.assertRaises(ValueError):
@@ -27,46 +33,33 @@ class ObjectTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
 
     def test_can_get_object_length(self):
         self.set_env_var(CHUNK_SIZE_VAR, 2)
-        fn = self.create_file(b'0' * 10)
-        obj = Object('raw', {
-            'filename': fn,
-            'target-device': '/dev/sda',
-        })
+        self.options['filename'] = self.create_file(b'0' * 10)
+        obj = Object('raw', self.options)
         self.assertEqual(len(obj), 5)
 
     def test_can_iter_over_the_object_content(self):
         self.set_env_var(CHUNK_SIZE_VAR, 1)
-        fn = self.create_file(b'spam')
-        obj = Object('raw', {
-            'filename': fn,
-            'target-device': '/dev/sda',
-        })
+        self.options['filename'] = self.create_file(b'spam')
+        obj = Object('raw', self.options)
         expected = [b's', b'p', b'a', b'm']
         observed = list(obj)
         self.assertEqual(expected, observed)
 
     def test_exists_return_True_if_file_do_exist(self):
-        obj = Object('raw', {
-            'filename': __file__,
-            'target-device': '/dev/sda',
-        })
+        obj = Object('raw', self.options)
         self.assertEqual(obj.exists, True)
 
     def test_exists_return_False_if_file_does_not_exist(self):
-        obj = Object('raw', {
-            'filename': 'doesnt-exist',
-            'target-device': '/dev/sda',
-        })
+        self.options['filename'] = 'doesnt-exist'
+        obj = Object('raw', self.options)
         self.assertEqual(obj.exists, False)
 
     def test_can_load_object(self):
         content = b'spam'
         sha256sum = hashlib.sha256(content).hexdigest()
         md5 = hashlib.md5(content).hexdigest()
-        obj = Object('raw', {
-            'filename': self.create_file(content),
-            'target-device': '/dev/sda',
-        })
+        self.options['filename'] = self.create_file(content)
+        obj = Object('raw', self.options)
         self.assertIsNone(obj.md5)
         self.assertIsNone(obj['sha256sum'])
         obj.load()
@@ -78,7 +71,8 @@ class ObjectTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
         fn = self.create_file(content)
         obj = Object('raw', {
             'filename': fn,
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
             'chunk-size': 1,
             'count': 2,
             'seek': 3,
@@ -88,7 +82,8 @@ class ObjectTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
         expected = {
             'mode': 'raw',
             'filename': fn,
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
             'chunk-size': 1,
             'count': 2,
             'seek': 3,
@@ -102,7 +97,8 @@ class ObjectTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
     def test_can_generate_template(self):
         obj = Object('raw', {
             'filename': __file__,
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
             'chunk-size': 1,
             'count': 2,
             'seek': 3,
@@ -113,7 +109,8 @@ class ObjectTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
             'mode': 'raw',
             'filename': __file__,
             'install-condition': 'always',
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
             'chunk-size': 1,
             'count': 2,
             'seek': 3,
@@ -123,19 +120,13 @@ class ObjectTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
         self.assertEqual(obj.template(), expected)
 
     def test_can_update_object(self):
-        obj = Object('raw', {
-            'filename': __file__,
-            'target-device': '/dev/sda',
-        })
-        self.assertEqual(obj['target-device'], '/dev/sda')
-        obj.update('target-device', '/dev/sdb')
-        self.assertEqual(obj['target-device'], '/dev/sdb')
+        obj = Object('raw', self.options)
+        self.assertEqual(obj['target'], '/dev/sda')
+        obj.update('target', '/dev/sdb')
+        self.assertEqual(obj['target'], '/dev/sdb')
 
     def test_update_object_raises_error_if_invalid_option(self):
-        obj = Object('raw', {
-            'filename': __file__,
-            'target-device': '/dev/sda',
-        })
+        obj = Object('raw', self.options)
         with self.assertRaises(ValueError):
             obj.update('target-path', '/')  # invalid in raw mode
         with self.assertRaises(ValueError):

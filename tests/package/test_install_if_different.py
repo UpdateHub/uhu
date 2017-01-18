@@ -21,21 +21,24 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
                         'filename': __file__,
                         'mode': 'raw',
                         'compressed': False,
-                        'target-device': '/dev/sda',
+                        'target-type': 'device',
+                        'target': '/dev/sda',
                         'install-condition': 'always',
                     },
                     {
                         'filename': __file__,
                         'mode': 'raw',
                         'compressed': False,
-                        'target-device': '/dev/sda',
+                        'target-type': 'device',
+                        'target': '/dev/sda',
                         'install-condition': 'content-diverges'
                     },
                     {
                         'filename': __file__,
                         'mode': 'raw',
                         'compressed': False,
-                        'target-device': '/dev/sda',
+                        'target-type': 'device',
+                        'target': '/dev/sda',
                         'install-condition': 'version-diverges',
                         'install-condition-pattern-type': 'u-boot',
                     },
@@ -43,7 +46,8 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
                         'filename': __file__,
                         'mode': 'raw',
                         'compressed': False,
-                        'target-device': '/dev/sda',
+                        'target-type': 'device',
+                        'target': '/dev/sda',
                         'install-condition': 'version-diverges',
                         'install-condition-pattern-type': 'regexp',
                         'install-condition-pattern': '\d+\.\d+',
@@ -61,14 +65,16 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
                         'mode': 'raw',
                         'size': self.obj_size,
                         'sha256sum': self.obj_sha256,
-                        'target-device': '/dev/sda',
+                        'target-type': 'device',
+                        'target': '/dev/sda',
                     },
                     {
                         'filename': self.obj_fn,
                         'mode': 'raw',
                         'size': self.obj_size,
                         'sha256sum': self.obj_sha256,
-                        'target-device': '/dev/sda',
+                        'target-type': 'device',
+                        'target': '/dev/sda',
                         'install-if-different': 'sha256sum'
                     },
                     {
@@ -76,7 +82,8 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
                         'mode': 'raw',
                         'size': self.obj_size,
                         'sha256sum': self.obj_sha256,
-                        'target-device': '/dev/sda',
+                        'target-type': 'device',
+                        'target': '/dev/sda',
                         'install-if-different': {
                             'version': '0.1',
                             'pattern': 'linux-kernel',
@@ -87,7 +94,8 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
                         'mode': 'raw',
                         'size': self.obj_size,
                         'sha256sum': self.obj_sha256,
-                        'target-device': '/dev/sda',
+                        'target-type': 'device',
+                        'target': '/dev/sda',
                         'install-if-different': {
                             'version': '0.1',
                             'pattern': {
@@ -102,7 +110,8 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
                         'mode': 'raw',
                         'size': self.obj_size,
                         'sha256sum': self.obj_sha256,
-                        'target-device': '/dev/sda',
+                        'target-type': 'device',
+                        'target': '/dev/sda',
                         'install-if-different': {
                             'version': '0.1',
                             'pattern': {'regexp': '.+'},
@@ -117,7 +126,7 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
         obj = pkg.objects.get(index=0, installation_set=0)
         self.assertEqual(obj.filename, __file__)
         self.assertEqual(obj.mode, 'raw')
-        self.assertEqual(obj['target-device'], '/dev/sda')
+        self.assertEqual(obj['target'], '/dev/sda')
         self.assertEqual(obj['install-condition'], 'always')
 
     def test_can_load_from_file_content_diverges_object(self):
@@ -125,7 +134,7 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
         obj = pkg.objects.get(index=1, installation_set=0)
         self.assertEqual(obj.filename, __file__)
         self.assertEqual(obj.mode, 'raw')
-        self.assertEqual(obj['target-device'], '/dev/sda')
+        self.assertEqual(obj['target'], '/dev/sda')
         self.assertEqual(obj['install-condition'], 'content-diverges')
 
     def test_can_load_from_file_known_version_diverges_object(self):
@@ -133,7 +142,7 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
         obj = pkg.objects.get(index=2, installation_set=0)
         self.assertEqual(obj.filename, __file__)
         self.assertEqual(obj.mode, 'raw')
-        self.assertEqual(obj['target-device'], '/dev/sda')
+        self.assertEqual(obj['target'], '/dev/sda')
         self.assertEqual(obj['install-condition'], 'version-diverges')
         self.assertEqual(obj['install-condition-pattern-type'], 'u-boot')
 
@@ -142,7 +151,7 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
         obj = pkg.objects.get(index=3, installation_set=0)
         self.assertEqual(obj.filename, __file__)
         self.assertEqual(obj.mode, 'raw')
-        self.assertEqual(obj['target-device'], '/dev/sda')
+        self.assertEqual(obj['target'], '/dev/sda')
         self.assertEqual(obj['install-condition'], 'version-diverges')
         self.assertEqual(obj['install-condition-pattern-type'], 'regexp')
         self.assertEqual(obj['install-condition-pattern'], '\d+\.\d+')

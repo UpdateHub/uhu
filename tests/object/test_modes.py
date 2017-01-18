@@ -60,7 +60,8 @@ class ObjectsTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             CopyObject({
                 'filename': __file__,
-                'target-device': '/',
+                'target': 'device',
+                'target': '/',
                 'target-path': '/yey',
                 'filesystem': 'ext4',
                 'truncate': True,
@@ -70,14 +71,16 @@ class ObjectsTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             CopyObject({
                 'filename': __file__,
-                'target-device': '/',
+                'target-type': 'device',
+                'target': '/',
                 'target-path': '/yey',
             })
 
     def test_can_inject_default_values(self):
         obj = CopyObject({
             'filename': __file__,
-            'target-device': '/',
+            'target-type': 'device',
+            'target': '/',
             'target-path': '/yey',
             'filesystem': 'ext4',
         })
@@ -87,7 +90,8 @@ class ObjectsTestCase(unittest.TestCase):
     def test_with_format_True_and_without_format_options_is_valid(self):
         obj = CopyObject({
             'filename': __file__,
-            'target-device': '/',
+            'target-type': 'device',
+            'target': '/',
             'target-path': '/yey',
             'filesystem': 'ext4',
             'format?': True
@@ -98,7 +102,8 @@ class ObjectsTestCase(unittest.TestCase):
     def test_with_format_True_and_format_options_is_valid(self):
         obj = CopyObject({
             'filename': __file__,
-            'target-device': '/',
+            'target-type': 'device',
+            'target': '/',
             'target-path': '/yey',
             'filesystem': 'ext4',
             'format?': True,
@@ -111,7 +116,8 @@ class ObjectsTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             CopyObject({
                 'filename': __file__,
-                'target-device': '/',
+                'target-type': 'device',
+                'target': '/',
                 'target-path': '/yey',
                 'filesystem': 'ext4',
                 'format-options': 'all'
@@ -121,7 +127,8 @@ class ObjectsTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             CopyObject({
                 'filename': __file__,
-                'target-device': '/',
+                'target-type': 'device',
+                'target': '/',
                 'target-path': '/yey',
                 'filesystem': 'ext4',
                 'format?': False,
@@ -131,7 +138,8 @@ class ObjectsTestCase(unittest.TestCase):
     def test_can_get_option_by_object_subscription(self):
         obj = CopyObject({
             'filename': __file__,
-            'target-device': '/',
+            'target-type': 'device',
+            'target': '/',
             'target-path': '/yey',
             'filesystem': 'ext4',
             'format?': True,
@@ -148,7 +156,8 @@ class ObjectsTestCase(unittest.TestCase):
     def test_can_set_option_by_object_subscription(self):
         obj = CopyObject({
             'filename': __file__,
-            'target-device': '/',
+            'target-type': 'device',
+            'target': '/',
             'target-path': '/yey',
             'filesystem': 'ext4',
         })
@@ -175,14 +184,16 @@ class ObjectsTestCase(unittest.TestCase):
             'filename': __file__,
             'size': os.path.getsize(__file__),
             'sha256sum': sha256sum,
-            'target-device': '/',
+            'target-type': 'device',
+            'target': '/',
             'target-path': '/yey',
             'filesystem': 'ext4',
             'format?': False,
         }
         obj = CopyObject({
             'filename': __file__,
-            'target-device': '/',
+            'target-type': 'device',
+            'target': '/',
             'target-path': '/yey',
             'filesystem': 'ext4',
         })
@@ -198,7 +209,8 @@ class ObjectsTestCase(unittest.TestCase):
             sha256sum = hashlib.sha256(fp.read()).hexdigest()
         obj = CopyObject({
             'filename': compressed_fn,
-            'target-device': '/',
+            'target-type': 'device',
+            'target': '/',
             'target-path': '/yey',
             'filesystem': 'ext4',
         })
@@ -207,7 +219,8 @@ class ObjectsTestCase(unittest.TestCase):
             'filename': compressed_fn,
             'size': os.path.getsize(compressed_fn),
             'sha256sum': sha256sum,
-            'target-device': '/',
+            'target-type': 'device',
+            'target': '/',
             'target-path': '/yey',
             'filesystem': 'ext4',
             'format?': False,

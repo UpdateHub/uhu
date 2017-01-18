@@ -30,7 +30,8 @@ class PackageConstructorsTestCase(PackageTestCase):
                     {
                         'filename': self.obj_fn,
                         'mode': 'copy',
-                        'target-device': '/dev/sda',
+                        'target-type': 'device',
+                        'target': '/dev/sda',
                         'target-path': '/boot',
                         'filesystem': 'ext4',
                     }
@@ -39,7 +40,8 @@ class PackageConstructorsTestCase(PackageTestCase):
                     {
                         'filename': self.obj_fn,
                         'mode': 'copy',
-                        'target-device': '/dev/sda',
+                        'target-type': 'device',
+                        'target': '/dev/sda',
                         'target-path': '/boot',
                         'filesystem': 'ext4',
                     }
@@ -54,7 +56,7 @@ class PackageConstructorsTestCase(PackageTestCase):
         obj = pkg.objects.get(index=0, installation_set=0)
         self.assertEqual(obj.filename, self.obj_fn)
         self.assertEqual(obj.mode, 'copy')
-        self.assertEqual(obj['target-device'], '/dev/sda')
+        self.assertEqual(obj['target'], '/dev/sda')
         self.assertEqual(obj['target-path'], '/boot')
         self.assertEqual(obj['filesystem'], 'ext4')
 
@@ -69,7 +71,8 @@ class PackageConstructorsTestCase(PackageTestCase):
                         'mode': 'copy',
                         'size': self.obj_size,
                         'sha256sum': self.obj_sha256,
-                        'target-device': '/dev/sda',
+                        'target-type': 'device',
+                        'target': '/dev/sda',
                         'target-path': '/boot',
                         'filesystem': 'ext4'
                     }
@@ -80,7 +83,8 @@ class PackageConstructorsTestCase(PackageTestCase):
                         'mode': 'copy',
                         'size': self.obj_size,
                         'sha256sum': self.obj_sha256,
-                        'target-device': '/dev/sda',
+                        'target-type': 'device',
+                        'target': '/dev/sda',
                         'target-path': '/boot',
                         'filesystem': 'ext4'
                     }
@@ -94,7 +98,7 @@ class PackageConstructorsTestCase(PackageTestCase):
         obj = pkg.objects.get(index=0, installation_set=0)
         self.assertEqual(obj.filename, self.obj_fn)
         self.assertEqual(obj.mode, 'copy')
-        self.assertEqual(obj['target-device'], '/dev/sda')
+        self.assertEqual(obj['target'], '/dev/sda')
         self.assertEqual(obj['target-path'], '/boot')
         self.assertEqual(obj['filesystem'], 'ext4')
 
@@ -106,11 +110,13 @@ class PackageConstructorsTestCase(PackageTestCase):
         pkg = Package(InstallationSetMode.ActiveInactive)
         pkg.objects.create('raw', {
             'filename': __file__,
-            'target-device': '/'
+            'target-type': 'device',
+            'target': '/'
         })
         pkg.objects.create('raw', {
             'filename': compressed_fn,
-            'target-device': '/'
+            'target-type': 'device',
+            'target': '/'
         })
         expected = pkg.template(), pkg.metadata()
 
@@ -125,7 +131,8 @@ class PackageConstructorsTestCase(PackageTestCase):
         pkg = Package(InstallationSetMode.ActiveInactive)
         pkg.objects.create('raw', {
             'filename': compressed_fn,
-            'target-device': '/',
+            'target-type': 'device',
+            'target': '/',
         })
         pkg.objects.load()
         expected = pkg.metadata()

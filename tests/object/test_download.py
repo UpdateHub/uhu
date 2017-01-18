@@ -32,7 +32,8 @@ class ObjectDownloadTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
         self.sha256 = hashlib.sha256(self.content).hexdigest()
         self.obj = Object('raw', {
             'filename': self.fn,
-            'target-device': '/dev/sda'
+            'target-type': 'device',
+            'target': '/dev/sda'
         })
         self.addCleanup(self.remove_file, self.fn)
 

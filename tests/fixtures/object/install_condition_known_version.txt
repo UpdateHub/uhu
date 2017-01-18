@@ -2,7 +2,7 @@ file.txt [mode: raw]
 
     Install condition:       install when VERSION diverges
     Version pattern type:    "linux-kernel"
-    Target device:           / [seek: 0, truncate: no]
+    Target:                  / [seek: 0, truncate: no]
     Chunk size:              128.0 KiB
     Skip from source:        0
     Count:                   all content

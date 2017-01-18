@@ -147,7 +147,8 @@ class AlwaysObjectIntegrationTestCase(FileFixtureMixin, EFUTestCase):
         self.fn = self.create_file(b'spam')
         self.options = {
             'install-condition': 'always',
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
             'filename': self.fn,
         }
 
@@ -164,7 +165,8 @@ class AlwaysObjectIntegrationTestCase(FileFixtureMixin, EFUTestCase):
             'count': -1,
             'seek': 0,
             'skip': 0,
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
             'truncate': False,
             'install-condition': 'always',
         }
@@ -180,7 +182,8 @@ class AlwaysObjectIntegrationTestCase(FileFixtureMixin, EFUTestCase):
             'count': -1,
             'seek': 0,
             'skip': 0,
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
             'truncate': False,
             'size': 4,
             'sha256sum': hashlib.sha256(b'spam').hexdigest(),
@@ -197,7 +200,8 @@ class ContentDivergesObjectIntegrationTestCase(FileFixtureMixin, EFUTestCase):
         self.options = {
             'filename': self.fn,
             'install-condition': 'content-diverges',
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
         }
 
     def test_can_create_object(self):
@@ -213,7 +217,8 @@ class ContentDivergesObjectIntegrationTestCase(FileFixtureMixin, EFUTestCase):
             'count': -1,
             'seek': 0,
             'skip': 0,
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
             'truncate': False,
             'install-condition': 'content-diverges',
         }
@@ -229,7 +234,8 @@ class ContentDivergesObjectIntegrationTestCase(FileFixtureMixin, EFUTestCase):
             'count': -1,
             'seek': 0,
             'skip': 0,
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
             'truncate': False,
             'size': 4,
             'sha256sum': hashlib.sha256(b'spam').hexdigest(),
@@ -256,7 +262,8 @@ class KnownVersionPatternObjectIntegrationTestCase(unittest.TestCase):
             'filename': __file__,
             'install-condition': 'version-diverges',
             'install-condition-pattern-type': None,  # to be replaced by tests
-            'target-device': '/dev/sda'
+            'target-type': 'device',
+            'target': '/dev/sda'
         }
         self.template = {
             'filename': None,  # to be replaced by tests
@@ -265,7 +272,8 @@ class KnownVersionPatternObjectIntegrationTestCase(unittest.TestCase):
             'count': -1,
             'seek': 0,
             'skip': 0,
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
             'truncate': False,
             'install-condition': 'version-diverges',
             # to be replaced by tests
@@ -278,7 +286,8 @@ class KnownVersionPatternObjectIntegrationTestCase(unittest.TestCase):
             'count': -1,
             'seek': 0,
             'skip': 0,
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
             'truncate': False,
             'size': None,  # to be replaced by tests
             'sha256sum': None,  # to be replaced by tests
@@ -379,7 +388,8 @@ class CustomVersionPatternObjectIntegrationTestCase(
             'install-condition-pattern': '\d+\.\d+',
             'install-condition-seek': 3,
             'install-condition-buffer-size': 5,
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
         }
         self.template = {
             'filename': self.fn,
@@ -388,7 +398,8 @@ class CustomVersionPatternObjectIntegrationTestCase(
             'count': -1,
             'seek': 0,
             'skip': 0,
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
             'truncate': False,
             'install-condition': 'version-diverges',
             'install-condition-pattern-type': 'regexp',
@@ -403,7 +414,8 @@ class CustomVersionPatternObjectIntegrationTestCase(
             'count': -1,
             'seek': 0,
             'skip': 0,
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
             'truncate': False,
             'size': len(self.content),
             'sha256sum': hashlib.sha256(self.content).hexdigest(),
@@ -455,7 +467,8 @@ class InstallConditionRepresentationTestCase(unittest.TestCase):
         expected = self.get_fixture('install_condition_always.txt')
         obj = Object('raw', {
             'filename': 'file.txt',
-            'target-device': '/',
+            'target-type': 'device',
+            'target': '/',
             'install-condition': 'always',
         })
         self.assertEqual(str(obj), expected)
@@ -464,7 +477,8 @@ class InstallConditionRepresentationTestCase(unittest.TestCase):
         expected = self.get_fixture('install_condition_content.txt')
         obj = Object('raw', {
             'filename': 'file.txt',
-            'target-device': '/',
+            'target-type': 'device',
+            'target': '/',
             'install-condition': 'content-diverges',
         })
         self.assertEqual(str(obj), expected)
@@ -473,7 +487,8 @@ class InstallConditionRepresentationTestCase(unittest.TestCase):
         expected = self.get_fixture('install_condition_known_version.txt')
         obj = Object('raw', {
             'filename': 'file.txt',
-            'target-device': '/',
+            'target-type': 'device',
+            'target': '/',
             'install-condition': 'version-diverges',
             'install-condition-pattern-type': 'linux-kernel',
         })
@@ -483,7 +498,8 @@ class InstallConditionRepresentationTestCase(unittest.TestCase):
         expected = self.get_fixture('install_condition_version_regexp.txt')
         obj = Object('raw', {
             'filename': 'file.txt',
-            'target-device': '/',
+            'target-type': 'device',
+            'target': '/',
             'install-condition': 'version-diverges',
             'install-condition-pattern-type': 'regexp',
             'install-condition-pattern': '.+',
@@ -495,7 +511,8 @@ class InstallConditionRepresentationTestCase(unittest.TestCase):
     def test_object_without_install_condition_support(self):
         obj = Object('ubifs', {
             'filename': 'file.txt',
-            'volume': 'system0'
+            'target-type': 'ubivolume',
+            'target': 'system0'
         })
         expected = self.get_fixture('install_condition_ubifs.txt')
         self.assertEqual(str(obj), expected)

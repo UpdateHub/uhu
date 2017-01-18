@@ -3,7 +3,7 @@ Installation Set:
     0# set.txt [mode: raw]
 
         Install condition:       always install
-        Target device:           /dev/sda [seek: 0, truncate: no]
+        Target:                  /dev/sda [seek: 0, truncate: no]
         Chunk size:              128.0 KiB
         Skip from source:        0
         Count:                   all content
@@ -11,7 +11,7 @@ Installation Set:
     1# set.txt [mode: raw]
 
         Install condition:       always install
-        Target device:           /dev/sda [seek: 0, truncate: no]
+        Target:                  /dev/sda [seek: 0, truncate: no]
         Chunk size:              128.0 KiB
         Skip from source:        0
         Count:                   all content
@@ -19,7 +19,7 @@ Installation Set:
     2# set.txt [mode: raw]
 
         Install condition:       always install
-        Target device:           /dev/sda [seek: 0, truncate: no]
+        Target:                  /dev/sda [seek: 0, truncate: no]
         Chunk size:              128.0 KiB
         Skip from source:        0
         Count:                   all content

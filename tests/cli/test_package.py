@@ -32,7 +32,8 @@ class PackageTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
         self.obj_fn = __file__
         self.obj_options = {
             'filename': self.obj_fn,
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
         }
 
 
@@ -44,7 +45,7 @@ class AddObjectCommandTestCase(PackageTestCase):
         pkg.dump(self.pkg_fn)
 
     def test_can_add_object(self):
-        cmd = [self.obj_fn, '-m', 'raw', '-td', '/dev/sda']
+        cmd = [self.obj_fn, '-m', 'raw', '-t', '/dev/sda', '-tt', 'device']
         result = self.runner.invoke(add_object_command, cmd)
 
         self.assertEqual(result.exit_code, 0)
@@ -52,12 +53,13 @@ class AddObjectCommandTestCase(PackageTestCase):
         obj = package.objects.get(index=0, installation_set=0)
         self.assertEqual(obj.filename, self.obj_fn)
         self.assertEqual(obj.mode, 'raw')
-        self.assertEqual(obj['target-device'], '/dev/sda')
+        self.assertEqual(obj['target'], '/dev/sda')
 
     def test_cannot_add_object_if_callback_fails(self):
         cmd = [self.obj_fn,
                '-m', 'copy',
-               '-td', '/dev/sda',
+               '-tt', '/dev/sda',
+               '-t', '/dev/sda',
                '-tp', '/path',
                '-fs', 'ext2',
                '--no-format', 'true',
@@ -68,7 +70,8 @@ class AddObjectCommandTestCase(PackageTestCase):
     def test_can_add_a_raw_object_with_all_options(self):
         cmd = [self.obj_fn,
                '--mode', 'raw',
-               '--target-device', '/dev/sda',
+               '--target-type', 'device',
+               '--target', '/dev/sda',
                '--skip', '128',
                '--count', '-1',
                '--seek', '1234',
@@ -80,7 +83,8 @@ class AddObjectCommandTestCase(PackageTestCase):
     def test_can_add_a_copy_object_with_all_options(self):
         cmd = [self.obj_fn,
                '--mode', 'copy',
-               '--target-device', '/dev/sda',
+               '--target-type', 'device',
+               '--target', '/dev/sda',
                '--mount-options', 'options',
                '--target-path', '/path',
                '--filesystem', 'ext4',
@@ -92,7 +96,8 @@ class AddObjectCommandTestCase(PackageTestCase):
     def test_can_add_a_tarball_object_with_all_options(self):
         cmd = [self.obj_fn,
                '--mode', 'tarball',
-               '--target-device', '/dev/sda',
+               '--target-type', 'device',
+               '--target', '/dev/sda',
                '--mount-options', 'options',
                '--target-path', '/path',
                '--filesystem', 'ext4',
@@ -104,14 +109,16 @@ class AddObjectCommandTestCase(PackageTestCase):
     def test_can_add_raw_object_with_only_required_options(self):
         cmd = [self.obj_fn,
                '--mode', 'raw',
-               '--target-device', '/dev/sda']
+               '--target-type', 'device',
+               '--target', '/dev/sda']
         result = self.runner.invoke(add_object_command, cmd)
         self.assertEqual(result.exit_code, 0)
 
     def test_can_add_copy_object_with_only_required_options(self):
         cmd = [self.obj_fn,
                '--mode', 'copy',
-               '--target-device', '/dev/sda',
+               '--target-type', 'device',
+               '--target', '/dev/sda',
                '--target-path', '/path',
                '--filesystem', 'ext4']
         result = self.runner.invoke(add_object_command, cmd)
@@ -120,7 +127,8 @@ class AddObjectCommandTestCase(PackageTestCase):
     def test_can_add_tarball_object_with_only_required_options(self):
         cmd = [self.obj_fn,
                '--mode', 'tarball',
-               '--target-device', '/dev/sda',
+               '--target-type', 'device',
+               '--target', '/dev/sda',
                '--target-path', '/path',
                '--filesystem', 'ext4']
         result = self.runner.invoke(add_object_command, cmd)
@@ -135,14 +143,17 @@ class AddObjectCommandTestCase(PackageTestCase):
         cmds = (
             [self.obj_fn,
              '--mode', 'copy',
-             '--target-device', '/dev/sda',
+             '--target-type', 'device',
+             '--target', '/dev/sda',
              '--target-path', '/path'],
             [self.obj_fn,
              '--mode', 'copy',
-             '--target-device', '/dev/sda',
+             '--target-type', 'device',
+             '--target', '/dev/sda',
              '--filesystem', 'ext4'],
             [self.obj_fn,
              '--mode', 'copy',
+             '--target-type', 'device',
              '--target-path', '/path',
              '--filesystem', 'ext4']
         )
@@ -154,14 +165,17 @@ class AddObjectCommandTestCase(PackageTestCase):
         cmds = (
             [self.obj_fn,
              '--mode', 'tarball',
-             '--target-device', '/dev/sda',
+             '--target-type', 'device',
+             '--target', '/dev/sda',
              '--target-path', '/path'],
             [self.obj_fn,
              '--mode', 'tarball',
-             '--target-device', '/dev/sda',
+             '--target-type', 'device',
+             '--target', '/dev/sda',
              '--filesystem', 'ext4'],
             [self.obj_fn,
              '--mode', 'tarball',
+             '--target-type', 'device',
              '--target-path', '/path',
              '--filesystem', 'ext4']
         )
@@ -182,12 +196,12 @@ class EditObjectCommandTestCase(PackageTestCase):
         args = [
             '--index', '0',
             '--installation-set', '0',
-            '--option', 'target-device',
+            '--option', 'target',
             '--value', '/dev/sdb']
         self.runner.invoke(edit_object_command, args=args)
         pkg = Package.from_file(self.pkg_fn)
         obj = pkg.objects.get(index=0, installation_set=0)
-        self.assertEqual(obj['target-device'], '/dev/sdb')
+        self.assertEqual(obj['target'], '/dev/sdb')
 
     def test_can_edit_object_filename_with_edit_object_command(self):
         args = [
@@ -203,13 +217,13 @@ class EditObjectCommandTestCase(PackageTestCase):
         args = [
             '--index', '0',
             '--installation-set', '0',
-            '--option', 'target-device',
+            '--option', 'target',
             '--value', '/dev/sdb']
         result = self.runner.invoke(edit_object_command, args=args)
         self.assertEqual(result.exit_code, 0)
 
     def test_edit_command_returns_2_if_object_does_not_exist(self):
-        args = ['42', 'target-device', '/dev/sdb']
+        args = ['42', 'target', '/dev/sdb']
         result = self.runner.invoke(edit_object_command, args=args)
         self.assertEqual(result.exit_code, 2)
 
@@ -277,7 +291,8 @@ class ExportCommandTestCase(PackageTestCase):
                         'count': -1,
                         'seek': 0,
                         'skip': 0,
-                        'target-device': '/dev/sda',
+                        'target-type': 'device',
+                        'target': '/dev/sda',
                         'truncate': False,
                         'install-condition': 'always',
                     }

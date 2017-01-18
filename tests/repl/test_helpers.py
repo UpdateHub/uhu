@@ -46,6 +46,11 @@ class PromptsTestCase(unittest.TestCase):
 
     def setUp(self):
         self.repl = EFURepl()
+        self.options = {
+            'filename': __file__,
+            'target-type': 'device',
+            'target': '/',
+        }
 
     def test_set_product_prompt_returns_right_prompt(self):
         product = '123456789'
@@ -55,20 +60,18 @@ class PromptsTestCase(unittest.TestCase):
 
     @patch('efu.repl.helpers.prompt')
     def test_can_prompt_object_option(self, prompt):
-        obj = Object('raw', {
-            'filename': __file__,
-            'target-device': '/',
-        })
-        prompt.return_value = 'target-device'
+        obj = Object('raw', self.options)
+        prompt.return_value = 'target'
         option = helpers.prompt_object_option(obj)
-        self.assertEqual(option.metadata, 'target-device')
+        self.assertEqual(option.metadata, 'target')
 
     @patch('efu.repl.helpers.prompt')
     def test_can_prompt_object_options(self, prompt):
         prompt.side_effect = [
             __file__,  # filename
-            '/dev/sda',  # target-device (set 0)
-            '/dev/sdb',  # target-device (set 1)
+            'device',  # target type (set 0)
+            '/dev/sda',  # target (set 0)
+            '/dev/sdb',  # target (set 1)
             '1000',  # chunk-size
             '300',  # count
             '100',  # seek
@@ -78,7 +81,8 @@ class PromptsTestCase(unittest.TestCase):
         ]
         expected = {
             'filename': __file__,
-            'target-device': ('/dev/sda', '/dev/sdb'),
+            'target-type': 'device',
+            'target': ('/dev/sda', '/dev/sdb'),
             'truncate': True,
             'seek': 100,
             'skip': 200,
@@ -94,8 +98,9 @@ class PromptsTestCase(unittest.TestCase):
     def test_can_prompt_object_options_with_empty_prompts(self, prompt):
         prompt.side_effect = [
             __file__,  # filename
-            '/dev/sda',  # target-device (set 0)
-            '/dev/sdb',  # target-device (set 1)
+            'device',  # target type (set 0)
+            '/dev/sda',  # target (set 0)
+            '/dev/sdb',  # target (set 1)
             '',  # chunk-size
             '',  # count
             '',  # seek
@@ -105,7 +110,8 @@ class PromptsTestCase(unittest.TestCase):
         ]
         expected = {
             'filename': __file__,
-            'target-device': ('/dev/sda', '/dev/sdb'),
+            'target-type': 'device',
+            'target': ('/dev/sda', '/dev/sdb'),
             'truncate': False,
             'seek': 0,
             'skip': 0,
@@ -128,10 +134,7 @@ class PromptsTestCase(unittest.TestCase):
     def test_can_prompt_object_uid(self, prompt):
         prompt.return_value = '1# {}'.format(__file__)
         pkg = Package(InstallationSetMode.ActiveInactive)
-        pkg.objects.create('raw', {
-            'filename': __file__,
-            'target-device': '/',
-        })
+        pkg.objects.create('raw', self.options)
         expected = 1
         observed = helpers.prompt_object_uid(pkg, 0)
         self.assertEqual(expected, observed)

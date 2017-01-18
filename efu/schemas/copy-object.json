@@ -22,8 +22,13 @@
         "install-if-different": {
             "$ref": "install-if-different.json"
         },
-        "target-device": {
-            "$ref": "definitions.json#/target-device"
+        "target-type": {
+            "description": "The type of target (only device)",
+            "type": "string",
+            "enum": ["device"]
+        },
+        "target": {
+            "$ref": "definitions.json#/target"
         },
         "compressed": {
             "$ref": "definitions.json#/compressed"
@@ -54,7 +59,8 @@
         "mode",
         "sha256sum",
         "size",
-        "target-device",
+        "target-type",
+        "target",
         "target-path"
     ],
 

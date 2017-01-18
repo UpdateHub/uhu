@@ -184,7 +184,8 @@ class BasePushTestCase(
             fn = self.create_file('123')
             self.package.objects.create('raw', {
                 'filename': fn,
-                'target-device': '/dev/sda',
+                'target-type': 'device',
+                'target': '/dev/sda',
             })
 
 
@@ -219,7 +220,8 @@ class BasePullTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
                     {
                         'filename': self.obj_fn,
                         'mode': 'raw',
-                        'target-device': '/device',
+                        'target-type': 'device',
+                        'target': '/device',
                         'size': 4,
                         'sha256sum': hashlib.sha256(
                             self.obj_content).hexdigest()

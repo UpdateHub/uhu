@@ -215,7 +215,7 @@ class BaseObject(metaclass=ObjectType):
         except ValueError:
             raise TypeError('You must provide a registered option')
         try:
-            self._values[option] = option.validate(value)
+            self._values[option] = option.validate(value, self)
         except ValueError:
             raise TypeError('You must provide a valid value.')
         values = {option.metadata: value

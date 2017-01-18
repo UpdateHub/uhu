@@ -34,7 +34,7 @@ class PackageSerializationsTestCase(PackageTestCase):
         self.assertEqual(obj['filename'], self.obj_fn)
         self.assertEqual(obj['size'], self.obj_size)
         self.assertEqual(obj['sha256sum'], self.obj_sha256)
-        self.assertEqual(obj['target-device'], '/dev/sda')
+        self.assertEqual(obj['target'], '/dev/sda')
 
     def test_can_serialize_package_as_template(self):
         pkg = Package(InstallationSetMode.Single,
@@ -95,14 +95,16 @@ class PackageSerializationsTestCase(PackageTestCase):
             product='e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')  # nopep8
         package.objects.create('raw', {
             'filename': 'files/pkg.json',
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
             'chunk-size': 1234,
             'skip': 0,
             'count': -1
         })
         package.objects.create('raw', {
             'filename': 'files/setup.py',
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
             'seek': 5,
             'truncate': True,
             'chunk-size': 10000,
@@ -111,7 +113,8 @@ class PackageSerializationsTestCase(PackageTestCase):
         })
         package.objects.create('copy', {
             'filename': 'files/tox.ini',
-            'target-device': '/dev/sda3',
+            'target-type': 'device',
+            'target': '/dev/sda3',
             'target-path': '/dev/null',
             'filesystem': 'ext4',
             'format?': True,
@@ -120,7 +123,8 @@ class PackageSerializationsTestCase(PackageTestCase):
         })
         package.objects.create('tarball', {
             'filename': 'files/archive.tar.gz',
-            'target-device': '/dev/sda3',
+            'target-type': 'device',
+            'target': '/dev/sda3',
             'target-path': '/dev/null',
             'filesystem': 'ext4',
             'format?': True,

@@ -14,8 +14,9 @@ class InstallationSetTestCase(unittest.TestCase):
         self.fn = __file__
         self.mode = 'raw'
         self.options = {
-            'filename': self.fn,
-            'target-device': '/dev/sda'
+            'filename': __file__,
+            'target-type': 'device',
+            'target': '/dev/sda',
         }
         self.obj = Object(self.mode, self.options)
 
@@ -28,7 +29,7 @@ class InstallationSetTestCase(unittest.TestCase):
         obj = installation_set.get(index)
         self.assertEqual(obj.filename, self.fn)
         self.assertEqual(obj.mode, self.mode)
-        self.assertEqual(obj['target-device'], '/dev/sda')
+        self.assertEqual(obj['target'], '/dev/sda')
 
     def test_can_get_object_by_index(self):
         installation_set = InstallationSet()
@@ -36,7 +37,7 @@ class InstallationSetTestCase(unittest.TestCase):
         obj = installation_set.get(0)
         self.assertEqual(obj.filename, self.fn)
         self.assertEqual(obj.mode, self.mode)
-        self.assertEqual(obj['target-device'], '/dev/sda')
+        self.assertEqual(obj['target'], '/dev/sda')
 
     def test_get_object_raises_error_with_invalid_index(self):
         installation_set = InstallationSet()
@@ -47,14 +48,14 @@ class InstallationSetTestCase(unittest.TestCase):
         installation_set = InstallationSet()
         index = installation_set.create(self.mode, self.options)
         obj = installation_set.get(index)
-        self.assertEqual(obj['target-device'], '/dev/sda')
-        installation_set.update(index, 'target-device', '/')
-        self.assertEqual(obj['target-device'], '/')
+        self.assertEqual(obj['target'], '/dev/sda')
+        installation_set.update(index, 'target', '/')
+        self.assertEqual(obj['target'], '/')
 
     def test_update_object_raises_with_invalid_index(self):
         installation_set = InstallationSet()
         with self.assertRaises(ValueError):
-            installation_set.update(100, 'target-device', '/dev/sda')
+            installation_set.update(100, 'target', '/dev/sda')
 
     def test_can_remove_object(self):
         installation_set = InstallationSet()

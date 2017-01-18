@@ -182,16 +182,17 @@ def _get_object_option_value_message(option, set_=None):
     return msg
 
 
-def _prompt_object_option_value(option, msg, completer, default, validator):
+def _prompt_object_option_value(
+        mode, option, msg, completer, default, validator):
     """Retuns a value for object_option_value prompt."""
     value = prompt(
         msg, completer=completer, default=default, validator=validator).strip()
     if value == '':
         return option.default
-    return option.validate(value)
+    return option.validate(value, obj=mode)
 
 
-def _get_object_option_value_completer(option):
+def _get_object_option_value_completer(option, obj=None):
     """Retuns a completer for object_option_value prompt."""
     if option.choices:
         return ObjectOptionValueCompleter(option)
@@ -199,6 +200,8 @@ def _get_object_option_value_completer(option):
         return YesNoCompleter()
     elif option.metadata == 'filename':
         return ObjectFilenameCompleter()
+    elif option.metadata == 'target-type':
+        return WordCompleter(obj.target_types)
 
 
 def prompt_object_option_value(
@@ -210,11 +213,12 @@ def prompt_object_option_value(
     :param installation_set: an int indicating the installation set.
     :param default: a default value to be displayed as placeholder.
     """
+    mode = Modes.get(mode)
     msg = _get_object_option_value_message(option, installation_set)
-    completer = _get_object_option_value_completer(option)
+    completer = _get_object_option_value_completer(option, mode)
     validator = ObjectOptionValueValidator(option, mode)
     value = _prompt_object_option_value(
-        option, msg, completer, default, validator)
+        mode, option, msg, completer, default, validator)
     return value
 
 

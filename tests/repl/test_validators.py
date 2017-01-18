@@ -8,6 +8,7 @@ from unittest.mock import Mock
 from prompt_toolkit.validation import ValidationError
 
 from efu.core._options import Options
+from efu.core.object import Modes
 from efu.repl import validators
 
 
@@ -56,24 +57,28 @@ class ObjectOptionValueValidator(unittest.TestCase):
 
     def test_valid_value_returns_None(self):
         option = Options.get('format?')
-        validator = validators.ObjectOptionValueValidator(option, 'copy')
+        validator = validators.ObjectOptionValueValidator(
+            option, Modes.get('copy'))
         for value in ['y', 'yes', 'n', 'no']:
             self.assertIsNone(validator.validate(document(value)))
 
     def test_empty_value_returns_None_if_option_has_default(self):
         option = Options.get('format?')
-        validator = validators.ObjectOptionValueValidator(option, 'copy')
+        validator = validators.ObjectOptionValueValidator(
+            option, Modes.get('copy'))
         self.assertIsNone(validator.validate(document('')))
 
     def test_empty_value_raises_error_if_required_and_has_no_default(self):
-        option = Options.get('target-device')
-        validator = validators.ObjectOptionValueValidator(option, 'copy')
+        option = Options.get('target')
+        validator = validators.ObjectOptionValueValidator(
+            option, Modes.get('copy'))
         with self.assertRaises(ValidationError):
             validator.validate(document(''))
 
     def test_invalid_value_raises_error(self):
-        option = Options.get('target-device')
-        validator = validators.ObjectOptionValueValidator(option, 'copy')
+        option = Options.get('truncate')
+        validator = validators.ObjectOptionValueValidator(
+            option, Modes.get('copy'))
         with self.assertRaises(ValidationError):
             validator.validate(document('not-an-absolut-path'))
 

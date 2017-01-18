@@ -6,7 +6,6 @@ import re
 
 from prompt_toolkit.validation import Validator
 
-from ..core.object import Modes
 from .exceptions import ValidationError
 
 
@@ -41,7 +40,7 @@ class ObjectOptionValueValidator(Validator):
 
     def __init__(self, option, mode, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.mode = Modes.get(mode)
+        self.mode = mode
         self.option = option
 
     def validate(self, document):
@@ -55,7 +54,7 @@ class ObjectOptionValueValidator(Validator):
             if self.option.metadata == 'filename':
                 self.validate_filename(value)
             else:
-                self.option.validate(value)
+                self.option.validate(value, self.mode)
         except ValueError as err:
             raise ValidationError(message=str(err))
 

@@ -12,25 +12,29 @@ class FlashObjectTestCase(ModeTestCaseMixin, EFUTestCase):
         super().setUp()
         self.default_options = {
             'filename': self.fn,
-            'target-device': '/dev/sda'
+            'target-type': 'device',
+            'target': '/dev/sda'
         }
         self.default_template = {
             'filename': self.fn,
             'mode': 'flash',
             'install-condition': 'always',
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
         }
         self.default_metadata = {
             'filename': self.fn,
             'mode': 'flash',
             'sha256sum': self.sha256sum,
             'size': self.size,
-            'target-device': '/dev/sda'
+            'target-type': 'device',
+            'target': '/dev/sda'
         }
 
         self.full_options = {
             'filename': self.fn,
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
             'install-condition': 'always',
             'install-condition-pattern-type': None,
             'install-condition-pattern': None,
@@ -41,12 +45,14 @@ class FlashObjectTestCase(ModeTestCaseMixin, EFUTestCase):
             'filename': self.fn,
             'mode': 'flash',
             'install-condition': 'always',
-            'target-device': '/dev/sda',
+            'target-type': 'device',
+            'target': '/dev/sda',
         }
         self.full_metadata = {
             'filename': self.fn,
             'mode': 'flash',
             'sha256sum': self.sha256sum,
             'size': self.size,
-            'target-device': '/dev/sda'
+            'target-type': 'device',
+            'target': '/dev/sda'
         }

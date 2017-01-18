@@ -59,7 +59,8 @@ class PushTestCase(BasePushTestCase):
     def test_can_push_package(self):
         self.repl.package.objects.create('raw', {
             'filename': __file__,
-            'target-device': '/'
+            'target-type': 'device',
+            'target': '/',
         })
         self.repl.package.product = self.product
         self.repl.package.version = '2.0'
