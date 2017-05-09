@@ -6,8 +6,6 @@ import os
 import unittest
 from unittest.mock import patch
 
-from jsonschema.exceptions import ValidationError
-
 from efu import utils
 
 from utils import EFUTestCase, FileFixtureMixin, EnvironmentFixtureMixin
@@ -116,33 +114,6 @@ class LocalConfigTestCase(
         self.assertFalse(os.path.exists(self.config_fn))
         with self.assertRaises(FileNotFoundError):
             utils.remove_local_config()
-
-
-class MetadataValidatorTestCase(FileFixtureMixin, EFUTestCase):
-
-    def setUp(self):
-        self.schema = self.create_file(json.dumps({
-            'type': 'object',
-            'properties': {
-                'test': {
-                    'type': 'string',
-                }
-            },
-            'additionalProperties': False,
-            'required': ['test']
-        }).encode())
-
-    def test_validate_returns_None_when_valid(self):
-        obj = {'test': 'ok'}
-        self.assertIsNone(utils.validate_schema(self.schema, obj))
-
-    def test_validate_raises_error_when_invalid(self):
-        with self.assertRaises(ValidationError):
-            utils.validate_schema(self.schema, {})
-        with self.assertRaises(ValidationError):
-            utils.validate_schema(self.schema, {'test': 1})
-        with self.assertRaises(ValidationError):
-            utils.validate_schema(self.schema, {'test': 'ok', 'extra': 2})
 
 
 class CompressedObjectTestCase(FileFixtureMixin, EFUTestCase):

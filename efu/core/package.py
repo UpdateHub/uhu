@@ -6,10 +6,11 @@ import json
 from collections import OrderedDict
 
 import requests
+from pkgschema import validate_metadata
 
 from ..exceptions import DownloadError, UploadError
 from ..http.request import Request
-from ..utils import call, get_server_url, validate_schema
+from ..utils import call, get_server_url
 
 from .hardware import HardwareManager
 from .object import Object, ObjectUploadResult
@@ -120,7 +121,7 @@ class Package:
 
     def upload_metadata(self):
         metadata = self.metadata()
-        validate_schema('metadata.json', metadata)
+        validate_metadata(metadata)
         payload = json.dumps(metadata)
         url = self.get_metadata_upload_url()
         response = Request(

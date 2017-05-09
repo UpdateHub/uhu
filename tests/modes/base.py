@@ -4,10 +4,11 @@
 import hashlib
 import os
 
+from pkgschema import validate_schema
+
 from efu.core.object import Object, Modes
 from efu.core.package import Package
 from efu.core.manager import InstallationSetMode
-from efu.utils import validate_schema
 
 from utils import EnvironmentFixtureMixin, FileFixtureMixin
 

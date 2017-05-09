@@ -6,13 +6,14 @@ import os
 
 import click
 import requests
-from jsonschema.exceptions import ValidationError
+
+from pkgschema import validate_metadata, ValidationError
 
 from ..core.object import Modes
 from ..core.package import Package
 from ..exceptions import DownloadError, UploadError
 from ..ui import get_callback
-from ..utils import get_local_config_file, validate_schema
+from ..utils import get_local_config_file
 
 from ._object import CLICK_ADD_OPTIONS
 from .utils import error, open_package
@@ -165,7 +166,7 @@ def metadata_command():
         metadata = package.metadata()
         print(json.dumps(metadata, indent=4, sort_keys=True))
     try:
-        validate_schema('metadata.json', metadata)
+        validate_metadata(metadata)
         print('Valid metadata.')
     except ValidationError as err:
         error(1, err)

@@ -14,7 +14,6 @@ setup(
     packages=find_packages(exclude=['tests*']),
     package_data={
         'efu': [
-            'schemas/*.json',
             'core/*.json',
         ],
     },
@@ -23,10 +22,10 @@ setup(
     },
     install_requires=[
         'click>=6.5',
-        'jsonschema>=2.3.0',
         'humanize>=0.5.1',
         'progress>=1.1',
         'prompt-toolkit>=0.57',
+        'updatehub-package-schema',
         'requests>=2',
         'rfc3987>=1.3',
     ],

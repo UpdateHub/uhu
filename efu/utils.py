@@ -7,10 +7,6 @@ import shutil
 import subprocess
 from collections import OrderedDict
 
-from jsonschema import Draft4Validator, FormatChecker, RefResolver
-
-
-SCHEMAS_DIR = os.path.join(os.path.dirname(__file__), 'schemas')
 
 # Environment variables (only for testing)
 CHUNK_SIZE_VAR = 'EFU_CHUNK_SIZE'
@@ -51,17 +47,6 @@ def get_local_config():
 
 def remove_local_config():
     os.remove(get_local_config_file())
-
-
-def validate_schema(schema_fn, obj):
-    base_uri = 'file://{}/'.format(SCHEMAS_DIR)
-    with open(os.path.join(SCHEMAS_DIR, schema_fn)) as fp:
-        schema = json.load(fp)
-    resolver = RefResolver(base_uri, schema)
-    format_checker = FormatChecker(formats=['uri'])
-    validator = Draft4Validator(
-        schema, resolver=resolver, format_checker=format_checker)
-    validator.validate(obj)
 
 
 def call(obj, name, *args, **kw):
