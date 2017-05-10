@@ -1,10 +1,10 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-from efu.cli.hardware import (
+from uhu.cli.hardware import (
     add_supported_hardware_command, remove_supported_hardware_command)
-from efu.core import Package
-from efu.core.manager import InstallationSetMode
+from uhu.core import Package
+from uhu.core.manager import InstallationSetMode
 
 from cli.test_package import PackageTestCase
 

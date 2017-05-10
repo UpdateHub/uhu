@@ -6,21 +6,21 @@ import os
 
 from click.testing import CliRunner
 
-from efu.cli.package import (
+from uhu.cli.package import (
     add_object_command, edit_object_command, remove_object_command,
     export_command, show_command, set_version_command, status_command,
     metadata_command)
-from efu.cli.utils import open_package
-from efu.core import Package
-from efu.core.manager import InstallationSetMode
-from efu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
+from uhu.cli.utils import open_package
+from uhu.core import Package
+from uhu.core.manager import InstallationSetMode
+from uhu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 
 from utils import (
-    EFUTestCase, FileFixtureMixin, EnvironmentFixtureMixin, HTTPTestCaseMixin)
+    UHUTestCase, FileFixtureMixin, EnvironmentFixtureMixin, HTTPTestCaseMixin)
 
 
-class PackageTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
+class PackageTestCase(EnvironmentFixtureMixin, FileFixtureMixin, UHUTestCase):
 
     def setUp(self):
         self.runner = CliRunner()
@@ -357,7 +357,7 @@ class StatusCommandTestCase(HTTPTestCaseMixin, PackageTestCase):
         self.assertEqual(result.exit_code, 2)
 
 
-class UtilsTestCase(FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase):
+class UtilsTestCase(FileFixtureMixin, EnvironmentFixtureMixin, UHUTestCase):
 
     def test_open_package_quits_program_if_invalid_package(self):
         pkg_fn = self.create_file(b'')

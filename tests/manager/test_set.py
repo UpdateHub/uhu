@@ -4,8 +4,8 @@
 import os
 import unittest
 
-from efu.core.object import Object
-from efu.core.manager import InstallationSet
+from uhu.core.object import Object
+from uhu.core.manager import InstallationSet
 
 
 class InstallationSetTestCase(unittest.TestCase):

@@ -1,12 +1,12 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-from efu.utils import CHUNK_SIZE_VAR
+from uhu.utils import CHUNK_SIZE_VAR
 
-from utils import FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase
+from utils import FileFixtureMixin, EnvironmentFixtureMixin, UHUTestCase
 
 
-class PackageTestCase(FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase):
+class PackageTestCase(FileFixtureMixin, EnvironmentFixtureMixin, UHUTestCase):
 
     def setUp(self):
         self.set_env_var(CHUNK_SIZE_VAR, 2)

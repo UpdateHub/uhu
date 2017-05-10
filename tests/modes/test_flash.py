@@ -1,11 +1,11 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-from utils import EFUTestCase
+from utils import UHUTestCase
 from .base import ModeTestCaseMixin
 
 
-class FlashObjectTestCase(ModeTestCaseMixin, EFUTestCase):
+class FlashObjectTestCase(ModeTestCaseMixin, UHUTestCase):
     mode = 'flash'
 
     def setUp(self):

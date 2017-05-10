@@ -4,18 +4,18 @@
 import unittest
 from unittest.mock import patch
 
-from efu.core.manager import InstallationSetMode
-from efu.core.object import Object
-from efu.core._options import StringOption
-from efu.core.package import Package
-from efu.repl import helpers
-from efu.repl.repl import EFURepl
+from uhu.core.manager import InstallationSetMode
+from uhu.core.object import Object
+from uhu.core._options import StringOption
+from uhu.core.package import Package
+from uhu.repl import helpers
+from uhu.repl.repl import UHURepl
 
 
 class CheckerTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.repl = EFURepl()
+        self.repl = UHURepl()
 
     def test_check_arg_returns_None_if_arg_is_passed(self):
         self.repl.arg = 'argument'
@@ -45,7 +45,7 @@ class CheckerTestCase(unittest.TestCase):
 class PromptsTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.repl = EFURepl()
+        self.repl = UHURepl()
         self.options = {
             'filename': __file__,
             'target-type': 'device',
@@ -54,18 +54,18 @@ class PromptsTestCase(unittest.TestCase):
 
     def test_set_product_prompt_returns_right_prompt(self):
         product = '123456789'
-        expected = '[123456] efu> '
+        expected = '[123456] uhu> '
         observed = helpers.set_product_prompt(product)
         self.assertEqual(observed, expected)
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_can_prompt_object_option(self, prompt):
         obj = Object('raw', self.options)
         prompt.return_value = 'target'
         option = helpers.prompt_object_option(obj)
         self.assertEqual(option.metadata, 'target')
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_can_prompt_object_options(self, prompt):
         prompt.side_effect = [
             __file__,  # filename
@@ -94,7 +94,7 @@ class PromptsTestCase(unittest.TestCase):
         observed = helpers.prompt_object_options(pkg_mode, 'raw')
         self.assertEqual(expected, observed)
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_can_prompt_object_options_with_empty_prompts(self, prompt):
         prompt.side_effect = [
             __file__,  # filename
@@ -123,14 +123,14 @@ class PromptsTestCase(unittest.TestCase):
         observed = helpers.prompt_object_options(pkg_mode, 'raw')
         self.assertEqual(expected, observed)
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_can_prompt_object_mode(self, prompt):
         prompt.return_value = '   raw  '
         expected = 'raw'
         observed = helpers.prompt_object_mode()
         self.assertEqual(expected, observed)
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_can_prompt_object_uid(self, prompt):
         prompt.return_value = '1# {}'.format(__file__)
         pkg = Package(InstallationSetMode.ActiveInactive)
@@ -139,7 +139,7 @@ class PromptsTestCase(unittest.TestCase):
         observed = helpers.prompt_object_uid(pkg, 0)
         self.assertEqual(expected, observed)
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_prompt_object_option_without_default_and_empty_prompt(self, prompt):  # nopep8
         # This case must return None so OptionsParser cleans it for
         # us.
@@ -151,7 +151,7 @@ class PromptsTestCase(unittest.TestCase):
         observed = helpers.prompt_object_option_value(Option, 'copy')
         self.assertIsNone(observed)
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_prompt_object_option_with_default_and_empty_prompt(self, prompt):
         # This case must return Option.default
         class Option(StringOption):
@@ -163,14 +163,14 @@ class PromptsTestCase(unittest.TestCase):
         observed = helpers.prompt_object_option_value(Option, 'copy')
         self.assertEqual(observed, Option.default)
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_can_prompt_package_uid(self, prompt):
         uid = '0' * 64
         prompt.return_value = uid
         observed = helpers.prompt_package_uid()
         self.assertEqual(observed, uid)
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_can_prompt_pull(self, prompt):
         prompt.return_value = 'yes'
         observed = helpers.prompt_pull()
@@ -183,20 +183,20 @@ class PromptsTestCase(unittest.TestCase):
             observed = helpers.parse_prompt_object_uid(value)
             self.assertEqual(observed, uid)
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_prompt_installation_set_returns_None_if_single(self, prompt):
         pkg = Package(InstallationSetMode.Single)
         observed = helpers.prompt_installation_set(pkg)
         self.assertIsNone(observed)
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_prompt_installation_set_returns_int_if_not_single(self, prompt):
         pkg = Package(InstallationSetMode.ActiveInactive)
         helpers.prompt.return_value = '1'
         observed = helpers.prompt_installation_set(self.repl.package)
         self.assertEqual(observed, 1)
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_can_prompt_package_mode(self, prompt):
         modes = ['single', 'active-inactive']
         values = ['single ', ' SinGle', 'active-inactive', ' ActivE-inactive ']

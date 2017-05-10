@@ -5,9 +5,9 @@ import hashlib
 import os
 import unittest
 
-from efu.core._base import BaseObject
-from efu.core._options import BooleanOption
-from efu.core.modes import CopyObject
+from uhu.core._base import BaseObject
+from uhu.core._options import BooleanOption
+from uhu.core.modes import CopyObject
 
 
 # Nested options

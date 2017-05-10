@@ -7,9 +7,9 @@ from unittest.mock import Mock
 
 from prompt_toolkit.validation import ValidationError
 
-from efu.core._options import Options
-from efu.core.object import Modes
-from efu.repl import validators
+from uhu.core._options import Options
+from uhu.core.object import Modes
+from uhu.repl import validators
 
 
 def document(text):

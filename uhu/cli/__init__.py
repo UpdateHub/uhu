@@ -3,8 +3,8 @@
 
 import click
 
-from .. import get_efu_version
-from ..repl import efu_interactive
+from .. import get_version
+from ..repl import repl
 
 from .config import config_cli, cleanup_command
 from .hardware import hardware_cli
@@ -15,12 +15,12 @@ from .product import product_cli
 @click.group(invoke_without_command=True)
 @click.option('--package', type=click.Path())
 @click.version_option(
-    get_efu_version(), message='EasyFOTA Utils - %(version)s')
+    get_version(), message='UpdateHub Utils - %(version)s')
 @click.pass_context
 def cli(ctx, package):
-    """EasyFOTA utility."""
+    """UpdateHub utility."""
     if ctx.invoked_subcommand is None:
-        efu_interactive(package)
+        repl(package)
 
 
 # General commands

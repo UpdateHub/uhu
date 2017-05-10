@@ -5,12 +5,12 @@ import signal
 import sys
 from itertools import count
 
-from efu.core import Package
-from efu.core.manager import InstallationSetMode
-from efu.utils import LOCAL_CONFIG_VAR, CHUNK_SIZE_VAR
+from uhu.core import Package
+from uhu.core.manager import InstallationSetMode
+from uhu.utils import LOCAL_CONFIG_VAR, CHUNK_SIZE_VAR
 
 from tests.utils import (
-    PushFixtureMixin, HTTPTestCaseMixin, EFUTestCase,
+    PushFixtureMixin, HTTPTestCaseMixin, UHUTestCase,
     FileFixtureMixin, EnvironmentFixtureMixin, UploadFixtureMixin)
 
 
@@ -39,8 +39,8 @@ def push_cmd(cmd):
     return wrapped
 
 
-class EFUTestServer(PushFixtureMixin, FileFixtureMixin, UploadFixtureMixin,
-                    EnvironmentFixtureMixin, HTTPTestCaseMixin, EFUTestCase):
+class UHUTestServer(PushFixtureMixin, FileFixtureMixin, UploadFixtureMixin,
+                    EnvironmentFixtureMixin, HTTPTestCaseMixin, UHUTestCase):
 
     def __init__(self):
         self.start_server(port=8000, simulate_application=True)
@@ -62,12 +62,12 @@ class EFUTestServer(PushFixtureMixin, FileFixtureMixin, UploadFixtureMixin,
     def shutdown(self, *args):
         print('Shutting down server...')
         self.clean()
-        EFUTestServer.stop_server()
+        UHUTestServer.stop_server()
 
     def main(self):
-        print('EFU test server\n')
-        print('export EFU_SERVER_URL={}'.format(self.httpd.url('')))
-        print('export EFU_CHUNK_SIZE=1')
+        print('UHU test server\n')
+        print('export UHU_SERVER_URL={}'.format(self.httpd.url('')))
+        print('export UHU_CHUNK_SIZE=1')
         print()
         self.push_success()
         self.push_existent()
@@ -75,4 +75,4 @@ class EFUTestServer(PushFixtureMixin, FileFixtureMixin, UploadFixtureMixin,
 
 
 if __name__ == '__main__':
-    sys.exit(EFUTestServer().main())
+    sys.exit(UHUTestServer().main())

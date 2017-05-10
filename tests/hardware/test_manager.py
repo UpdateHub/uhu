@@ -3,7 +3,7 @@
 
 import unittest
 
-from efu.core.hardware import HardwareManager
+from uhu.core.hardware import HardwareManager
 
 
 class HardwareManagerTestCase(unittest.TestCase):

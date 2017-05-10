@@ -5,17 +5,17 @@ import json
 
 from click.testing import CliRunner
 
-from efu.cli.product import use_command
-from efu.utils import LOCAL_CONFIG_VAR
+from uhu.cli.product import use_command
+from uhu.utils import LOCAL_CONFIG_VAR
 
-from utils import EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase
+from utils import EnvironmentFixtureMixin, FileFixtureMixin, UHUTestCase
 
 
-class ProductTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
+class ProductTestCase(EnvironmentFixtureMixin, FileFixtureMixin, UHUTestCase):
 
     def setUp(self):
         self.runner = CliRunner()
-        self.config_fn = '/tmp/.efu'
+        self.config_fn = '/tmp/.uhu'
         self.addCleanup(self.remove_file, self.config_fn)
         self.set_env_var(LOCAL_CONFIG_VAR, self.config_fn)
 

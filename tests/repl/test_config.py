@@ -4,13 +4,13 @@
 import unittest
 from unittest.mock import patch
 
-from efu.config import config, Sections
-from efu.repl import functions
+from uhu.config import config, Sections
+from uhu.repl import functions
 
 
 class PackageTestCase(unittest.TestCase):
 
-    @patch('efu.repl.functions.prompt')
+    @patch('uhu.repl.functions.prompt')
     def test_can_set_authentication_credentials(self, prompt):
         prompt.side_effect = ['access', 'secret']
         functions.set_authentication()

@@ -7,10 +7,10 @@ from unittest.mock import patch
 import requests
 
 from httpmock import httpd
-from utils import HTTPTestCaseMixin, EFUTestCase
+from utils import HTTPTestCaseMixin, UHUTestCase
 
 
-class HTTPServerTestCase(HTTPTestCaseMixin, EFUTestCase):
+class HTTPServerTestCase(HTTPTestCaseMixin, UHUTestCase):
 
     @patch('httpmock.httpd.sleep')
     def test_does_not_simulate_application_by_default(self, sleep):

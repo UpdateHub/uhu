@@ -5,8 +5,8 @@ import os
 import unittest
 from unittest.mock import Mock, patch
 
-from efu.core import manager
-from efu.core.manager import (
+from uhu.core import manager
+from uhu.core.manager import (
     InstallationSet, InstallationSetManager, InstallationSetMode)
 
 

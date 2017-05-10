@@ -10,8 +10,8 @@ def get_version():
 
 
 setup(
-    name='easyfota-utils',
-    description='Easy Firmware Over The Air command line utility',
+    name='updatehub-utils',
+    description='updatehub description',
     keywords='fota ota firmware update utility',
     version=get_version(),
     packages=[

@@ -6,20 +6,20 @@ import json
 import os
 from unittest.mock import Mock, patch
 
-from efu.repl.repl import EFURepl
-from efu.repl import functions
-from efu.utils import SERVER_URL_VAR
+from uhu.repl.repl import UHURepl
+from uhu.repl import functions
+from uhu.utils import SERVER_URL_VAR
 
 from utils import (
-    HTTPTestCaseMixin, EFUTestCase, EnvironmentFixtureMixin,
+    HTTPTestCaseMixin, UHUTestCase, EnvironmentFixtureMixin,
     BasePullTestCase, BasePushTestCase)
 
 
 class PackageStatusTestCase(
-        EnvironmentFixtureMixin, HTTPTestCaseMixin, EFUTestCase):
+        EnvironmentFixtureMixin, HTTPTestCaseMixin, UHUTestCase):
 
     def setUp(self):
-        self.repl = EFURepl()
+        self.repl = UHURepl()
         self.set_env_var(SERVER_URL_VAR, self.httpd.url(''))
         self.product = '1' * 64
         self.pkg_uid = '1'
@@ -54,7 +54,7 @@ class PushTestCase(BasePushTestCase):
 
     def setUp(self):
         super().setUp()
-        self.repl = EFURepl()
+        self.repl = UHURepl()
 
     def test_can_push_package(self):
         self.repl.package.objects.create('raw', {
@@ -84,9 +84,9 @@ class PullTestCase(BasePullTestCase):
 
     def setUp(self):
         super().setUp()
-        self.repl = EFURepl()
+        self.repl = UHURepl()
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_can_download_package_fully(self, prompt):
         prompt.side_effect = [self.pkg_uid, 'yes']
         self.assertIsNone(self.repl.package.product)
@@ -97,7 +97,7 @@ class PullTestCase(BasePullTestCase):
         self.assertEqual(self.repl.package.product, self.product)
         self.assertTrue(os.path.exists(self.obj_fn))
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_can_download_only_metadata_package(self, prompt):
         prompt.side_effect = [self.pkg_uid, 'no']
         self.assertIsNone(self.repl.package.product)

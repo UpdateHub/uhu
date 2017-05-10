@@ -4,7 +4,7 @@
 import os
 import unittest
 
-from efu.core.object import Object
+from uhu.core.object import Object
 
 
 class CompressedObjectTestCase(unittest.TestCase):

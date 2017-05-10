@@ -3,7 +3,7 @@
 
 import json
 
-from efu.core.package import Package
+from uhu.core.package import Package
 
 from . import PackageTestCase
 

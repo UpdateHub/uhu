@@ -7,17 +7,17 @@ from configparser import ConfigParser
 
 from click.testing import CliRunner
 
-from efu.config import Config, Sections
-from efu.utils import LOCAL_CONFIG_VAR
-from efu.cli.config import (
+from uhu.config import Config, Sections
+from uhu.utils import LOCAL_CONFIG_VAR
+from uhu.cli.config import (
     cleanup_command, get_command, set_command, init_command)
-from efu.utils import GLOBAL_CONFIG_VAR
+from uhu.utils import GLOBAL_CONFIG_VAR
 
-from utils import FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase
+from utils import FileFixtureMixin, EnvironmentFixtureMixin, UHUTestCase
 
 
 class ConfigCommandTestCase(
-        FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase):
+        FileFixtureMixin, EnvironmentFixtureMixin, UHUTestCase):
 
     def setUp(self):
         self.runner = CliRunner()
@@ -79,18 +79,18 @@ class ConfigCommandTestCase(
 class CleanupCommandTestCase(unittest.TestCase):
 
     def setUp(self):
-        os.environ[LOCAL_CONFIG_VAR] = '.efu-test'
+        os.environ[LOCAL_CONFIG_VAR] = '.uhu-test'
         self.runner = CliRunner()
         self.addCleanup(os.environ.pop, LOCAL_CONFIG_VAR)
 
-    def test_can_cleanup_efu_files(self):
-        open('.efu-test', 'w').close()
-        self.assertTrue(os.path.exists('.efu-test'))
+    def test_can_cleanup_uhu_files(self):
+        open('.uhu-test', 'w').close()
+        self.assertTrue(os.path.exists('.uhu-test'))
         self.runner.invoke(cleanup_command)
-        self.assertFalse(os.path.exists('.efu-test'))
+        self.assertFalse(os.path.exists('.uhu-test'))
 
     def test_cleanup_command_returns_0_if_successful(self):
-        open('.efu-test', 'w').close()
+        open('.uhu-test', 'w').close()
         result = self.runner.invoke(cleanup_command)
         self.assertEqual(result.exit_code, 0)
 

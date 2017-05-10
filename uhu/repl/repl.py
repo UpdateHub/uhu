@@ -1,6 +1,6 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # This software is released under the MIT License
-"""EFU REPL, an interactive prompt to work with EasyFOTA."""
+"""UpdateHub REPL, an interactive prompt to work with firmware updates."""
 
 import os
 import sys
@@ -10,7 +10,7 @@ from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter  # nopep8
 from prompt_toolkit.contrib.regular_languages import compiler
 
-from .. import get_efu_version
+from .. import get_version
 from ..config import config, Sections
 from ..core.package import Package
 from ..core.manager import InstallationSetMode
@@ -66,8 +66,8 @@ GRAMMAR = compiler.compile(r'''
 ''')
 
 
-class EFURepl:
-    """The main class for EFU REPL."""
+class UHURepl:
+    """The main class for UpdateHub REPL."""
 
     completer = GrammarCompleter(GRAMMAR, {
         'command': WordCompleter(COMMANDS),
@@ -89,9 +89,9 @@ class EFURepl:
 
         Finally, if there is no configuration file present in the
         working directory, neighter a package file is explicty passed,
-        `EFURepl` will create a new one.
+        `UHURepl` will create a new one.
 
-        :param package_fn: An EFU package filename.
+        :param package_fn: An UHU package filename.
         """
         self.local_config = get_local_config_file()
 
@@ -105,7 +105,7 @@ class EFURepl:
         if self.package.product:
             self.prompt = set_product_prompt(self.package.product)
         else:
-            self.prompt = 'efu> '
+            self.prompt = 'uhu> '
 
         self.arg = None
         self.history = InMemoryHistory()
@@ -119,7 +119,7 @@ class EFURepl:
 
     def repl(self):
         """Starts a new interactive prompt."""
-        print('EasyFOTA Utils {}'.format(get_efu_version()))
+        print('UpdateHub Utils {}'.format(get_version()))
         while True:
             try:
                 expression = prompt(
@@ -180,8 +180,8 @@ class EFURepl:
             self.package.dump(self.local_config)
 
 
-def efu_interactive(package):
-    """Instantiates a new EFURepl.
+def repl(package):
+    """Instantiates a new UHURepl.
 
     Before creating a new instance, checks if server authentication is
     set. If not, prompts user for its credentials.
@@ -190,4 +190,4 @@ def efu_interactive(package):
     secret = config.get('access_secret', Sections.AUTH)
     if not all([access, secret]):
         functions.set_authentication()
-    return EFURepl(package).repl()
+    return UHURepl(package).repl()

@@ -1,13 +1,13 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-from efu.config import Config, Sections
-from efu.utils import GLOBAL_CONFIG_VAR
+from uhu.config import Config, Sections
+from uhu.utils import GLOBAL_CONFIG_VAR
 
-from utils import EFUTestCase, EnvironmentFixtureMixin, FileFixtureMixin
+from utils import UHUTestCase, EnvironmentFixtureMixin, FileFixtureMixin
 
 
-class ConfigTestCase(FileFixtureMixin, EnvironmentFixtureMixin, EFUTestCase):
+class ConfigTestCase(FileFixtureMixin, EnvironmentFixtureMixin, UHUTestCase):
 
     def setUp(self):
         self.config_filename = self.create_file('')

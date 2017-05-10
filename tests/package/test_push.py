@@ -3,10 +3,10 @@
 
 import json
 
-from efu.core.manager import InstallationSetMode
-from efu.core.package import Package
-from efu.exceptions import UploadError
-from efu.utils import SERVER_URL_VAR
+from uhu.core.manager import InstallationSetMode
+from uhu.core.package import Package
+from uhu.exceptions import UploadError
+from uhu.utils import SERVER_URL_VAR
 
 from utils import BasePushTestCase, HTTPTestCaseMixin
 

@@ -6,9 +6,9 @@ import os
 
 from pkgschema import validate_schema
 
-from efu.core.object import Object, Modes
-from efu.core.package import Package
-from efu.core.manager import InstallationSetMode
+from uhu.core.object import Object, Modes
+from uhu.core.package import Package
+from uhu.core.manager import InstallationSetMode
 
 from utils import EnvironmentFixtureMixin, FileFixtureMixin
 

@@ -1,24 +1,24 @@
-# Copyright (C) 2016 O.S. Systems Software LTDA.
+# Copyright (C) 2017 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
 from setuptools import find_packages, setup
 
-from efu import get_efu_version
+from uhu import get_version
 
 
 setup(
-    name='easyfota-utils',
-    description='Easy Firmware Over The Air command line utility',
-    keywords='fota ota firmware update utility',
-    version=get_efu_version(),
+    name='updatehub-utils',
+    description='UpdateHub CLI tool',
+    keywords='updatehub fota ota firmware update utility',
+    version=get_version(),
     packages=find_packages(exclude=['tests*']),
     package_data={
-        'efu': [
+        'uhu': [
             'core/*.json',
         ],
     },
     entry_points={
-        'console_scripts': ['efu=efu.cli:cli']
+        'console_scripts': ['uhu=uhu.cli:cli']
     },
     install_requires=[
         'click>=6.5',

@@ -6,12 +6,12 @@ import os
 import unittest
 from unittest.mock import patch
 
-from efu import utils
+from uhu import utils
 
-from utils import EFUTestCase, FileFixtureMixin, EnvironmentFixtureMixin
+from utils import UHUTestCase, FileFixtureMixin, EnvironmentFixtureMixin
 
 
-class UtilsTestCase(EnvironmentFixtureMixin, EFUTestCase):
+class UtilsTestCase(EnvironmentFixtureMixin, UHUTestCase):
 
     def setUp(self):
         self.addCleanup(self.remove_env_var, utils.CHUNK_SIZE_VAR)
@@ -81,17 +81,17 @@ class StrinUtilsTestCase(unittest.TestCase):
 
 
 class LocalConfigTestCase(
-        EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
+        EnvironmentFixtureMixin, FileFixtureMixin, UHUTestCase):
 
     def setUp(self):
-        self.config_fn = '/tmp/.efu'
+        self.config_fn = '/tmp/.uhu'
         os.environ[utils.LOCAL_CONFIG_VAR] = self.config_fn
         self.addCleanup(self.remove_env_var, utils.LOCAL_CONFIG_VAR)
         self.addCleanup(self.remove_file, self.config_fn)
 
     def test_can_get_local_config_file_by_environment_variable(self):
         observed = utils.get_local_config_file()
-        self.assertEqual(observed, '/tmp/.efu')
+        self.assertEqual(observed, '/tmp/.uhu')
 
     def test_can_get_default_local_config_file(self):
         del os.environ[utils.LOCAL_CONFIG_VAR]
@@ -116,7 +116,7 @@ class LocalConfigTestCase(
             utils.remove_local_config()
 
 
-class CompressedObjectTestCase(FileFixtureMixin, EFUTestCase):
+class CompressedObjectTestCase(FileFixtureMixin, UHUTestCase):
 
     def setUp(self):
         base_dir = os.path.dirname(__file__)
@@ -151,18 +151,18 @@ class CompressedObjectTestCase(FileFixtureMixin, EFUTestCase):
         observed = utils.get_uncompressed_size(fn, 'gzip')
         self.assertEqual(observed, self.size)
 
-    def test_uncompressed_size_raises_error_if_not_supported_by_efu(self):
+    def test_uncompressed_size_raises_error_if_not_supported_by_uhu(self):
         fn = os.path.join(self.fixtures_dir, 'base.txt.bz2')
         with self.assertRaises(ValueError):
             utils.get_uncompressed_size(fn, 'bz2')
 
-    @patch('efu.utils.shutil.which', return_value=None)
+    @patch('uhu.utils.shutil.which', return_value=None)
     def test_uncompressed_size_raises_error_if_not_supported_by_os(self, _):
         fn = os.path.join(self.fixtures_dir, 'base.txt.lzo')
         with self.assertRaises(SystemError):
             utils.get_uncompressed_size(fn, 'lzop')
 
-    @patch('efu.utils.subprocess.check_call', return_value=1)
+    @patch('uhu.utils.subprocess.check_call', return_value=1)
     def test_uncompressed_size_raises_error_if_corrupted_file(self, _):
         fn = os.path.join(self.fixtures_dir, 'base.txt.lzo')
         with self.assertRaises(ValueError):
@@ -188,7 +188,7 @@ class CompressedObjectTestCase(FileFixtureMixin, EFUTestCase):
         observed = utils.get_compressor_format(fn)
         self.assertEqual(observed, 'gzip')
 
-    def test_get_compressor_format_returns_None_if_not_supported_by_efu(self):
+    def test_get_compressor_format_returns_None_if_not_supported_by_uhu(self):
         fn = os.path.join(self.fixtures_dir, 'base.txt.bz2')
         self.assertIsNone(utils.get_compressor_format(fn))
 

@@ -1,11 +1,11 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-from utils import EFUTestCase
+from utils import UHUTestCase
 from .base import ModeTestCaseMixin
 
 
-class ImxkobsObjectTestCase(ModeTestCaseMixin, EFUTestCase):
+class ImxkobsObjectTestCase(ModeTestCaseMixin, UHUTestCase):
     mode = 'imxkobs'
 
     def setUp(self):

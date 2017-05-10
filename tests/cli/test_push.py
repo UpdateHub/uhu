@@ -3,10 +3,10 @@
 
 from click.testing import CliRunner
 
-from efu.cli.package import push_command
-from efu.core.package import Package
-from efu.core.manager import InstallationSetMode
-from efu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
+from uhu.cli.package import push_command
+from uhu.core.package import Package
+from uhu.core.manager import InstallationSetMode
+from uhu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 from utils import BasePushTestCase
 
@@ -44,7 +44,7 @@ class PushCommandTestCase(PushCommandMixin, BasePushTestCase):
         self.assertEqual(result.exit_code, 2)
 
     def test_push_command_returns_3_if_cant_establish_connection(self):
-        self.set_env_var(SERVER_URL_VAR, 'http://easyfota-unreachable.com')
+        self.set_env_var(SERVER_URL_VAR, 'http://updatehub-unreachable.com')
         self.set_push(self.package, self.package_uid)
         result = self.runner.invoke(push_command, catch_exceptions=False)
         self.assertEqual(result.exit_code, 3)

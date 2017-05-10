@@ -7,5 +7,5 @@ import unittest
 class ImportTestCase(unittest.TestCase):
 
     def test_import(self):
-        import efu
-        self.assertTrue(efu)
+        import uhu
+        self.assertTrue(uhu)

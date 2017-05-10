@@ -4,13 +4,13 @@
 import hashlib
 import os
 
-from efu.core.object import Object
-from efu.utils import CHUNK_SIZE_VAR
+from uhu.core.object import Object
+from uhu.utils import CHUNK_SIZE_VAR
 
-from utils import EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase
+from utils import EnvironmentFixtureMixin, FileFixtureMixin, UHUTestCase
 
 
-class ObjectTestCase(EnvironmentFixtureMixin, FileFixtureMixin, EFUTestCase):
+class ObjectTestCase(EnvironmentFixtureMixin, FileFixtureMixin, UHUTestCase):
 
     def setUp(self):
         super().setUp()

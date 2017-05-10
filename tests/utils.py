@@ -9,9 +9,9 @@ import tempfile
 import unittest
 from uuid import uuid4
 
-from efu.core import Package
-from efu.core.manager import InstallationSetMode
-from efu.utils import CHUNK_SIZE_VAR, LOCAL_CONFIG_VAR, SERVER_URL_VAR
+from uhu.core import Package
+from uhu.core.manager import InstallationSetMode
+from uhu.utils import CHUNK_SIZE_VAR, LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 from httpmock.httpd import HTTPMockServer
 
@@ -51,7 +51,7 @@ class HTTPTestCaseMixin:
         cls.stop_server()
 
 
-class EFUTestCase(unittest.TestCase):
+class UHUTestCase(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -169,7 +169,7 @@ class PushFixtureMixin:
 
 class BasePushTestCase(
         PushFixtureMixin, UploadFixtureMixin, EnvironmentFixtureMixin,
-        FileFixtureMixin, HTTPTestCaseMixin, EFUTestCase):
+        FileFixtureMixin, HTTPTestCaseMixin, UHUTestCase):
 
     def setUp(self):
         self.set_env_var(SERVER_URL_VAR, self.httpd.url(''))
@@ -190,7 +190,7 @@ class BasePushTestCase(
 
 
 class BasePullTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
-                       HTTPTestCaseMixin, EFUTestCase):
+                       HTTPTestCaseMixin, UHUTestCase):
 
     def setUp(self):
         wd = tempfile.mkdtemp()
@@ -198,7 +198,7 @@ class BasePullTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
         self.addCleanup(os.chdir, os.getcwd())
         os.chdir(wd)
 
-        self.pkg_fn = os.path.join(wd, 'efu')
+        self.pkg_fn = os.path.join(wd, 'uhu')
         self.set_env_var(LOCAL_CONFIG_VAR, self.pkg_fn)
 
         self.product = 'product-uid'

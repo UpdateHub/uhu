@@ -6,7 +6,7 @@ import hmac
 
 
 class EFOTAV1Signature(object):
-    """EasyFota server Signature V1.
+    """UpdateHub server Signature V1.
 
     This signature uses the hmac-sha256 hash algorithm to generate the
     final signature.

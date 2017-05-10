@@ -6,13 +6,13 @@ import unittest
 from datetime import datetime, timezone
 from unittest.mock import patch
 
-from efu.http.auth import EFOTAV1Signature
-from efu.http.request import Request
+from uhu.http.auth import EFOTAV1Signature
+from uhu.http.request import Request
 
-from utils import HTTPTestCaseMixin, EFUTestCase
+from utils import HTTPTestCaseMixin, UHUTestCase
 
 
-class RequestTestCase(HTTPTestCaseMixin, EFUTestCase):
+class RequestTestCase(HTTPTestCaseMixin, UHUTestCase):
 
     def test_request_date_is_in_utc(self):
         expected = datetime.now(timezone.utc).timestamp()
@@ -20,8 +20,8 @@ class RequestTestCase(HTTPTestCaseMixin, EFUTestCase):
         # 60 seconds of tolerance between expected and observed
         self.assertAlmostEqual(observed, expected, delta=60)
 
-    @patch('efu.http.request.datetime')
-    @patch('efu.http.request.get_efu_version', return_value='2.0')
+    @patch('uhu.http.request.datetime')
+    @patch('uhu.http.request.get_version', return_value='2.0')
     def test_request_has_minimal_headers(self, mock_version, mock_date):
         mock_date.now.return_value = datetime(1970, 1, 1, tzinfo=timezone.utc)
         request = Request('https://localhost/', 'POST', b'\0')
@@ -30,12 +30,12 @@ class RequestTestCase(HTTPTestCaseMixin, EFUTestCase):
         self.assertEqual(request.headers.get('Timestamp'), 0)
         self.assertEqual(
             request.headers.get('Api-Content-Type'),
-            'application/vnd.easyfota-v1+json')
+            'application/vnd.updatehub-v1+json')
         self.assertEqual(
             request.headers.get('Content-sha256'),
             '6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d')
         self.assertEqual(
-            request.headers.get('User-Agent'), 'easyfota-utils/2.0')
+            request.headers.get('User-Agent'), 'updatehub-utils/2.0')
 
     def test_request_does_not_send_json_content_type_by_default(self):
         request = Request('https://localhost/', 'POST')
@@ -99,7 +99,7 @@ class RequestTestCase(HTTPTestCaseMixin, EFUTestCase):
         observed = req.headers.get('Host')
         self.assertEqual(observed, expected)
 
-    @patch('efu.http.request.requests.request')
+    @patch('uhu.http.request.requests.request')
     def test_can_pass_extra_kwargs_to_requests(self, mock):
         Request('http://localhost', 'GET', stream=True).send()
         observed = list(mock.call_args)[1].get('stream')
@@ -108,8 +108,8 @@ class RequestTestCase(HTTPTestCaseMixin, EFUTestCase):
 
 class CanonicalRequestTestCase(unittest.TestCase):
 
-    @patch('efu.http.request.datetime')
-    @patch('efu.http.request.get_efu_version', return_value='2.0')
+    @patch('uhu.http.request.datetime')
+    @patch('uhu.http.request.get_version', return_value='2.0')
     def test_canonical_request(self, mock_version, mock_date):
         mock_date.now.return_value = datetime(1970, 1, 1, tzinfo=timezone.utc)
         request = Request(
@@ -121,11 +121,11 @@ class CanonicalRequestTestCase(unittest.TestCase):
 /upload
 a=1&b=2&c=3
 accept:application/json
-api-content-type:application/vnd.easyfota-v1+json
+api-content-type:application/vnd.updatehub-v1+json
 content-sha256:6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d
 host:localhost
 timestamp:0.0
-user-agent:easyfota-utils/2.0
+user-agent:updatehub-utils/2.0
 
 6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d'''
         self.assertEqual(request.canonical(), expected)
@@ -174,7 +174,7 @@ timestamp:123456.1234'''
         self.assertEqual(observed, expected)
 
 
-class SignedRequestTestCase(HTTPTestCaseMixin, EFUTestCase):
+class SignedRequestTestCase(HTTPTestCaseMixin, UHUTestCase):
 
     def test_signed_request_has_the_authorization_header(self):
         request = Request('https://127.0.0.1/upload', 'POST')

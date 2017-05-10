@@ -7,9 +7,9 @@ import tempfile
 
 from click.testing import CliRunner
 
-from efu.cli.package import pull_command
-from efu.core.manager import InstallationSetMode
-from efu.utils import SERVER_URL_VAR
+from uhu.cli.package import pull_command
+from uhu.core.manager import InstallationSetMode
+from uhu.utils import SERVER_URL_VAR
 
 from utils import BasePullTestCase
 
@@ -47,13 +47,13 @@ class PullCommandTestCase(BasePullTestCase):
         self.assertEqual(result.exit_code, 0)
         self.assertTrue(os.path.exists('metadata.json'))
 
-    def test_pull_command_returns_1_if_dot_efu_exists(self):
+    def test_pull_command_returns_1_if_dot_uhu_exists(self):
         self.package.dump(self.pkg_fn)
         result = self.runner.invoke(pull_command, args=[self.pkg_uid])
         self.assertEqual(result.exit_code, 1)
 
     def test_pull_command_returns_2_if_cant_reach_server(self):
-        self.set_env_var(SERVER_URL_VAR, 'http://easyfota-unreach.com')
+        self.set_env_var(SERVER_URL_VAR, 'http://updatehub-unreach.com')
         result = self.runner.invoke(pull_command, args=[self.pkg_uid])
         self.assertEqual(result.exit_code, 2)
 

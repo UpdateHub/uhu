@@ -3,10 +3,10 @@
 
 import unittest
 
-from efu.core._options import (
+from uhu.core._options import (
     Options, BaseOption, IntegerOption, AbsolutePathOption, BooleanOption,
     StringOption)
-from efu.core.options import FormatOptionsOption
+from uhu.core.options import FormatOptionsOption
 
 
 class OptionsTestCase(unittest.TestCase):

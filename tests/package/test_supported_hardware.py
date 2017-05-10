@@ -5,8 +5,8 @@ import json
 import tempfile
 import unittest
 
-from efu.core.package import Package
-from efu.core.manager import InstallationSetMode
+from uhu.core.package import Package
+from uhu.core.manager import InstallationSetMode
 
 
 class PackageHardwareManagerIntegrationTestCase(unittest.TestCase):

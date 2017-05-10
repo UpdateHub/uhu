@@ -1,18 +1,18 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
-from efu.core.object import Object, ObjectUploadResult
-from efu.exceptions import UploadError
-from efu.utils import CHUNK_SIZE_VAR, SERVER_URL_VAR
+from uhu.core.object import Object, ObjectUploadResult
+from uhu.exceptions import UploadError
+from uhu.utils import CHUNK_SIZE_VAR, SERVER_URL_VAR
 
 from utils import (
-    EFUTestCase, EnvironmentFixtureMixin, FileFixtureMixin,
+    UHUTestCase, EnvironmentFixtureMixin, FileFixtureMixin,
     HTTPTestCaseMixin, UploadFixtureMixin)
 
 
 class UploadTestCase(
         UploadFixtureMixin, EnvironmentFixtureMixin, FileFixtureMixin,
-        HTTPTestCaseMixin, EFUTestCase):
+        HTTPTestCaseMixin, UHUTestCase):
 
     def setUp(self):
         super().setUp()

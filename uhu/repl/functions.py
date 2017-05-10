@@ -15,8 +15,8 @@ from .helpers import prompt
 @helpers.cancellable
 def set_authentication():
     """Sets user access and secret keys."""
-    access = prompt('EasyFOTA Access Key ID: ')
-    secret = prompt('EasyFota Systems Secret Access Key: ')
+    access = prompt('UpdateHub Access Key ID: ')
+    secret = prompt('UpdateHub Systems Secret Access Key: ')
     config.set_initial(access, secret)
 
 

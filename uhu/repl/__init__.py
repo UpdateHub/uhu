@@ -2,7 +2,7 @@
 # This software is released under the MIT License
 """EFU REPL Package.
 
-Here, we brings to package namespace `repl.efu_interactive` function.
+Here, we brings to package namespace the repl itself.
 """
 
-from .repl import efu_interactive  # nopep8
+from .repl import repl  # nopep8

@@ -5,7 +5,7 @@ import unittest
 from datetime import datetime, timezone
 from unittest.mock import Mock
 
-from efu.http.auth import EFOTAV1Signature
+from uhu.http.auth import EFOTAV1Signature
 
 
 class EFOTAV1SignatureTestCase(unittest.TestCase):

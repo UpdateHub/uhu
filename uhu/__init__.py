@@ -6,8 +6,8 @@ import subprocess
 import pkg_resources
 
 
-def get_efu_version():
-    """Retrives efu package version.
+def get_version():
+    """Retrives uhu package version.
 
     First, it tries to parse a git describe command result. If not
     successful, uses setuptools pkg_resources. If the last fails,
@@ -19,7 +19,7 @@ def get_efu_version():
         version = output.decode().strip()
     except (subprocess.CalledProcessError, OSError):
         try:
-            distribution = pkg_resources.get_distribution('easyfota-utils')
+            distribution = pkg_resources.get_distribution('updatehub-utils')
             return distribution.version  # pylint: disable=no-member
         except pkg_resources.DistributionNotFound:
             # Without space to be friendly with setup.py

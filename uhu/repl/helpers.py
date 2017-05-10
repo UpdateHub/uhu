@@ -41,7 +41,7 @@ def ctrl_d(event):
 def ctrl_c(_):
     """Ctrl C raises an exception to be caught by functions.
 
-    Main prompt must exit efu with code status 1, while subprompts
+    Main prompt must exit uhu with code status 1, while subprompts
     must returns to main prompt.
     """
     raise CancelPromptException('Cancelled operation.')
@@ -84,8 +84,8 @@ def check_product(ctx):
 
 
 def set_product_prompt(product):
-    """Sets prompt to be 'efu [product]'."""
-    return '[{}] efu> '.format(product[:6])
+    """Sets prompt to be 'uhu [product]'."""
+    return '[{}] uhu> '.format(product[:6])
 
 
 def parse_prompt_object_uid(value):
@@ -99,7 +99,7 @@ def parse_prompt_object_uid(value):
 def prompt_object_options(package_mode, object_mode):
     """Prompts user for object options.
 
-    :param pacakge_mode: A efu `InstallationSetMode` instance.
+    :param pacakge_mode: A uhu `InstallationSetMode` instance.
     :param object_mode: A string indicating the object mode.
     """
     options = {}
@@ -153,7 +153,7 @@ def prompt_object_uid(package, installation_set=None):
 def prompt_object_option(obj):
     """Prompts user for a valid option for the given object.
 
-    :param obj: an efu `Object` instance.
+    :param obj: an uhu `Object` instance.
     """
     msg = 'Choose an option: '
     options = sorted(opt.metadata for opt in obj.options if not opt.symmetric)
@@ -208,7 +208,7 @@ def prompt_object_option_value(
         option, mode, installation_set=None, default=''):
     """Given an object and an option, prompts user for a valid value.
 
-    :param option: an efu `Option` instance.
+    :param option: an uhu `Option` instance.
     :param mode: a valid Object mode string.
     :param installation_set: an int indicating the installation set.
     :param default: a default value to be displayed as placeholder.

@@ -4,8 +4,8 @@
 import json
 import os
 
-from efu.core.manager import InstallationSetMode
-from efu.core.package import Package
+from uhu.core.manager import InstallationSetMode
+from uhu.core.package import Package
 
 from . import PackageTestCase
 

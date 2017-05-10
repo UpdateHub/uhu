@@ -16,8 +16,8 @@ SERVER_URL_VAR = 'EFU_SERVER_URL'
 
 # Default values
 DEFAULT_CHUNK_SIZE = 1024 * 128  # 128 KiB
-DEFAULT_GLOBAL_CONFIG_FILE = os.path.expanduser('~/.efu')
-DEFAULT_LOCAL_CONFIG_FILE = '.efu'
+DEFAULT_GLOBAL_CONFIG_FILE = os.path.expanduser('~/.uhu')
+DEFAULT_LOCAL_CONFIG_FILE = '.uhu'
 DEFAULT_SERVER_URL = 'http://0.0.0.0'  # TO DO: replace by the right URL
 
 

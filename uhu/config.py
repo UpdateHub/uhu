@@ -13,7 +13,7 @@ class Sections:
 
 
 class Config:
-    """This is the wrapper to manage ~/.efu configuration file."""
+    """This is the wrapper to manage ~/.uhu configuration file."""
 
     def __new__(cls):
         if not hasattr(cls, 'instance'):

@@ -10,14 +10,14 @@ from .utils import error
 
 @click.group(name='config')
 def config_cli():
-    """Configures efu utility."""
+    """Configures uhu utility."""
 
 
 @config_cli.command(name='init')
 def init_command():
-    """Sets efu required initial configuration."""
-    access_id = input('EasyFOTA Access Key ID: ')
-    access_secret = input('EasyFota Systems Secret Access Key: ')
+    """Sets uhu required initial configuration."""
+    access_id = input('UpdateHub Access Key ID: ')
+    access_secret = input('UpdateHub Systems Secret Access Key: ')
     config.set_initial(access_id, access_secret)
 
 
@@ -42,7 +42,7 @@ def get_command(entry, section):
 
 @click.command('cleanup')
 def cleanup_command():
-    """Removes efu local config file."""
+    """Removes uhu local config file."""
     try:
         remove_local_config()
     except FileNotFoundError:

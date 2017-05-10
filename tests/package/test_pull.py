@@ -3,9 +3,9 @@
 
 import os
 
-from efu.core.package import Package
-from efu.exceptions import DownloadError
-from efu.utils import SERVER_URL_VAR
+from uhu.core.package import Package
+from uhu.exceptions import DownloadError
+from uhu.utils import SERVER_URL_VAR
 
 from utils import BasePullTestCase
 
@@ -23,7 +23,7 @@ class PackagePullTestCase(BasePullTestCase):
             self.package.download_metadata(self.pkg_uid)
 
     def test_download_metadata_raises_error_if_cant_reach_server(self):
-        self.set_env_var(SERVER_URL_VAR, 'http://easyfota-unreachable.com')
+        self.set_env_var(SERVER_URL_VAR, 'http://updatehub-unreachable.com')
         with self.assertRaises(DownloadError):
             self.package.download_metadata(self.pkg_uid)
 

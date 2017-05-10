@@ -6,16 +6,16 @@ import os
 import tempfile
 import shutil
 
-from efu.core.object import Object
-from efu.exceptions import DownloadError
-from efu.utils import SERVER_URL_VAR
+from uhu.core.object import Object
+from uhu.exceptions import DownloadError
+from uhu.utils import SERVER_URL_VAR
 
 from utils import (
-    EFUTestCase, HTTPTestCaseMixin, FileFixtureMixin, EnvironmentFixtureMixin)
+    UHUTestCase, HTTPTestCaseMixin, FileFixtureMixin, EnvironmentFixtureMixin)
 
 
 class ObjectDownloadTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
-                             HTTPTestCaseMixin, EFUTestCase):
+                             HTTPTestCaseMixin, UHUTestCase):
 
     def setUp(self):
         wd = tempfile.mkdtemp()
@@ -58,7 +58,7 @@ class ObjectDownloadTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
 
     def test_download_raises_error_if_cant_reach_server(self):
         with self.assertRaises(DownloadError):
-            self.obj.download('http://easyfota-unreach.com')
+            self.obj.download('http://updatehub-unreach.com')
 
     def test_download_raises_error_if_bad_response(self):
         self.httpd.register_response(

@@ -6,20 +6,20 @@ import tempfile
 import unittest
 from unittest.mock import Mock, patch
 
-from efu.repl.repl import EFURepl
-from efu.repl import functions
+from uhu.repl.repl import UHURepl
+from uhu.repl import functions
 
 
 class BaseTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.repl = EFURepl()
+        self.repl = UHURepl()
 
 
 class PackageTestCase(BaseTestCase):
 
     def test_can_save_package(self):
-        self.repl.arg = '/tmp/efu_dump.json'
+        self.repl.arg = '/tmp/uhu_dump.json'
         self.addCleanup(os.remove, self.repl.arg)
         functions.save_package(self.repl)
         self.assertTrue(os.path.exists(self.repl.arg))
@@ -54,7 +54,7 @@ class ObjectManagementTestCase(BaseTestCase):
             'target': '/dev/sda',
         }
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_can_add_object(self, prompt):
         values = [
             'copy',
@@ -80,7 +80,7 @@ class ObjectManagementTestCase(BaseTestCase):
         self.assertEqual(obj0['target-path'], '/home/user1')
         self.assertEqual(obj1['target-path'], '/home/user2')
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_can_remove_object_using_uid(self, prompt):
         prompt.side_effect = ['0']
         self.repl.package.objects.create('raw', self.options)
@@ -88,7 +88,7 @@ class ObjectManagementTestCase(BaseTestCase):
         functions.remove_object(self.repl)
         self.assertEqual(len(self.repl.package.objects.all()), 0)
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_can_remove_object_using_autocompleter_suggestion(self, prompt):
         prompt.side_effect = ['0# {}'.format(__file__)]
         self.repl.package.objects.create('raw', self.options)
@@ -96,13 +96,13 @@ class ObjectManagementTestCase(BaseTestCase):
         functions.remove_object(self.repl)
         self.assertEqual(len(self.repl.package.objects.all()), 0)
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_remove_object_raises_error_if_invalid_uid(self, prompt):
         prompt.side_effect = ['invalid']
         with self.assertRaises(ValueError):
             functions.remove_object(self.repl)
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_can_edit_asymmetrical_option(self, prompt):
         prompt.side_effect = [
             '0',  # object index
@@ -124,7 +124,7 @@ class ObjectManagementTestCase(BaseTestCase):
         obj = self.repl.package.objects.get(index=index, installation_set=1)
         self.assertEqual(obj['target'], '/dev/sda')
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_can_edit_symmetrical_option(self, prompt):
         prompt.side_effect = [
             '0',  # object index
@@ -145,7 +145,7 @@ class ObjectManagementTestCase(BaseTestCase):
                 index=index, installation_set=set_index)
             self.assertEqual(obj['count'], 200)
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_can_edit_object_filename(self, prompt):
         self.repl.package.objects.create('raw', self.options)
         with tempfile.NamedTemporaryFile() as fp:
@@ -159,13 +159,13 @@ class ObjectManagementTestCase(BaseTestCase):
             functions.edit_object(self.repl)
             self.assertEqual(obj.filename, fp.name)
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_edit_object_raises_error_if_invalid_uid(self, prompt):
         prompt.side_effect = ['23']
         with self.assertRaises(ValueError):
             functions.edit_object(self.repl)
 
-    @patch('efu.repl.helpers.prompt')
+    @patch('uhu.repl.helpers.prompt')
     def test_edit_object_raises_error_if_invalid_option(self, prompt):
         prompt.side_effect = ['1', 'invalid']
         self.repl.package.objects.create('raw', self.options)
@@ -175,7 +175,7 @@ class ObjectManagementTestCase(BaseTestCase):
 
 class HardwareManagementTestCase(BaseTestCase):
 
-    @patch('efu.repl.functions.prompt')
+    @patch('uhu.repl.functions.prompt')
     def test_can_add_hardware_without_revision(self, prompt):
         prompt.side_effect = ['PowerX', '']
         self.assertEqual(self.repl.package.hardwares.count(), 0)
@@ -184,7 +184,7 @@ class HardwareManagementTestCase(BaseTestCase):
         hardware = self.repl.package.hardwares.get('PowerX')
         self.assertEqual(len(hardware['revisions']), 0)
 
-    @patch('efu.repl.functions.prompt')
+    @patch('uhu.repl.functions.prompt')
     def test_can_add_hardware_with_revision(self, prompt):
         functions.prompt.side_effect = ['PowerX', 'rev.1']
         self.assertEqual(self.repl.package.hardwares.count(), 0)
@@ -193,7 +193,7 @@ class HardwareManagementTestCase(BaseTestCase):
         hardware = self.repl.package.hardwares.get('PowerX')
         self.assertEqual(len(hardware['revisions']), 1)
 
-    @patch('efu.repl.functions.prompt')
+    @patch('uhu.repl.functions.prompt')
     def test_can_add_multiple_hardwares_and_revisions(self, prompt):
         functions.prompt.side_effect = ['PowerX PowerY', 'PX1 PX2', 'PY1']
         self.assertEqual(self.repl.package.hardwares.count(), 0)
@@ -204,7 +204,7 @@ class HardwareManagementTestCase(BaseTestCase):
         hardware_2 = self.repl.package.hardwares.get('PowerY')
         self.assertEqual(len(hardware_2['revisions']), 1)
 
-    @patch('efu.repl.functions.prompt')
+    @patch('uhu.repl.functions.prompt')
     def test_can_remove_supported_hardware(self, prompt):
         functions.prompt.side_effect = ['PowerX', '']
         self.repl.package.hardwares.add('PowerX')
@@ -214,7 +214,7 @@ class HardwareManagementTestCase(BaseTestCase):
         self.assertEqual(self.repl.package.hardwares.count(), 1)
         self.assertIsNone(self.repl.package.hardwares.get('PowerX'))
 
-    @patch('efu.repl.functions.prompt')
+    @patch('uhu.repl.functions.prompt')
     def test_can_remove_many_supported_hardwares(self, prompt):
         functions.prompt.side_effect = ['PowerX PowerY', '', '']
         self.repl.package.hardwares.add('PowerX')
@@ -223,7 +223,7 @@ class HardwareManagementTestCase(BaseTestCase):
         functions.remove_hardware(self.repl)
         self.assertEqual(self.repl.package.hardwares.count(), 0)
 
-    @patch('efu.repl.functions.prompt')
+    @patch('uhu.repl.functions.prompt')
     def test_can_remove_only_one_hardware_revision(self, prompt):
         functions.prompt.side_effect = ['PowerX', '1']
         self.repl.package.hardwares.add('PowerX', revisions=['1', '2'])
@@ -234,7 +234,7 @@ class HardwareManagementTestCase(BaseTestCase):
         self.assertEqual(self.repl.package.hardwares.count(), 1)
         self.assertEqual(len(hardware['revisions']), 1)
 
-    @patch('efu.repl.functions.prompt')
+    @patch('uhu.repl.functions.prompt')
     def test_can_remove_many_hardware_revisions(self, prompt):
         functions.prompt.side_effect = ['PowerX', '1 2']
         self.repl.package.hardwares.add('PowerX', revisions=['1', '2'])

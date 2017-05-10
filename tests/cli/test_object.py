@@ -5,9 +5,9 @@ import unittest
 
 import click
 
-from efu.core._options import (
+from uhu.core._options import (
     AbsolutePathOption, BooleanOption, IntegerOption, StringOption)
-from efu.cli._object import ClickObjectOption
+from uhu.cli._object import ClickObjectOption
 
 
 class ClickObjectTestCase(unittest.TestCase):

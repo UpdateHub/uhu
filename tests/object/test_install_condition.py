@@ -6,10 +6,10 @@ import os
 import tempfile
 import unittest
 
-from efu.core import install_condition as ic
-from efu.core.object import Object
+from uhu.core import install_condition as ic
+from uhu.core.object import Object
 
-from utils import FileFixtureMixin, EFUTestCase
+from utils import FileFixtureMixin, UHUTestCase
 
 
 def create_u_boot_file():
@@ -140,7 +140,7 @@ class CustomObjectVersionTestCase(unittest.TestCase):
                 ic.get_object_version(fp, br'^unfindable$')
 
 
-class AlwaysObjectIntegrationTestCase(FileFixtureMixin, EFUTestCase):
+class AlwaysObjectIntegrationTestCase(FileFixtureMixin, UHUTestCase):
 
     def setUp(self):
         super().setUp()
@@ -192,7 +192,7 @@ class AlwaysObjectIntegrationTestCase(FileFixtureMixin, EFUTestCase):
         self.assertEqual(observed, expected)
 
 
-class ContentDivergesObjectIntegrationTestCase(FileFixtureMixin, EFUTestCase):
+class ContentDivergesObjectIntegrationTestCase(FileFixtureMixin, UHUTestCase):
 
     def setUp(self):
         super().setUp()
@@ -374,7 +374,7 @@ class KnownVersionPatternObjectIntegrationTestCase(unittest.TestCase):
 
 
 class CustomVersionPatternObjectIntegrationTestCase(
-        FileFixtureMixin, EFUTestCase):
+        FileFixtureMixin, UHUTestCase):
 
     def setUp(self):
         super().setUp()

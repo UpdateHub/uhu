@@ -4,8 +4,8 @@
 import json
 import os
 
-from efu.core.manager import InstallationSetMode
-from efu.core.package import Package
+from uhu.core.manager import InstallationSetMode
+from uhu.core.package import Package
 
 from . import PackageTestCase
 
@@ -54,7 +54,7 @@ class PackageSerializationsTestCase(PackageTestCase):
         self.assertEqual(objects[0], expected_obj_template)
 
     def test_can_serialize_package_as_file(self):
-        dest = '/tmp/efu-dump.json'
+        dest = '/tmp/uhu-dump.json'
         self.addCleanup(self.remove_file, dest)
         pkg = Package(InstallationSetMode.Single,
                       version=self.version, product=self.product)
@@ -73,7 +73,7 @@ class PackageSerializationsTestCase(PackageTestCase):
         self.assertEqual(dump_obj, expected_obj_dump)
 
     def test_can_serialize_package_as_exported_package(self):
-        dest = '/tmp/efu-dump.json'
+        dest = '/tmp/uhu-dump.json'
         self.addCleanup(self.remove_file, dest)
         pkg = Package(InstallationSetMode.ActiveInactive,
                       product=self.product, version=self.version)
