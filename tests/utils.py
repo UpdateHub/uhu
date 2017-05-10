@@ -146,7 +146,7 @@ class PushFixtureMixin:
         self.finish_push_url(package.product, package_uid, finish_success)
 
     def start_push_url(self, product, package_uid, success=True):
-        path = '/products/{}/packages'.format(product)
+        path = '/packages'.format(product)
         code = self.generate_status_code(success)
         if success:
             body = {'package-uid': package_uid}

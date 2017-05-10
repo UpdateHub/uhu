@@ -210,8 +210,7 @@ class Package:
         return get_server_url(path)
 
     def get_metadata_upload_url(self):
-        return get_server_url(
-            '/products/{}/packages'.format(self.product))
+        return get_server_url('/packages')
 
     def get_status(self):
         path = '/packages/{package}'

@@ -29,8 +29,7 @@ class PushTestCase(BasePushTestCase):
 
     def test_upload_metadata_request_is_made_correctly(self):
         self.start_push_url(self.product, self.package_uid)
-        start_url = self.httpd.url(
-            '/products/{}/packages'.format(self.product))
+        start_url = self.httpd.url('/packages')
         self.package.objects.load()
         self.package.upload_metadata()
 
