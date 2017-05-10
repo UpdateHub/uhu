@@ -6,7 +6,7 @@ import unittest
 from datetime import datetime, timezone
 from unittest.mock import patch
 
-from uhu.http.auth import EFOTAV1Signature
+from uhu.http.auth import UHV1Signature
 from uhu.http.request import Request
 
 from utils import HTTPTestCaseMixin, UHUTestCase
@@ -191,7 +191,7 @@ class SignedRequestTestCase(HTTPTestCaseMixin, UHUTestCase):
         request = Request(self.httpd.url(), 'POST')
         self.assertIsNone(request.headers.get('Authorization', None))
 
-        sig = EFOTAV1Signature(request, None, None).signature
+        sig = UHV1Signature(request, None, None).signature
         self.assertIsNone(request.headers.get('Authorization', None))
 
         # It is right when we sign the request
@@ -207,7 +207,7 @@ class SignedRequestTestCase(HTTPTestCaseMixin, UHUTestCase):
         request = Request(self.httpd.url(), 'POST')
         self.assertIsNone(request.headers.get('Authorization', None))
 
-        sig = EFOTAV1Signature(request, None, None).signature
+        sig = UHV1Signature(request, None, None).signature
         self.assertIsNone(request.headers.get('Authorization', None))
         response = request.send()
         self.assertEqual(response.request.headers['Authorization'], sig)

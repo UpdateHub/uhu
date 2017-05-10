@@ -10,7 +10,7 @@ import requests
 from .. import get_version
 from ..config import config
 
-from .auth import EFOTAV1Signature
+from .auth import UHV1Signature
 
 
 class Request(object):
@@ -70,7 +70,7 @@ class Request(object):
     def _sign(self):
         access_id = config.get('access_id', section='auth')
         access_secret = config.get('access_secret', section='auth')
-        signature = EFOTAV1Signature(self, access_id, access_secret)
+        signature = UHV1Signature(self, access_id, access_secret)
         self.headers['Authorization'] = signature.signature
 
     def _prepare_headers(self):

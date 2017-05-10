@@ -5,7 +5,7 @@ import hashlib
 import hmac
 
 
-class EFOTAV1Signature(object):
+class UHV1Signature(object):
     """UpdateHub server Signature V1.
 
     This signature uses the hmac-sha256 hash algorithm to generate the
@@ -49,7 +49,7 @@ class EFOTAV1Signature(object):
         {canonical_request}
         """
         timestamp = self._request.date.strftime('%Y%m%dT%H%M%SZ')
-        return 'EFOTA-V1\n{timestamp}\n{canonical_request}'.format(
+        return 'UH-V1\n{timestamp}\n{canonical_request}'.format(
             timestamp=timestamp,
             canonical_request=self._hashed_canonical_request(),
         )
@@ -71,10 +71,10 @@ class EFOTAV1Signature(object):
 
         {auth_name}-{auth_version}-{user_secret}
 
-        If the authentication algorithm name is EFOTA, the version is
+        If the authentication algorithm name is UH, the version is
         V1 and the user secret is 123, the base key is:
 
-        base_key = 'EFOTA-V1-123'
+        base_key = 'UH-V1-123'
 
         ------------
         Request date
@@ -85,7 +85,7 @@ class EFOTAV1Signature(object):
 
         message = '19991231'
         """
-        base_key = 'EFOTA-V1-{}'.format(self._secret).encode()
+        base_key = 'UH-V1-{}'.format(self._secret).encode()
         request_date = self._request.date.strftime('%Y%m%d').encode()
         final_key = hmac.new(base_key, request_date, 'sha256')
         return final_key.hexdigest()
@@ -106,7 +106,7 @@ class EFOTAV1Signature(object):
     @property
     def signature(self):
         """Creates the value for the Authorization header."""
-        header = 'EFOTA-V1 Credential={}, SignedHeaders={}, Signature={}'
+        header = 'UH-V1 Credential={}, SignedHeaders={}, Signature={}'
         return header.format(
             self._access_id,
             self._signed_headers(),
