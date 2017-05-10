@@ -7,16 +7,11 @@ from uhu import get_version
 
 
 setup(
-    name='updatehub-utils',
-    description='UpdateHub CLI tool',
-    keywords='updatehub fota ota firmware update utility',
+    name='uhu',
+    description="UpdateHub's firmware update package management utilities",
+    keywords='industrial-linux embedded-linux embedded firmware-updates linux update-service',  # nopep8
     version=get_version(),
     packages=find_packages(exclude=['tests*']),
-    package_data={
-        'uhu': [
-            'core/*.json',
-        ],
-    },
     entry_points={
         'console_scripts': ['uhu=uhu.cli:cli']
     },
