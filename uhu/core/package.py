@@ -214,9 +214,8 @@ class Package:
             '/products/{}/packages'.format(self.product))
 
     def get_status(self):
-        path = '/products/{product}/packages/{package}/status'
-        url = get_server_url(
-            path.format(product=self.product, package=self.uid))
+        path = '/packages/{package}'
+        url = get_server_url(path.format(package=self.uid))
         response = Request(url, 'GET', json=True).send()
         if response.status_code != 200:
             raise ValueError('Status not found')

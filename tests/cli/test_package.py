@@ -342,16 +342,14 @@ class StatusCommandTestCase(HTTPTestCaseMixin, PackageTestCase):
         self.set_env_var(SERVER_URL_VAR, self.httpd.url(''))
 
     def test_status_command_returns_0_if_successful(self):
-        path = '/products/{}/packages/{}/status'.format(
-            self.product, self.pkg_uid)
+        path = '/packages/{}'.format(self.pkg_uid)
         self.httpd.register_response(
             path, status_code=200, body=json.dumps({'status': 'finished'}))
         result = self.runner.invoke(status_command, args=[self.pkg_uid])
         self.assertEqual(result.exit_code, 0)
 
     def test_status_command_returns_2_if_status_doesnt_exist(self):
-        path = '/products/{}/packages/{}/status'.format(
-            self.product, self.pkg_uid)
+        path = '/packages/{}'.format(self.pkg_uid)
         self.httpd.register_response(path, status_code=404)
         result = self.runner.invoke(status_command, args=[self.pkg_uid])
         self.assertEqual(result.exit_code, 2)

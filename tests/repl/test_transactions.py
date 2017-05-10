@@ -25,8 +25,7 @@ class PackageStatusTestCase(
         self.pkg_uid = '1'
 
     def test_can_get_package_status(self):
-        path = '/products/{}/packages/{}/status'.format(
-            self.product, self.pkg_uid)
+        path = '/packages/{}'.format(self.pkg_uid)
         self.httpd.register_response(
             path, status_code=200, body=json.dumps({'status': 'success'}))
 

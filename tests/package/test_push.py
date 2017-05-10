@@ -105,8 +105,7 @@ class PackageStatusTestCase(HTTPTestCaseMixin, PackageTestCase):
         self.set_env_var(SERVER_URL_VAR, self.httpd.url(''))
 
     def test_can_get_a_package_status(self):
-        path = '/products/{}/packages/{}/status'.format(
-            self.product, self.pkg_uid)
+        path = '/packages/{}'.format(self.pkg_uid)
         package = Package(
             InstallationSetMode.Single, product=self.product, uid=self.pkg_uid)
         expected = 'finished'
@@ -116,8 +115,7 @@ class PackageStatusTestCase(HTTPTestCaseMixin, PackageTestCase):
         self.assertEqual(observed, expected)
 
     def test_get_package_status_raises_error_if_package_doesnt_exist(self):
-        path = '/products/{}/packages/{}/status'.format(
-            self.product, self.pkg_uid)
+        path = '/packages/{}'.format(self.pkg_uid)
         self.httpd.register_response(path, status_code=404)
         package = Package(
             InstallationSetMode.Single, product=self.product, uid=self.pkg_uid)
