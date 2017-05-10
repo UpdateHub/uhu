@@ -1,5 +1,5 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
-# This software is released under the MIT License
+# This software is released under the GPL-2.0 License
 
 from setuptools import find_packages, setup
 
@@ -32,6 +32,6 @@ setup(
     author='O.S. Systems Software LTDA',
     author_email='contato@ossystems.com.br',
     url='http://www.ossystems.com.br',
-    license='MIT',
+    license='GPL-2.0',
     zip_safe=False,
 )
