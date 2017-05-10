@@ -1,4 +1,4 @@
-# Copyright (C) 2016 O.S. Systems Software LTDA.
+# Copyright (C) 2017 O.S. Systems Software LTDA.
 # This software is released under the MIT License
 
 from prompt_toolkit.validation import ValidationError
