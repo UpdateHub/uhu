@@ -1,6 +1,6 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # This software is released under the GPL-2.0 License
-"""Main EFU REPL command functions."""
+"""Main UHU REPL command functions."""
 
 from ..config import config
 from ..core.package import Package
