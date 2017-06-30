@@ -69,8 +69,8 @@ class PullCommandTestCase(BasePullTestCase):
         self.assertEqual(result.exit_code, 2)
 
     def test_pull_command_returns_2_if_cant_download_object(self):
-        path = '/products/{}/packages/{}/objects/{}'.format(
-            self.product, self.pkg_uid, self.obj_sha256)
+        path = '/packages/{}/objects/{}'.format(
+            self.pkg_uid, self.obj_sha256)
         self.httpd.register_response(path, 'GET', status_code=404)
         result = self.runner.invoke(
             pull_command, args=[self.pkg_uid, '--objects'])
