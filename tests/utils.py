@@ -149,7 +149,7 @@ class PushFixtureMixin:
         path = '/packages'
         code = self.generate_status_code(success)
         if success:
-            body = {'package-uid': package_uid}
+            body = {'uid': package_uid}
         else:
             body = {'errors': ['This is an error', 'And this is another one']}
         self.httpd.register_response(
@@ -157,14 +157,14 @@ class PushFixtureMixin:
 
     def finish_push_url(self, package_uid, success=True):
         path = '/packages/{}/finish'.format(package_uid)
-        code = self.generate_status_code(success, 202)
+        code = self.generate_status_code(success, 204)
         if success:
             body = ''
         else:
             body = json.dumps(
                 {'errors': ['This is an error', 'And this is another one']})
         self.httpd.register_response(
-            path, method='POST', body=body, status_code=code)
+            path, method='PUT', body=body, status_code=code)
 
 
 class BasePushTestCase(

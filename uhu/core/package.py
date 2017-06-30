@@ -131,7 +131,7 @@ class Package:
             errors = '\n'.join(response_body.get('errors', []))
             error_msg = 'It was not possible to start pushing:\n{}'
             raise UploadError(error_msg.format(errors))
-        self.uid = response_body['package-uid']
+        self.uid = response_body['uid']
 
     def upload_objects(self, callback=None):
         results = []
@@ -146,8 +146,8 @@ class Package:
                 raise UploadError(err)
 
     def finish_push(self, callback=None):
-        response = Request(self.get_finish_push_url(), 'POST').send()
-        if response.status_code != 202:
+        response = Request(self.get_finish_push_url(), 'PUT').send()
+        if response.status_code != 204:
             error_msg = 'Push failed\n{}'
             raise UploadError(error_msg.format(response.text))
         call(callback, 'push_finish', self.uid)

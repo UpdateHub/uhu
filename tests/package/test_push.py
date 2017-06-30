@@ -67,7 +67,7 @@ class PushTestCase(BasePushTestCase):
         self.package.finish_push()
         request = self.httpd.requests[0]
         self.assertEqual(len(self.httpd.requests), 1)
-        self.assertEqual(request.method, 'POST')
+        self.assertEqual(request.method, 'PUT')
         self.assertEqual(request.url, url)
         self.assertEqual(request.body, b'')
 
