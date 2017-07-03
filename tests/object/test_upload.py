@@ -30,33 +30,30 @@ class UploadTestCase(
         self.package_uid = '1' * 64
 
     def test_upload_returns_success_when_successful(self):
-        self.create_upload_conf(self.obj, self.product_uid, self.package_uid)
-        result = self.obj.upload(self.product_uid, self.package_uid)
+        self.create_upload_conf(self.obj, self.package_uid)
+        result = self.obj.upload(self.package_uid)
         self.assertEqual(result, ObjectUploadResult.SUCCESS)
 
     def test_upload_raises_error_when_cannot_start_upload(self):
         self.create_upload_conf(
-            self.obj, self.product_uid, self.package_uid,
-            start_success=False)
+            self.obj, self.package_uid, start_success=False)
         with self.assertRaises(UploadError):
-            self.obj.upload(self.product_uid, self.package_uid)
+            self.obj.upload(self.package_uid)
 
     def test_does_not_upload_when_file_exists_on_server(self):
-        self.create_upload_conf(
-            self.obj, self.product_uid, self.package_uid, exists=True)
-        result = self.obj.upload(self.product_uid, self.package_uid)
+        self.create_upload_conf(self.obj, self.package_uid, exists=True)
+        result = self.obj.upload(self.package_uid)
         self.assertEqual(result, ObjectUploadResult.EXISTS)
 
     def test_upload_returns_fail_when_upload_fails(self):
         self.create_upload_conf(
-            self.obj, self.product_uid, self.package_uid,
-            upload_success=False)
-        result = self.obj.upload(self.product_uid, self.package_uid)
+            self.obj, self.package_uid, upload_success=False)
+        result = self.obj.upload(self.package_uid)
         self.assertEqual(result, ObjectUploadResult.FAIL)
 
     def test_can_upload_compressed_object_from_symbolic_link(self):
         self.options['filename'] = 'tests/fixtures/compressed/symbolic.gz'
         obj = Object('raw', self.options)
-        self.create_upload_conf(obj, self.product_uid, self.package_uid)
-        result = obj.upload(self.product_uid, self.package_uid)
+        self.create_upload_conf(obj, self.package_uid)
+        result = obj.upload(self.package_uid)
         self.assertEqual(result, ObjectUploadResult.SUCCESS)

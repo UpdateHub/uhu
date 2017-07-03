@@ -169,12 +169,12 @@ class BaseObject(metaclass=ObjectType):
         self['size'] = self.size
         self.md5 = md5.hexdigest()
 
-    def upload(self, product_uid, package_uid, callback=None):
+    def upload(self, package_uid, callback=None):
         """Uploads object to server."""
         # First, check if we can upload the object
         from .object import ObjectUploadResult
-        url = get_server_url('/products/{}/packages/{}/objects/{}'.format(
-            product_uid, package_uid, self['sha256sum']))
+        url = get_server_url('/packages/{}/objects/{}'.format(
+            package_uid, self['sha256sum']))
         body = json.dumps({'etag': self.md5})
         response = Request(url, 'POST', body, json=True).send()
         if response.status_code == 200:  # Object already uploaded

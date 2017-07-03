@@ -115,12 +115,12 @@ class EnvironmentFixtureMixin:
 
 class UploadFixtureMixin:
 
-    def create_upload_conf(self, obj, product_uid, package_uid, exists=False,
+    def create_upload_conf(self, obj, package_uid, exists=False,
                            start_success=True, upload_success=True):
         upload_url = self.generic_url(upload_success, method='PUT')
 
-        start_upload_path = '/products/{}/packages/{}/objects/{}'.format(
-            product_uid, package_uid, obj['sha256sum'])
+        start_upload_path = '/packages/{}/objects/{}'.format(
+            package_uid, obj['sha256sum'])
         start_upload_body = json.dumps({
             'url': upload_url,
             'storage': 'dummy',
@@ -137,34 +137,34 @@ class PushFixtureMixin:
     def set_push(self, package, package_uid, start_success=True,
                  upload_success=True, upload_start_success=True,
                  upload_exists=False, finish_success=True):
-        self.start_push_url(package.product, package_uid, start_success)
+        self.start_push_url(package_uid, start_success)
         for obj in package.objects.all():
             obj.load()
             self.create_upload_conf(
-                obj, package.product, package_uid, upload_exists,
+                obj, package_uid, upload_exists,
                 upload_start_success, upload_success)
-        self.finish_push_url(package.product, package_uid, finish_success)
+        self.finish_push_url(package_uid, finish_success)
 
-    def start_push_url(self, product, package_uid, success=True):
-        path = '/packages'.format(product)
+    def start_push_url(self, package_uid, success=True):
+        path = '/packages'
         code = self.generate_status_code(success)
         if success:
-            body = {'package-uid': package_uid}
+            body = {'uid': package_uid}
         else:
             body = {'errors': ['This is an error', 'And this is another one']}
         self.httpd.register_response(
             path, method='POST', body=json.dumps(body), status_code=code)
 
-    def finish_push_url(self, product, package_uid, success=True):
-        path = '/products/{}/packages/{}/finish'.format(product, package_uid)
-        code = self.generate_status_code(success, 202)
+    def finish_push_url(self, package_uid, success=True):
+        path = '/packages/{}/finish'.format(package_uid)
+        code = self.generate_status_code(success, 204)
         if success:
             body = ''
         else:
             body = json.dumps(
                 {'errors': ['This is an error', 'And this is another one']})
         self.httpd.register_response(
-            path, method='POST', body=body, status_code=code)
+            path, method='PUT', body=body, status_code=code)
 
 
 class BasePushTestCase(
@@ -237,7 +237,7 @@ class BasePullTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
             'GET', body=json.dumps(self.metadata), status_code=200)
 
         # url to download object
-        path = '/products/{}/packages/{}/objects/{}'.format(
-            self.product, self.pkg_uid, self.obj_sha256)
+        path = '/packages/{}/objects/{}'.format(
+            self.pkg_uid, self.obj_sha256)
         self.httpd.register_response(
             path, 'GET', body=self.obj_content, status_code=200)

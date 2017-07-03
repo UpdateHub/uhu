@@ -16,19 +16,19 @@ from . import PackageTestCase
 class PushTestCase(BasePushTestCase):
 
     def test_upload_metadata_returns_None_when_successful(self):
-        self.start_push_url(self.product, self.package_uid)
+        self.start_push_url(self.package_uid)
         self.package.objects.load()
         observed = self.package.upload_metadata()
         self.assertIsNone(observed)
 
     def test_upload_metadata_raises_exception_when_fail(self):
-        self.start_push_url(self.product, self.package_uid, success=False)
+        self.start_push_url(self.package_uid, success=False)
         self.package.objects.load()
         with self.assertRaises(UploadError):
             self.package.upload_metadata()
 
     def test_upload_metadata_request_is_made_correctly(self):
-        self.start_push_url(self.product, self.package_uid)
+        self.start_push_url(self.package_uid)
         start_url = self.httpd.url('/packages')
         self.package.objects.load()
         self.package.upload_metadata()
@@ -42,7 +42,7 @@ class PushTestCase(BasePushTestCase):
         self.assertEqual(metadata, self.package.metadata())
 
     def test_upload_metadata_updates_package_uid(self):
-        self.start_push_url(self.product, self.package_uid)
+        self.start_push_url(self.package_uid)
         self.package.objects.load()
         self.assertIsNone(self.package.uid)
         self.package.upload_metadata()
@@ -50,25 +50,24 @@ class PushTestCase(BasePushTestCase):
 
     def test_finish_push_returns_None_when_successful(self):
         self.package.uid = self.package_uid
-        self.finish_push_url(self.product, self.package.uid)
+        self.finish_push_url(self.package.uid)
         self.assertIsNone(self.package.finish_push())
 
     def test_finish_push_raises_error_when_fail(self):
         self.package.uid = self.package_uid
-        self.finish_push_url(self.product, self.package_uid, success=False)
+        self.finish_push_url(self.package_uid, success=False)
         with self.assertRaises(UploadError):
             self.package.finish_push()
 
     def test_finish_push_request_is_made_correctly(self):
-        self.finish_push_url(self.product, self.package_uid, success=True)
-        path = '/products/{}/packages/{}/finish'.format(
-            self.product, self.package_uid)
+        self.finish_push_url(self.package_uid, success=True)
+        path = '/packages/{}/finish'.format(self.package_uid)
         url = self.httpd.url(path)
         self.package.uid = self.package_uid
         self.package.finish_push()
         request = self.httpd.requests[0]
         self.assertEqual(len(self.httpd.requests), 1)
-        self.assertEqual(request.method, 'POST')
+        self.assertEqual(request.method, 'PUT')
         self.assertEqual(request.url, url)
         self.assertEqual(request.body, b'')
 

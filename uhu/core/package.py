@@ -123,7 +123,7 @@ class Package:
         metadata = self.metadata()
         validate_metadata(metadata)
         payload = json.dumps(metadata)
-        url = self.get_metadata_upload_url()
+        url = get_server_url('/packages')
         response = Request(
             url, method='POST', payload=payload, json=True).send()
         response_body = response.json()
@@ -131,14 +131,14 @@ class Package:
             errors = '\n'.join(response_body.get('errors', []))
             error_msg = 'It was not possible to start pushing:\n{}'
             raise UploadError(error_msg.format(errors))
-        self.uid = response_body['package-uid']
+        self.uid = response_body['uid']
 
     def upload_objects(self, callback=None):
         results = []
         objects = self.objects.get_installation_set(index=0)
         call(callback, 'start_package_upload', objects)
         for obj in objects:
-            results.append(obj.upload(self.product, self.uid, callback))
+            results.append(obj.upload(self.uid, callback))
         call(callback, 'finish_package_upload')
         for result in results:
             if not ObjectUploadResult.is_ok(result):
@@ -146,15 +146,14 @@ class Package:
                 raise UploadError(err)
 
     def finish_push(self, callback=None):
-        response = Request(self.get_finish_push_url(), 'POST').send()
-        if response.status_code != 202:
+        response = Request(self.get_finish_push_url(), 'PUT').send()
+        if response.status_code != 204:
             error_msg = 'Push failed\n{}'
             raise UploadError(error_msg.format(response.text))
         call(callback, 'push_finish', self.uid)
 
     def get_finish_push_url(self):
-        return get_server_url('/products/{}/packages/{}/finish'.format(
-            self.product, self.uid))
+        return get_server_url('/packages/{}/finish'.format(self.uid))
 
     def push(self, callback=None):
         self.upload_metadata()
@@ -204,17 +203,12 @@ class Package:
             # downloaded.
         return objects
 
-    def get_object_download_url(self, uid, obj):
-        path = '/products/{}/packages/{}/objects/{}'.format(
-            self.product, uid, obj['sha256sum'])
+    def get_object_download_url(self, package_uid, obj):
+        path = '/packages/{}/objects/{}'.format(package_uid, obj['sha256sum'])
         return get_server_url(path)
 
-    def get_metadata_upload_url(self):
-        return get_server_url('/packages')
-
     def get_status(self):
-        path = '/packages/{package}'
-        url = get_server_url(path.format(package=self.uid))
+        url = get_server_url('/packages/{}'.format(self.uid))
         response = Request(url, 'GET', json=True).send()
         if response.status_code != 200:
             raise ValueError('Status not found')
