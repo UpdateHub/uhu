@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0
 
 from uhu.cli.hardware import (
-    add_supported_hardware_command, remove_supported_hardware_command)
+    add_supported_hardware, remove_supported_hardware)
 from uhu.core import Package
 from uhu.core.manager import InstallationSetMode
 
@@ -17,8 +17,7 @@ class SupportedHardwareCommandsTestCase(PackageTestCase):
         self.pkg.dump(self.pkg_fn)
 
     def test_can_add_supported_hardware_without_revisions(self):
-        result = self.runner.invoke(
-            add_supported_hardware_command, args=['PowerX'])
+        result = self.runner.invoke(add_supported_hardware, args=['PowerX'])
         self.assertEqual(result.exit_code, 0)
         pkg = Package.from_file(self.pkg_fn)
         hardware = pkg.hardwares.get('PowerX')
@@ -28,11 +27,8 @@ class SupportedHardwareCommandsTestCase(PackageTestCase):
 
     def test_can_add_supported_hardware_with_revisions(self):
         result = self.runner.invoke(
-            add_supported_hardware_command, args=[
-                'PowerX',
-                '--revision', '3',
-                '-r', '2',
-                '-r', '1'])
+            add_supported_hardware,
+            args=['PowerX', '--revision', '3', '-r', '2', '-r', '1'])
         self.assertEqual(result.exit_code, 0)
         pkg = Package.from_file(self.pkg_fn)
         self.assertEqual(pkg.hardwares.count(), 1)
@@ -43,9 +39,8 @@ class SupportedHardwareCommandsTestCase(PackageTestCase):
     def test_can_add_supported_hardware_revision(self):
         self.pkg.hardwares.add('PowerX', revisions=['2'])
         self.pkg.dump(self.pkg_fn)
-        result = self.runner.invoke(add_supported_hardware_command, args=[
-            'PowerX',
-            '--revision', '1'])
+        result = self.runner.invoke(
+            add_supported_hardware, args=['PowerX', '--revision', '1'])
         self.assertEqual(result.exit_code, 0)
         pkg = Package.from_file(self.pkg_fn)
         self.assertEqual(pkg.hardwares.count(), 1)
@@ -57,13 +52,11 @@ class SupportedHardwareCommandsTestCase(PackageTestCase):
         self.pkg.hardwares.add('PowerX', revisions=['exists'])
         self.pkg.dump(self.pkg_fn)
         result = self.runner.invoke(
-            remove_supported_hardware_command, args=[
-                'PowerX', '-r', 'no-exists'])
+            remove_supported_hardware, args=['PowerX', '-r', 'no-exists'])
         self.assertEqual(result.exit_code, 2)
 
     def test_remove_supported_hardware_returns_2_if_revision_is_invalid(self):
-        result = self.runner.invoke(
-            remove_supported_hardware_command, args=['PowerX'])
+        result = self.runner.invoke(remove_supported_hardware, args=['PowerX'])
         self.assertEqual(result.exit_code, 2)
 
     def test_can_remove_supported_hardware(self):
@@ -71,8 +64,7 @@ class SupportedHardwareCommandsTestCase(PackageTestCase):
         self.pkg.dump(self.pkg_fn)
         pkg = Package.from_file(self.pkg_fn)
         self.assertEqual(pkg.hardwares.count(), 1)
-        result = self.runner.invoke(
-            remove_supported_hardware_command, args=['PowerX'])
+        result = self.runner.invoke(remove_supported_hardware, args=['PowerX'])
         self.assertEqual(result.exit_code, 0)
         pkg = Package.from_file(self.pkg_fn)
         self.assertEqual(pkg.hardwares.count(), 0)
@@ -80,10 +72,8 @@ class SupportedHardwareCommandsTestCase(PackageTestCase):
     def test_can_remove_supported_hardware_revision(self):
         self.pkg.hardwares.add('PowerX', revisions=['3', '2', '1'])
         self.pkg.dump(self.pkg_fn)
-        self.runner.invoke(remove_supported_hardware_command, args=[
-            'PowerX',
-            '-r', '2'
-        ])
+        self.runner.invoke(
+            remove_supported_hardware, args=['PowerX', '-r', '2'])
         pkg = Package.from_file(self.pkg_fn)
         self.assertEqual(pkg.hardwares.count(), 1)
         hardware = pkg.hardwares.get('PowerX')

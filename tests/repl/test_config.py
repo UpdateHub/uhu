@@ -4,7 +4,7 @@
 import unittest
 from unittest.mock import patch
 
-from uhu.config import config, Sections
+from uhu.config import config, AUTH_SECTION
 from uhu.repl import functions
 
 
@@ -15,6 +15,6 @@ class PackageTestCase(unittest.TestCase):
         prompt.side_effect = ['access', 'secret']
         functions.set_authentication()
         self.assertEqual(
-            config.get('access_id', section=Sections.AUTH), 'access')
+            config.get('access_id', section=AUTH_SECTION), 'access')
         self.assertEqual(
-            config.get('access_secret', section=Sections.AUTH), 'secret')
+            config.get('access_secret', section=AUTH_SECTION), 'secret')

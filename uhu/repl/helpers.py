@@ -19,16 +19,15 @@ from ..core._options import Options
 from ..core.package import MODES as PKG_MODES
 
 from .completers import (
-    ObjectFilenameCompleter, ObjectModeCompleter, ObjectOptionCompleter,
-    ObjectOptionValueCompleter, ObjectUIDCompleter, YesNoCompleter,
-    PackageModeCompleter)
+    ObjectFilenameCompleter, ObjectModeCompleter, ObjectOptionValueCompleter,
+    ObjectUIDCompleter, YesNoCompleter, PackageModeCompleter)
 from .exceptions import CancelPromptException
 from .validators import (
     ObjectUIDValidator, ContainerValidator, ObjectOptionValueValidator,
     PackageUIDValidator, YesNoValidator)
 
 
-manager = KeyBindingManager.for_prompt()
+manager = KeyBindingManager.for_prompt()  # pylint: disable=invalid-name
 
 
 @manager.registry.add_binding(Keys.ControlD)
@@ -47,17 +46,18 @@ def ctrl_c(_):
     raise CancelPromptException('Cancelled operation.')
 
 
-def cancellable(f):
+def cancellable(func):
     """Decorator to cancell a current prompt."""
-    @wraps(f)
+    @wraps(func)
     def wrapper(*args, **kw):
         try:
-            return f(*args, **kw)
+            return func(*args, **kw)
         except CancelPromptException:
             pass  # Do nothing cancelling the current command
     return wrapper
 
 
+# pylint: disable=invalid-name
 prompt = partial(prompt, key_bindings_registry=manager.registry)
 
 
@@ -114,7 +114,7 @@ def prompt_object_options(package_mode, object_mode):
         else:
             value = []
             for installation_set in range(package_mode.value):
-                default = value[-1] if len(value) else ''
+                default = value[-1] if value else ''
                 value.append(
                     prompt_object_option_value(
                         option=option,
@@ -157,7 +157,7 @@ def prompt_object_option(obj):
     """
     msg = 'Choose an option: '
     options = sorted(opt.metadata for opt in obj.options if not opt.symmetric)
-    completer = ObjectOptionCompleter(options)
+    completer = WordCompleter(options)
     validator = ContainerValidator('option', options)
     option = prompt(msg, completer=completer, validator=validator)
     return Options.get(option.strip())
@@ -182,6 +182,7 @@ def _get_object_option_value_message(option, set_=None):
     return msg
 
 
+# pylint: disable=too-many-arguments
 def _prompt_object_option_value(
         mode, option, msg, completer, default, validator):
     """Retuns a value for object_option_value prompt."""

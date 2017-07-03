@@ -13,11 +13,18 @@ from ..http.request import Request
 from ..utils import call, get_server_url
 
 from .hardware import HardwareManager
-from .object import Object, ObjectUploadResult
+from .object import Object
 from .manager import InstallationSetManager, InstallationSetMode
+from .upload import ObjectUploadResult
 
 
 MODES = ['single', 'active-inactive']
+
+
+def write_json(obj, fn):
+    """Saves an obj as JSON into fn in an opnionated way."""
+    with open(fn, 'w') as fp:
+        json.dump(obj, fp, indent=4, sort_keys=True)
 
 
 class Package:
@@ -108,16 +115,11 @@ class Package:
         """Writes package template in dest file (without version)."""
         template = self.template()
         template['version'] = None
-        self._persist(template, dest)
+        write_json(template, dest)
 
     def dump(self, dest):
         """Writes package template in dest file (with version)."""
-        self._persist(self.template(), dest)
-
-    def _persist(self, dict_, fn):
-        """Saves an dict_ as JSON into fn."""
-        with open(fn, 'w') as fp:
-            json.dump(dict_, fp, indent=4, sort_keys=True)
+        write_json(self.template(), dest)
 
     def upload_metadata(self):
         metadata = self.metadata()
@@ -173,7 +175,8 @@ class Package:
 
     def download_objects(self, uid):
         for obj in self.get_download_list():
-            url = self.get_object_download_url(uid, obj)
+            path = '/packages/{}/objects/{}'.format(uid, obj['sha256sum'])
+            url = get_server_url(path)
             obj.download(url)
 
     def get_download_list(self):
@@ -202,10 +205,6 @@ class Package:
             # is equal to remote object. Therefore, it must be not
             # downloaded.
         return objects
-
-    def get_object_download_url(self, package_uid, obj):
-        path = '/packages/{}/objects/{}'.format(package_uid, obj['sha256sum'])
-        return get_server_url(path)
 
     def get_status(self):
         url = get_server_url('/packages/{}'.format(self.uid))

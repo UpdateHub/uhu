@@ -75,12 +75,13 @@ class HardwareManager:
     def __str__(self):
         if self.count() == 0:
             return 'Supported hardware: all'
-        s = []
-        s.append('Supported hardware:')
-        s.append('')
+        string = []
+        string.append('Supported hardware:')
+        string.append('')
         for i, name in enumerate(sorted(self._hardwares), 1):
             revisions = ', '.join(self.get(name)['revisions'])
             revisions = revisions if revisions else 'all'
-            s.append('  {}# {} [revisions: {}]'.format(i, name, revisions))
-            s.append('')
-        return '\n'.join(s)
+            string.append(
+                '  {}# {} [revisions: {}]'.format(i, name, revisions))
+            string.append('')
+        return '\n'.join(string)

@@ -120,7 +120,8 @@ def push_command():
               help='Downloads metadata.json too.')
 @click.option('--objects', is_flag=True,
               help='Downloads all objects too.')
-@click.option('--output', type=click.Path(
+@click.option('--output',
+              type=click.Path(
                   file_okay=False, writable=True, resolve_path=True),
               help='Output directory', default='.')
 def pull_command(package_uid, metadata, objects, output):

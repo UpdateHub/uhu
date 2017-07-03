@@ -8,7 +8,7 @@ import requests
 from ..utils import call
 
 
-class ObjectReader:
+class ObjectReader:  # pylint: disable=too-few-public-methods
     """Read-only object class. Used when uploading with requests."""
 
     def __init__(self, obj, callback=None):
@@ -20,7 +20,7 @@ class ObjectReader:
 
     def __iter__(self):
         for chunk in self.obj:
-            call(self.callback, 'object_read', self.obj)
+            call(self.callback, 'object_read')
             yield chunk
 
 

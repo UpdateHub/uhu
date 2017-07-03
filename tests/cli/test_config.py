@@ -7,7 +7,7 @@ from configparser import ConfigParser
 
 from click.testing import CliRunner
 
-from uhu.config import Config, Sections
+from uhu.config import Config, AUTH_SECTION
 from uhu.utils import LOCAL_CONFIG_VAR
 from uhu.cli.config import (
     cleanup_command, get_command, set_command, init_command)
@@ -70,8 +70,8 @@ class ConfigCommandTestCase(
         self.runner.invoke(init_command, input='1234\nasdf')
         config = ConfigParser()
         config.read(self.config_filename)
-        id_ = config.get(Sections.AUTH, 'access_id')
-        secret = config.get(Sections.AUTH, 'access_secret')
+        id_ = config.get(AUTH_SECTION, 'access_id')
+        secret = config.get(AUTH_SECTION, 'access_secret')
         self.assertEqual(id_, '1234')
         self.assertEqual(secret, 'asdf')
 
