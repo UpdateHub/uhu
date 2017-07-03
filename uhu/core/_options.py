@@ -108,6 +108,9 @@ class IntegerOption(BaseOption):
 
     @classmethod
     def validate(cls, value, obj=None):
+        # This must be checked this way since isintance(True, int) is
+        # True in Python.
+        # pylint: disable=unidiomatic-typecheck
         if type(value) not in (int, str):
             raise ValueError('Only integers are allowed')
         try:

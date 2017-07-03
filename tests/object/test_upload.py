@@ -1,7 +1,8 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # SPDX-License-Identifier: GPL-2.0
 
-from uhu.core.object import Object, ObjectUploadResult
+from uhu.core.object import Object
+from uhu.core.upload import ObjectUploadResult
 from uhu.exceptions import UploadError
 from uhu.utils import CHUNK_SIZE_VAR, SERVER_URL_VAR
 

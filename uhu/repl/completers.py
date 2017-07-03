@@ -9,24 +9,21 @@ from ..core.object import Modes
 from ..core.package import MODES as PKG_MODES
 
 
+# pylint: disable=too-few-public-methods
 class ObjectFilenameCompleter(PathCompleter):
 
     def __init__(self):
         super().__init__(file_filter=os.path.isfile)
 
 
+# pylint: disable=too-few-public-methods
 class ObjectModeCompleter(WordCompleter):
 
     def __init__(self):
         super().__init__(Modes.names())
 
 
-class ObjectOptionCompleter(WordCompleter):
-
-    def __init__(self, options):
-        super().__init__(options)
-
-
+# pylint: disable=too-few-public-methods
 class ObjectOptionValueCompleter(WordCompleter):
 
     def __init__(self, option):
@@ -34,6 +31,7 @@ class ObjectOptionValueCompleter(WordCompleter):
         super().__init__(completions)
 
 
+# pylint: disable=too-few-public-methods
 class ObjectUIDCompleter(WordCompleter):
 
     def __init__(self, package, installation_set):
@@ -44,6 +42,7 @@ class ObjectUIDCompleter(WordCompleter):
         super().__init__(sorted(completions))
 
 
+# pylint: disable=too-few-public-methods
 class YesNoCompleter(WordCompleter):
 
     def __init__(self):
@@ -51,6 +50,7 @@ class YesNoCompleter(WordCompleter):
         super().__init__(completions)
 
 
+# pylint: disable=too-few-public-methods
 class PackageModeCompleter(WordCompleter):
 
     def __init__(self):

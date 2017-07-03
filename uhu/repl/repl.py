@@ -11,7 +11,7 @@ from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter
 from prompt_toolkit.contrib.regular_languages import compiler
 
 from .. import get_version
-from ..config import config, Sections
+from ..config import config, AUTH_SECTION
 from ..core.package import Package
 from ..core.manager import InstallationSetMode
 from ..utils import get_local_config_file
@@ -66,6 +66,14 @@ GRAMMAR = compiler.compile(r'''
 ''')
 
 
+def load_package(fn):
+    try:
+        return Package.from_file(fn)
+    except ValueError as err:
+        print('Error: Invalid configuration file: {}'.format(err))
+        sys.exit(1)
+
+
 class UHURepl:
     """The main class for UpdateHub REPL."""
 
@@ -96,9 +104,9 @@ class UHURepl:
         self.local_config = get_local_config_file()
 
         if package_fn is not None:
-            self.package = self.load_package(package_fn)
+            self.package = load_package(package_fn)
         elif os.path.exists(self.local_config):
-            self.package = self.load_package(self.local_config)
+            self.package = load_package(self.local_config)
         else:
             self.package = Package(InstallationSetMode.ActiveInactive)
 
@@ -109,13 +117,6 @@ class UHURepl:
 
         self.arg = None
         self.history = InMemoryHistory()
-
-    def load_package(self, fn):
-        try:
-            return Package.from_file(fn)
-        except ValueError as err:
-            print('Error: Invalid configuration file: {}'.format(err))
-            sys.exit(1)
 
     def repl(self):
         """Starts a new interactive prompt."""
@@ -186,8 +187,8 @@ def repl(package):
     Before creating a new instance, checks if server authentication is
     set. If not, prompts user for its credentials.
     """
-    access = config.get('access_id', Sections.AUTH)
-    secret = config.get('access_secret', Sections.AUTH)
+    access = config.get('access_id', AUTH_SECTION)
+    secret = config.get('access_secret', AUTH_SECTION)
     if not all([access, secret]):
         functions.set_authentication()
     return UHURepl(package).repl()

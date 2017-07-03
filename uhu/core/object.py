@@ -1,22 +1,10 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # SPDX-License-Identifier: GPL-2.0
 
-from ._base import Modes
+from ._base import Modes  # pylint: disable=cyclic-import
 
 
-class ObjectUploadResult:
-    SUCCESS = 1
-    EXISTS = 2
-    FAIL = 3
-
-    OK_RESULTS = (SUCCESS, EXISTS)
-
-    @classmethod
-    def is_ok(cls, result):
-        return result in cls.OK_RESULTS
-
-
-class Object:
+class Object:  # pylint: disable=too-few-public-methods
 
     def __new__(cls, mode_name, values):
         cls = Modes.get(mode_name)

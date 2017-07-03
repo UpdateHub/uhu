@@ -53,12 +53,12 @@ X86_BZ_IMAGE = (0xaa55, 1)
 X86_Z_IMAGE = (0xaa55, 0)
 
 
-def is_arm_uImage(fp):
+def is_arm_u_image(fp):
     """Checks if an image is ARM uImage."""
     return read(fp, 0, '>I', 4) == ARM_U_IMAGE
 
 
-def is_arm_zImage(fp):
+def is_arm_z_image(fp):
     """Checks if an image is ARM zImage."""
     return read(fp, 36, '<I', 4) == ARM_Z_IMAGE
 
@@ -71,17 +71,17 @@ def get_x86_generic_image_info(fp):
     return (magic, compression)
 
 
-def is_x86_bzImage(fp):
+def is_x86_bz_image(fp):
     """Checks if an image is x86 bzImage."""
     return get_x86_generic_image_info(fp) == X86_BZ_IMAGE
 
 
-def is_x86_zImage(fp):
+def is_x86_z_image(fp):
     """Checks if an image is x86 zImage."""
     return get_x86_generic_image_info(fp) == X86_Z_IMAGE
 
 
-def get_arm_zImage_version(fp):
+def get_arm_z_image_version(fp):
     """Returns Linux kernel version of an ARM zImage."""
     # In ARM uImage kernel is compressed within the image. To retrive
     # its version, we need find the compressed kernel, uncompress it,
@@ -98,7 +98,7 @@ def get_arm_zImage_version(fp):
     return find(fp, pattern, iterable, seek)
 
 
-def get_arm_uImage_version(fp):
+def get_arm_u_image_version(fp):
     """Returns Linux kernel version of an ARM uImage."""
     fp.seek(32)
     data = fp.read(32).strip(b'\0')
@@ -116,12 +116,12 @@ def get_x86_generic_version(fp):
     return check(version, regexp)
 
 
-def get_x86_bzImage_version(fp):
+def get_x86_bz_image_version(fp):
     """Returns Linux kernel version of a x86 bzImage."""
     return get_x86_generic_version(fp)
 
 
-def get_x86_zImage_version(fp):
+def get_x86_z_image_version(fp):
     """Returns Linux kernel version of a x86 zImage."""
     return get_x86_generic_version(fp)
 
@@ -132,17 +132,17 @@ def get_kernel_version(fp):
     """Returns Linux kernel object version."""
     result = None
     # ARM uImage
-    if is_arm_uImage(fp):
-        result = get_arm_uImage_version(fp)
+    if is_arm_u_image(fp):
+        result = get_arm_u_image_version(fp)
     # ARM zImage
-    if is_arm_zImage(fp):
-        result = get_arm_zImage_version(fp)
+    if is_arm_z_image(fp):
+        result = get_arm_z_image_version(fp)
     # x86 bzImage
-    if is_x86_bzImage(fp):
-        result = get_x86_bzImage_version(fp)
+    if is_x86_bz_image(fp):
+        result = get_x86_bz_image_version(fp)
     # x86 zImage
-    if is_x86_zImage(fp):
-        result = get_x86_zImage_version(fp)
+    if is_x86_z_image(fp):
+        result = get_x86_z_image_version(fp)
     if result is not None:
         return result
     raise ValueError('Cannot retrive kernel version')

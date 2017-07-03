@@ -14,9 +14,9 @@ class BaseCallback:
         self.uploading = False
         self.max = None
 
-    def object_read(self, obj, full=False):
-        n = len(obj) if full else 1
-        for _ in range(n):
+    def object_read(self, n_steps=1):
+        """Calls self._object_read for n_steps needed."""
+        for _ in range(n_steps):
             self._object_read()
 
     def _object_read(self):
@@ -34,7 +34,7 @@ class BaseCallback:
         self.uploading = False
         self.finish_package_upload_callback()
 
-    def push_finish(self, uid):
+    def push_finish(self, uid):  # pylint: disable=no-self-use
         print('Finished! Your package UID is {}'.format(uid))
 
     def object_read_load_callback(self):
@@ -85,7 +85,7 @@ class NoTTYCallback(BaseCallback):
         self.coeficient = 5
         self.next_step = 0
 
-    def start_objects_load(self):
+    def start_objects_load(self):  # pylint: disable=no-self-use
         print('Loading objects: ', end='', flush=True)
 
     def object_read_upload_callback(self):
@@ -98,7 +98,7 @@ class NoTTYCallback(BaseCallback):
                 print('{}% '.format(step), end='', flush=True)
             self.next_step = until
 
-    def finish_objects_load(self):
+    def finish_objects_load(self):  # pylint: disable=no-self-use
         print('ok', flush=True)
 
     def start_package_upload_callback(self):

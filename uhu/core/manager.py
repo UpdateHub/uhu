@@ -55,11 +55,11 @@ class InstallationSet:
         return len(self._objects)
 
     def __str__(self):
-        s = []
-        s.append('Installation Set:\n')
+        string = []
+        string.append('Installation Set:\n')
         for index, obj in enumerate(self):
-            s.append('    {}# {}\n'.format(index, indent(str(obj), 4)))
-        return '\n'.join(s)
+            string.append('    {}# {}\n'.format(index, indent(str(obj), 4)))
+        return '\n'.join(string)
 
 
 @unique
@@ -123,6 +123,7 @@ class InstallationSetManager:
             if installation_set is not None:
                 raise ValueError(
                     'You must not pass an installation set for this option')
+            # pylint: disable=redefined-argument-from-local
             for installation_set in self:
                 installation_set.update(index, option.metadata, value)
         else:
@@ -158,11 +159,11 @@ class InstallationSetManager:
         return len(self._sets)
 
     def __str__(self):
-        if len(self.all()) == 0:
+        if not self.all():
             return 'Objects: None'
-        s = []
-        s.append('Objects:\n')
+        string = []
+        string.append('Objects:\n')
         for index, installation_set in enumerate(self):
-            s.append('    {}# {}\n'.format(
+            string.append('    {}# {}\n'.format(
                 index, indent(str(installation_set), 4)))
-        return '\n'.join(s)
+        return '\n'.join(string)

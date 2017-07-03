@@ -9,6 +9,15 @@ from prompt_toolkit.validation import Validator
 from .exceptions import ValidationError
 
 
+def validate_filename(filename):
+    if not os.path.exists(filename):
+        raise ValidationError(
+            message='"{}" does not exist'.format(filename))
+    if os.path.isdir(filename):
+        raise ValidationError(message='Only files are allowed')
+
+
+# pylint: disable=too-few-public-methods
 class ContainerValidator(Validator):
 
     def __init__(self, name, container, *args, **kwargs):
@@ -25,6 +34,7 @@ class ContainerValidator(Validator):
                 message='"{}" is not a valid {}'.format(element, self.name))
 
 
+# pylint: disable=too-few-public-methods
 class ObjectUIDValidator(Validator):
 
     def validate(self, document):
@@ -52,18 +62,11 @@ class ObjectOptionValueValidator(Validator):
                 raise ValidationError(message='You must provide a value')
         try:
             if self.option.metadata == 'filename':
-                self.validate_filename(value)
+                validate_filename(value)
             else:
                 self.option.validate(value, self.mode)
         except ValueError as err:
             raise ValidationError(message=str(err))
-
-    def validate_filename(self, filename):
-        if not os.path.exists(filename):
-            raise ValidationError(
-                message='"{}" does not exist'.format(filename))
-        if os.path.isdir(filename):
-            raise ValidationError(message='Only files are allowed')
 
 
 class PackageUIDValidator(Validator):

@@ -17,6 +17,7 @@ from ..utils import (
 from ._options import Options
 from .install_condition import get_version
 from .storages import STORAGES
+from .upload import ObjectUploadResult
 from .validators import validate_options
 
 
@@ -25,10 +26,10 @@ class Modes:
 
     @classmethod
     def get(cls, name):
-        Object = cls.registry.get(name)
-        if Object is None:
+        obj_class = cls.registry.get(name)
+        if obj_class is None:
             raise ValueError('There is no {} object class.'.format(name))
-        return Object
+        return obj_class
 
     @classmethod
     def names(cls):
@@ -164,7 +165,7 @@ class BaseObject(metaclass=ObjectType):
         for chunk in self:
             sha256sum.update(chunk)
             md5.update(chunk)
-            call(callback, 'object_read', self)
+            call(callback, 'object_read')
         self['sha256sum'] = sha256sum.hexdigest()
         self['size'] = self.size
         self.md5 = md5.hexdigest()
@@ -172,14 +173,13 @@ class BaseObject(metaclass=ObjectType):
     def upload(self, package_uid, callback=None):
         """Uploads object to server."""
         # First, check if we can upload the object
-        from .object import ObjectUploadResult
         url = get_server_url('/packages/{}/objects/{}'.format(
             package_uid, self['sha256sum']))
         body = json.dumps({'etag': self.md5})
         response = Request(url, 'POST', body, json=True).send()
         if response.status_code == 200:  # Object already uploaded
             result = ObjectUploadResult.EXISTS
-            call(callback, 'object_read', self, full=True)
+            call(callback, 'object_read', len(self))
         elif response.status_code == 201:  # Object must be uploaded
             body = response.json()
             upload = STORAGES[body['storage']]

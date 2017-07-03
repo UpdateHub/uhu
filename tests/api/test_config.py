@@ -1,7 +1,7 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # SPDX-License-Identifier: GPL-2.0
 
-from uhu.config import Config, Sections
+from uhu.config import Config, AUTH_SECTION
 from uhu.utils import GLOBAL_CONFIG_VAR
 
 from utils import UHUTestCase, EnvironmentFixtureMixin, FileFixtureMixin
@@ -72,8 +72,8 @@ class ConfigTestCase(FileFixtureMixin, EnvironmentFixtureMixin, UHUTestCase):
 
         self.config.set_initial(expected_id, expected_secret)
 
-        observed_id = self.config.get('access_id', section=Sections.AUTH)
-        observed_secret = self.config.get('access_secret', Sections.AUTH)
+        observed_id = self.config.get('access_id', section=AUTH_SECTION)
+        observed_secret = self.config.get('access_secret', AUTH_SECTION)
 
         self.assertEqual(observed_id, expected_id)
         self.assertEqual(observed_secret, expected_secret)

@@ -45,66 +45,66 @@ class KernelVersionTestCase(unittest.TestCase):
 
     def test_is_arm_uImage_returns_True_when_arm_uImage(self):
         with open(self.get_kernel_fixture('arm-uImage'), 'br') as fp:
-            self.assertTrue(ic.is_arm_uImage(fp))
+            self.assertTrue(ic.is_arm_u_image(fp))
 
     def test_is_arm_zImage_returns_True_when_arm_zImage(self):
         with open(self.get_kernel_fixture('arm-zImage'), 'br') as fp:
-            self.assertTrue(ic.is_arm_zImage(fp))
+            self.assertTrue(ic.is_arm_z_image(fp))
 
     def test_is_x86_bzImage_returns_True_when_x86_bzImage(self):
         with open(self.get_kernel_fixture('x86-bzImage'), 'br') as fp:
-            self.assertTrue(ic.is_x86_bzImage(fp))
+            self.assertTrue(ic.is_x86_bz_image(fp))
 
     def test_is_x86_zImage_magic_returns_True_when_x86_zImage(self):
         with open(self.get_kernel_fixture('x86-zImage'), 'br') as fp:
-            self.assertTrue(ic.is_x86_zImage(fp))
+            self.assertTrue(ic.is_x86_z_image(fp))
 
     def test_is_arm_uImage_returns_False_when_not_arm_uImage(self):
         images = ['arm-zImage', 'x86-bzImage', 'x86-zImage']
         for image in images:
             with open(self.get_kernel_fixture(image), 'rb') as fp:
-                self.assertFalse(ic.is_arm_uImage(fp))
+                self.assertFalse(ic.is_arm_u_image(fp))
 
     def test_is_arm_zImage_returns_False_when_not_arm_zImage(self):
         images = ['arm-uImage', 'x86-bzImage', 'x86-zImage']
         for image in images:
             with open(self.get_kernel_fixture(image), 'rb') as fp:
-                self.assertFalse(ic.is_arm_zImage(fp))
+                self.assertFalse(ic.is_arm_z_image(fp))
 
     def test_is_x86_bzImage_returns_False_when_not_x86_bzImage(self):
         images = ['arm-uImage', 'arm-zImage', 'x86-zImage']
         for image in images:
             with open(self.get_kernel_fixture(image), 'rb') as fp:
-                self.assertFalse(ic.is_x86_bzImage(fp))
+                self.assertFalse(ic.is_x86_bz_image(fp))
 
     def test_is_x86_zImage_magic_returns_False_when_not_x86_zImage(self):
         images = ['arm-uImage', 'arm-zImage', 'x86-bzImage']
         for image in images:
             with open(self.get_kernel_fixture(image), 'rb') as fp:
-                self.assertFalse(ic.is_x86_zImage(fp))
+                self.assertFalse(ic.is_x86_z_image(fp))
 
     def test_can_get_arm_zImage_version(self):
         expected = '4.4.1'
         with open(self.get_kernel_fixture('arm-zImage'), 'br') as fp:
-            observed = ic.get_arm_zImage_version(fp)
+            observed = ic.get_arm_z_image_version(fp)
         self.assertEqual(expected, observed)
 
     def test_can_get_arm_uImage_version(self):
         expected = '4.1.15-1.2.0+g274a055'
         with open(self.get_kernel_fixture('arm-uImage'), 'br') as fp:
-            observed = ic.get_arm_uImage_version(fp)
+            observed = ic.get_arm_u_image_version(fp)
         self.assertEqual(expected, observed)
 
     def test_can_get_x86_bzImage_version(self):
         expected = '4.1.30-1-MANJARO'
         with open(self.get_kernel_fixture('x86-bzImage'), 'br') as fp:
-            observed = ic.get_x86_bzImage_version(fp)
+            observed = ic.get_x86_bz_image_version(fp)
         self.assertEqual(expected, observed)
 
     def test_can_get_x86_zImage_version(self):
         expected = '4.1.30-1-MANJARO'
         with open(self.get_kernel_fixture('x86-zImage'), 'br') as fp:
-            observed = ic.get_x86_zImage_version(fp)
+            observed = ic.get_x86_z_image_version(fp)
         self.assertEqual(expected, observed)
 
 

@@ -50,8 +50,8 @@ def remove_local_config():
 
 
 def call(obj, name, *args, **kw):
-    f = getattr(obj, name, lambda *args, **kw: None)
-    f(*args, **kw)
+    func = getattr(obj, name, lambda *args, **kw: None)
+    func(*args, **kw)
 
 
 # String utilities
@@ -66,15 +66,15 @@ def yes_or_no(value):
     return 'no'
 
 
-def indent(value, n, all_lines=False):
-    """Indent a multline string to right by n.
+def indent(value, n_indents, all_lines=False):
+    """Indent a multline string to right by n_indents.
 
     If all_lines is set to True, the first line will also be indeted,
     otherwise, first line will be 0 padded. This is so since we can
     attach the generated string in an already indented line.
     """
     lines = value.split('\n')
-    padding = n * ' '
+    padding = n_indents * ' '
     lines = ['{}{}'.format(padding, line).rstrip() for line in lines]
     text = '\n'.join(lines)
     if all_lines:
