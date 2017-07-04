@@ -281,7 +281,7 @@ class ExportCommandTestCase(PackageTestCase):
         expected = {
             'product': None,
             'version': None,
-            'supported-hardware': {},
+            'supported-hardware': 'any',
             'objects': [
                 [
                     {

@@ -12,7 +12,7 @@ from ..exceptions import DownloadError, UploadError
 from ..http.request import Request
 from ..utils import call, get_server_url
 
-from .hardware import HardwareManager
+from .hardware import SupportedHardwareManager
 from .object import Object
 from .manager import InstallationSetManager, InstallationSetMode
 from .upload import ObjectUploadResult
@@ -36,7 +36,7 @@ class Package:
         self.version = version
         self.product = product
         self.objects = InstallationSetManager(self.mode)
-        self.hardwares = HardwareManager()
+        self.supported_hardware = SupportedHardwareManager()
 
     @classmethod
     def from_file(cls, fn):
@@ -48,7 +48,7 @@ class Package:
             mode=InstallationSetMode.from_objects(objects),
             version=dump.get('version'),
             product=dump.get('product'))
-        package.hardwares = HardwareManager(dump.get('supported-hardware'))
+        package.supported_hardware = SupportedHardwareManager.from_file(dump)
         blacklist = ('mode',)
         for set_index, installation_set in enumerate(objects):
             for obj in installation_set:
@@ -67,16 +67,7 @@ class Package:
             mode=InstallationSetMode.from_objects(objects),
             version=metadata['version'],
             product=metadata['product'])
-        # Supported hardwares
-        hardwares = metadata.get('supported-hardware', [])
-        for hardware in hardwares:
-            name = hardware['hardware']
-            revision = hardware.get('hardware-rev')
-            hardware = package.hardwares.get(name)
-            if hardware is None:
-                package.hardwares.add(name)
-            if revision is not None:
-                package.hardwares.add_revision(name, revision)
+        package.supported_hardware = SupportedHardwareManager.from_metadata(metadata)  # nopep8
         # Objects
         for set_index, installation_set in enumerate(objects):
             for obj in installation_set:
@@ -98,18 +89,18 @@ class Package:
             'version': self.version,
             'objects': self.objects.metadata(),
         }
-        if self.hardwares.count():
-            metadata['supported-hardware'] = self.hardwares.metadata()
+        metadata.update(self.supported_hardware.to_metadata())
         return metadata
 
     def template(self):
         """Serialize package to dump to a file."""
-        return {
+        template = {
             'version': self.version,
             'product': self.product,
-            'supported-hardware': self.hardwares.template(),
             'objects': self.objects.template(),
         }
+        template.update(self.supported_hardware.to_template())
+        return template
 
     def export(self, dest):
         """Writes package template in dest file (without version)."""
@@ -217,6 +208,6 @@ class Package:
         return '\n'.join([
             'Product: {}'.format(self.product),
             'Version: {}'.format(self.version),
-            str(self.hardwares),
+            str(self.supported_hardware),
             str(self.objects),
         ])

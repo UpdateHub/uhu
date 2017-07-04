@@ -1,7 +1,0 @@
-Supported hardware:
-
-  1# PowerX [revisions: all]
-
-  2# PowerY [revisions: PY230]
-
-  3# PowerZ [revisions: PZ230, PZ240, PZ250]

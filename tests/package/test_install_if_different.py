@@ -15,6 +15,7 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
         self.fn = self.create_file(json.dumps({
             'product': '0' * 64,
             'version': '2.0',
+            'supported-hardware': 'any',
             'objects': [
                 [
                     {
@@ -58,6 +59,7 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
         self.metadata = {
             'product': '0' * 64,
             'version': '2.0',
+            'supported-hardware': 'any',
             'objects': [
                 [
                     {

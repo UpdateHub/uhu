@@ -1,0 +1,1 @@
+Supported hardware: PowerX, PowerY, PowerZ
