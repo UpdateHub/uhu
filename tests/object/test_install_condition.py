@@ -170,7 +170,7 @@ class AlwaysObjectIntegrationTestCase(FileFixtureMixin, UHUTestCase):
             'truncate': False,
             'install-condition': 'always',
         }
-        observed = obj.template()
+        observed = obj.to_template()
         self.assertEqual(observed, expected)
 
     def test_can_represent_as_metadata(self):
@@ -188,7 +188,7 @@ class AlwaysObjectIntegrationTestCase(FileFixtureMixin, UHUTestCase):
             'size': 4,
             'sha256sum': hashlib.sha256(b'spam').hexdigest(),
         }
-        observed = obj.metadata()
+        observed = obj.to_metadata()
         self.assertEqual(observed, expected)
 
 
@@ -222,7 +222,7 @@ class ContentDivergesObjectIntegrationTestCase(FileFixtureMixin, UHUTestCase):
             'truncate': False,
             'install-condition': 'content-diverges',
         }
-        observed = obj.template()
+        observed = obj.to_template()
         self.assertEqual(observed, expected)
 
     def test_can_represent_as_metadata(self):
@@ -241,7 +241,7 @@ class ContentDivergesObjectIntegrationTestCase(FileFixtureMixin, UHUTestCase):
             'sha256sum': hashlib.sha256(b'spam').hexdigest(),
             'install-if-different': 'sha256sum'
         }
-        observed = obj.metadata()
+        observed = obj.to_metadata()
         self.assertEqual(observed, expected)
 
 
@@ -317,7 +317,7 @@ class KnownVersionPatternObjectIntegrationTestCase(unittest.TestCase):
             self.options['install-condition'] = 'version-diverges'
             self.options['filename'] = image
             obj = Object('raw', self.options)
-            metadata = obj.metadata()
+            metadata = obj.to_metadata()
             self.assertEqual(
                 metadata['install-if-different']['version'], version)
 
@@ -325,7 +325,7 @@ class KnownVersionPatternObjectIntegrationTestCase(unittest.TestCase):
         self.options['install-condition-pattern-type'] = 'u-boot'
         self.options['filename'] = create_u_boot_file()
         obj = Object('raw', self.options)
-        metadata = obj.metadata()
+        metadata = obj.to_metadata()
         self.assertEqual(
             metadata['install-if-different']['version'], '13.08.1988')
 
@@ -334,14 +334,14 @@ class KnownVersionPatternObjectIntegrationTestCase(unittest.TestCase):
         self.template['install-condition-pattern-type'] = 'linux-kernel'  # nopep8
         self.template['filename'] = __file__
         obj = Object('raw', self.options)
-        self.assertEqual(obj.template(), self.template)
+        self.assertEqual(obj.to_template(), self.template)
 
     def test_can_represent_u_boot_object_as_template(self):
         self.options['install-condition-pattern-type'] = 'u-boot'
         self.template['install-condition-pattern-type'] = 'u-boot'
         self.template['filename'] = __file__
         obj = Object('raw', self.options)
-        self.assertEqual(obj.template(), self.template)
+        self.assertEqual(obj.to_template(), self.template)
 
     def test_can_represent_linux_kernel_object_as_metadata(self):
         self.metadata['install-if-different']['pattern'] = 'linux-kernel'
@@ -356,7 +356,7 @@ class KnownVersionPatternObjectIntegrationTestCase(unittest.TestCase):
                 sha256sum = hashlib.sha256(fp.read()).hexdigest()
                 self.metadata['sha256sum'] = sha256sum
             obj = Object('raw', self.options)
-            self.assertEqual(obj.metadata(), self.metadata)
+            self.assertEqual(obj.to_metadata(), self.metadata)
 
     def test_can_represent_u_boot_object_as_metadata(self):
         fn = create_u_boot_file()
@@ -370,7 +370,7 @@ class KnownVersionPatternObjectIntegrationTestCase(unittest.TestCase):
             sha256sum = hashlib.sha256(fp.read()).hexdigest()
             self.metadata['sha256sum'] = sha256sum
         obj = Object('raw', self.options)
-        self.assertEqual(obj.metadata(), self.metadata)
+        self.assertEqual(obj.to_metadata(), self.metadata)
 
 
 class CustomVersionPatternObjectIntegrationTestCase(
@@ -440,16 +440,16 @@ class CustomVersionPatternObjectIntegrationTestCase(
 
     def test_can_load_custom_object_version(self):
         obj = Object('raw', self.options)
-        metadata = obj.metadata()
+        metadata = obj.to_metadata()
         self.assertEqual(metadata['install-if-different']['version'], '1.0')
 
     def test_can_represent_as_template(self):
         obj = Object('raw', self.options)
-        self.assertEqual(obj.template(), self.template)
+        self.assertEqual(obj.to_template(), self.template)
 
     def test_can_represent_as_metadata(self):
         obj = Object('raw', self.options)
-        self.assertEqual(obj.metadata(), self.metadata)
+        self.assertEqual(obj.to_metadata(), self.metadata)
 
 
 class InstallConditionRepresentationTestCase(unittest.TestCase):

@@ -83,38 +83,38 @@ class Package:
                 set_.create(mode=obj['mode'], options=options)
         return package
 
-    def metadata(self):
+    def to_metadata(self):
         """Serialize package as metadata."""
         metadata = {
             'product': self.product,
             'version': self.version,
-            'objects': self.objects.metadata(),
         }
+        metadata.update(self.objects.to_metadata())
         metadata.update(self.supported_hardware.to_metadata())
         return metadata
 
-    def template(self):
+    def to_template(self):
         """Serialize package to dump to a file."""
         template = {
             'version': self.version,
             'product': self.product,
-            'objects': self.objects.template(),
         }
+        template.update(self.objects.to_template())
         template.update(self.supported_hardware.to_template())
         return template
 
     def export(self, dest):
         """Writes package template in dest file (without version)."""
-        template = self.template()
+        template = self.to_template()
         template['version'] = None
         write_json(template, dest)
 
     def dump(self, dest):
         """Writes package template in dest file (with version)."""
-        write_json(self.template(), dest)
+        write_json(self.to_template(), dest)
 
     def upload_metadata(self):
-        metadata = self.metadata()
+        metadata = self.to_metadata()
         validate_metadata(metadata)
         payload = json.dumps(metadata)
         url = get_server_url('/packages')

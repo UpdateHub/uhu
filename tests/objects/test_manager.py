@@ -50,19 +50,19 @@ class ObjectsManagerTestCase(unittest.TestCase):
     def test_installation_set_as_metadata(self, mode):
         manager = ObjectsManager(mode)
         manager.create('raw', self.options)
-        metadata = manager.metadata()
+        metadata = manager.to_metadata()[manager.metadata]
         self.assertEqual(len(metadata), mode.value)
         for index, installation_set in enumerate(manager):
-            self.assertEqual(metadata[index], installation_set.metadata())
+            self.assertEqual(metadata[index], installation_set.to_metadata())
 
     @verify_all_modes
     def test_installation_set_as_template(self, mode):
         manager = ObjectsManager(mode)
         manager.create('raw', self.options)
-        template = manager.template()
+        template = manager.to_template()[manager.metadata]
         self.assertEqual(len(template), mode.value)
         for index, installation_set in enumerate(manager):
-            self.assertEqual(template[index], installation_set.template())
+            self.assertEqual(template[index], installation_set.to_template())
 
     @verify_all_modes
     def test_installation_set_manager_as_string(self, mode):

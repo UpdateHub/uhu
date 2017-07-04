@@ -92,7 +92,7 @@ class ObjectTestCase(EnvironmentFixtureMixin, FileFixtureMixin, UHUTestCase):
             'size': len(content),
             'sha256sum': hashlib.sha256(content).hexdigest(),
         }
-        self.assertEqual(obj.metadata(), expected)
+        self.assertEqual(obj.to_metadata(), expected)
 
     def test_can_generate_template(self):
         obj = Object('raw', {
@@ -117,7 +117,7 @@ class ObjectTestCase(EnvironmentFixtureMixin, FileFixtureMixin, UHUTestCase):
             'skip': 4,
             'truncate': True,
         }
-        self.assertEqual(obj.template(), expected)
+        self.assertEqual(obj.to_template(), expected)
 
     def test_can_update_object(self):
         obj = Object('raw', self.options)

@@ -362,7 +362,7 @@ class UtilsTestCase(FileFixtureMixin, EnvironmentFixtureMixin, UHUTestCase):
         self.set_env_var(LOCAL_CONFIG_VAR, pkg_fn)
 
         pkg = Package(InstallationSetMode.ActiveInactive)
-        template = pkg.template()
+        template = pkg.to_template()
         del template['objects']
         with open(pkg_fn, 'w') as fp:
             json.dump(template, fp)

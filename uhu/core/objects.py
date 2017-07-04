@@ -42,11 +42,11 @@ class InstallationSet:
         except IndexError:
             raise ValueError('Object not found')
 
-    def metadata(self):
-        return [obj.metadata() for obj in self]
+    def to_metadata(self):
+        return [obj.to_metadata() for obj in self]
 
-    def template(self):
-        return [obj.template() for obj in self]
+    def to_template(self):
+        return [obj.to_template() for obj in self]
 
     def __iter__(self):
         return iter(obj for obj in self._objects)
@@ -80,6 +80,8 @@ class ObjectsManager:
     Represents a list of InstallationSet instances with methods to
     operate objects directly.
     """
+
+    metadata = 'objects'
 
     def __init__(self, mode):
         self.mode = mode
@@ -146,11 +148,13 @@ class ObjectsManager:
         """Checks if it is single mode."""
         return self.mode is InstallationSetMode.Single
 
-    def metadata(self):
-        return [installation_set.metadata() for installation_set in self]
+    def to_metadata(self):
+        objects = [installation_set.to_metadata() for installation_set in self]
+        return {self.metadata: objects}
 
-    def template(self):
-        return [installation_set.template() for installation_set in self]
+    def to_template(self):
+        objects = [installation_set.to_template() for installation_set in self]
+        return {self.metadata: objects}
 
     def __iter__(self):
         return iter(installation_set for installation_set in self._sets)

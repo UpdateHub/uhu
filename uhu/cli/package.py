@@ -164,7 +164,7 @@ def metadata_command():
     """Loads package and prints its metadata."""
     with open_package(read_only=True) as package:
         package.objects.load()
-        metadata = package.metadata()
+        metadata = package.to_metadata()
         print(json.dumps(metadata, indent=4, sort_keys=True))
     try:
         validate_metadata(metadata)

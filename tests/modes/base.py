@@ -72,21 +72,21 @@ class ModeTestCaseMixin(EnvironmentFixtureMixin, FileFixtureMixin):
 
     def test_default_template(self):
         obj = Object(self.mode, self.default_options)
-        self.assertEqual(self.default_template, obj.template())
+        self.assertEqual(self.default_template, obj.to_template())
 
     def test_full_template(self):
         obj = Object(self.mode, self.full_options)
-        self.assertEqual(self.full_template, obj.template())
+        self.assertEqual(self.full_template, obj.to_template())
 
     def test_default_metadata(self):
         obj = Object(self.mode, self.default_options)
-        metadata = obj.metadata()
+        metadata = obj.to_metadata()
         self.assertEqual(self.default_metadata, metadata)
         self.assertIsNone(validate_schema(self.mode_schema, metadata))
 
     def test_full_metadata(self):
         obj = Object(self.mode, self.full_options)
-        metadata = obj.metadata()
+        metadata = obj.to_metadata()
         self.assertEqual(self.full_metadata, metadata)
         self.assertIsNone(validate_schema(self.mode_schema, metadata))
 
@@ -105,20 +105,20 @@ class ModeTestCaseMixin(EnvironmentFixtureMixin, FileFixtureMixin):
 
         pkg.objects.create(self.mode, self.default_options)
         pkg.objects.create(self.mode, self.full_options)
-        expected = [(obj.template(), obj.metadata())
+        expected = [(obj.to_template(), obj.to_metadata())
                     for obj in pkg.objects.all()]
         pkg.dump(pkg_fn)
 
         # loading
         pkg = Package.from_file(pkg_fn)
-        observed = [(obj.template(), obj.metadata())
+        observed = [(obj.to_template(), obj.to_metadata())
                     for obj in pkg.objects.all()]
         self.assertEqual(observed, expected)
 
     def test_can_load_from_metadata(self):
         default_obj = Object(self.mode, self.default_options)
         full_obj = Object(self.mode, self.full_options)
-        objects_metadata = [default_obj.metadata(), full_obj.metadata()]
+        objects_metadata = [default_obj.to_metadata(), full_obj.to_metadata()]
         metadata = {
             'product': None,
             'version': None,
@@ -126,12 +126,12 @@ class ModeTestCaseMixin(EnvironmentFixtureMixin, FileFixtureMixin):
             'objects': [objects_metadata]
         }
         pkg = Package.from_metadata(metadata)
-        observed = [obj.metadata() for obj in pkg.objects.all()]
+        observed = [obj.to_metadata() for obj in pkg.objects.all()]
         self.assertEqual(observed, objects_metadata)
 
     def test_template_keeps_equal_after_object_load(self):
         obj = Object(self.mode, self.default_options)
-        expected = obj.template()
+        expected = obj.to_template()
         obj.load()
-        observed = obj.template()
+        observed = obj.to_template()
         self.assertEqual(expected, observed)

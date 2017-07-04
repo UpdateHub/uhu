@@ -39,7 +39,7 @@ class PushTestCase(BasePushTestCase):
         self.assertEqual(request.url, start_url)
         self.assertEqual(request.headers['Content-Type'], 'application/json')
         metadata = json.loads(request.body.decode())
-        self.assertEqual(metadata, self.package.metadata())
+        self.assertEqual(metadata, self.package.to_metadata())
 
     def test_upload_metadata_updates_package_uid(self):
         self.start_push_url(self.package_uid)

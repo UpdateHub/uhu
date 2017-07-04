@@ -119,11 +119,11 @@ class PackageConstructorsTestCase(PackageTestCase):
             'target-type': 'device',
             'target': '/'
         })
-        expected = pkg.template(), pkg.metadata()
+        expected = pkg.to_template(), pkg.to_metadata()
 
         pkg.dump(pkg_fn)
         pkg = Package.from_file(pkg_fn)
-        observed = pkg.template(), pkg.metadata()
+        observed = pkg.to_template(), pkg.to_metadata()
         self.assertEqual(observed, expected)
 
     def test_can_load_from_metadata_with_compression(self):
@@ -136,9 +136,9 @@ class PackageConstructorsTestCase(PackageTestCase):
             'target': '/',
         })
         pkg.objects.load()
-        expected = pkg.metadata()
+        expected = pkg.to_metadata()
 
-        pkg = Package.from_metadata(pkg.metadata())
+        pkg = Package.from_metadata(pkg.to_metadata())
         pkg.objects.load()
-        observed = pkg.metadata()
+        observed = pkg.to_metadata()
         self.assertEqual(observed, expected)

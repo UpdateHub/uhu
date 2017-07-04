@@ -73,18 +73,18 @@ class InstallationSetTestCase(unittest.TestCase):
     def test_installation_set_as_metadata(self):
         installation_set = InstallationSet()
         installation_set.create(self.mode, self.options)
-        metadata = installation_set.metadata()
+        metadata = installation_set.to_metadata()
         self.assertEqual(len(metadata), 1)
         # First object metadata
-        self.assertEqual(metadata[0], self.obj.metadata())
+        self.assertEqual(metadata[0], self.obj.to_metadata())
 
     def test_installation_set_as_template(self):
         installation_set = InstallationSet()
         installation_set.create(self.mode, self.options)
-        template = installation_set.template()
+        template = installation_set.to_template()
         self.assertEqual(len(template), 1)
         # First object template
-        self.assertEqual(template[0], self.obj.template())
+        self.assertEqual(template[0], self.obj.to_template())
 
     def test_installation_set_as_string(self):
         cwd = os.getcwd()
