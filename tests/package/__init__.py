@@ -13,13 +13,7 @@ class PackageTestCase(FileFixtureMixin, EnvironmentFixtureMixin, UHUTestCase):
         self.version = '2.0'
         self.product = '1234'
         self.hardware = 'PowerX'
-        self.hardware_revision = ['PX230']
-        self.supported_hardware = {
-            self.hardware: {
-                'name': self.hardware,
-                'revisions': self.hardware_revision,
-            }
-        }
+        self.supported_hardware = [self.hardware]
         self.pkg_uid = 'pkg-uid'
         self.obj_content = b'spam'
         self.obj_fn = self.create_file(self.obj_content)

@@ -1,4 +1,4 @@
 Product: None
 Version: None
-Supported hardware: all
+Supported hardware: any
 Objects: None

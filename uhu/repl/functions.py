@@ -117,33 +117,19 @@ def get_package_status(ctx):
     print(ctx.package.get_status())
 
 
-# Hardwares
+# Supported hardware
 
 @helpers.cancellable
 def add_hardware(ctx):
-    """Adds a supported hardware/revision into current package."""
-    print('Specify the supported hardware for the current package.')
-    print('You can pass many hardware as you want, separated by spaces.')
-    hardwares = prompt('Hardwares: ').split()
-    for hardware in hardwares:
-        ctx.package.hardwares.add(hardware.strip())
-        revisions = prompt('Specify a revision for {}: '.format(hardware))
-        for rev in revisions.split():
-            ctx.package.hardwares.add_revision(hardware, rev.strip())
+    """Adds a hardware identifier to supported hardware list."""
+    identifier = prompt('Hardware identifier: ').strip()
+    if identifier:
+        ctx.package.supported_hardware.add(identifier)
 
 
 @helpers.cancellable
 def remove_hardware(ctx):
-    """Removes a supported hardware/revision from current package."""
-    print('Specify the supported hardware to be remove.')
-    print('You can pass many hardware as you want, separated by spaces.')
-    hardwares = prompt('Hardwares: ').split()
-    print('For each hardware, specify the revisions to be removed, '
-          'or left it blank to remove all revisions')
-    for hardware in hardwares:
-        revisions = prompt('Hardware {}: '.format(hardware)).strip()
-        if not revisions:
-            ctx.package.hardwares.remove(hardware)
-            continue
-        for revision in revisions.split():
-            ctx.package.hardwares.remove_revision(hardware, revision.strip())
+    """Removes a hardware identifier from supported hardware list."""
+    identifier = prompt('Hardware identifier: ').strip()
+    if identifier:
+        ctx.package.supported_hardware.remove(identifier)

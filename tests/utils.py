@@ -215,6 +215,7 @@ class BasePullTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
         self.metadata = {
             'product': self.product,
             'version': '2.0',
+            'supported-hardware': 'any',
             'objects': [
                 [
                     {

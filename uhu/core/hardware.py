@@ -1,87 +1,84 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # SPDX-License-Identifier: GPL-2.0
 
+# Keyword used to identify that all hardware identifiers are supported
+ANY = 'any'
 
-class HardwareManager:
-    """Supported hardware package manager."""
+SUPPORTED_HARDWARE_ERROR = 'Cannot parse supported-hardware'
 
-    def __init__(self, hardwares=None):
-        self._hardwares = {} if hardwares is None else hardwares
+
+class SupportedHardwareManager:
+    """Supported hardware manager."""
+
+    # Metadata schema property name
+    metadata = 'supported-hardware'
+
+    def __init__(self):
+        self._hardware = set()
+
+    @classmethod
+    def from_file(cls, dump):
+        """Reads supported hardware from a template dump.
+
+        Raises ValueError if supported hardware is invalid.
+        """
+        return cls._from_dict(dump)
+
+    @classmethod
+    def from_metadata(cls, metadata):
+        """Reads supported hardware from a metadata.
+
+        Raises ValueError if supported hardware is invalid.
+        """
+        return cls._from_dict(metadata)
+
+    @classmethod
+    def _from_dict(cls, dict_):
+        manager = cls()
+        hardware_list = dict_.get(cls.metadata)
+        if hardware_list == ANY:
+            hardware_list = []
+        try:
+            for hardware in hardware_list:
+                manager.add(hardware)
+            return manager
+        except TypeError:
+            raise ValueError(SUPPORTED_HARDWARE_ERROR)
 
     def all(self):
-        return self._hardwares
+        """Returns all supported hardware indentifiers alphabetically."""
+        return sorted(self._hardware)
 
-    def count(self):
-        """Returns the number of supported hardwares."""
-        return len(self._hardwares)
-
-    def get(self, hardware_name):
-        """Retrives a dict representing the supported hardware."""
-        return self._hardwares.get(hardware_name)
-
-    def add(self, name, revisions=None):
-        revisions = revisions if revisions is not None else []
-        self._hardwares[name] = {
-            'name': name,
-            'revisions': sorted([rev for rev in revisions])
-        }
+    def add(self, hardware):
+        """Adds a new supported hardware identifier."""
+        self._hardware.add(hardware)
 
     def remove(self, hardware):
-        supported_hardware = self._hardwares.pop(hardware, None)
-        if supported_hardware is None:
-            err = 'Hardware {} does not exist or is already removed.'
-            raise ValueError(err.format(hardware))
+        """Tries to remove a supported hardware identifier from the list.
 
-    def add_revision(self, hardware, revision):
-        supported_hardware = self._hardwares.get(hardware)
-        if supported_hardware is None:
-            err = 'Hardware {} does not exist'.format(hardware)
-            raise ValueError(err)
-        if revision not in supported_hardware['revisions']:
-            supported_hardware['revisions'].append(revision)
-        supported_hardware['revisions'].sort()
-
-    def remove_revision(self, hardware, revision):
-        supported_hardware = self._hardwares.get(hardware)
-        if supported_hardware is None:
-            err = 'Hardware {} does not exist'.format(hardware)
-            raise ValueError(err)
+        Raises KeyError if identifier does not exist."""
         try:
-            supported_hardware['revisions'].remove(revision)
-        except ValueError:
-            err = 'Revision {} for {} does not exist or is already removed'
-            raise ValueError(err.format(revision, hardware))
+            self._hardware.remove(hardware)
+        except KeyError:
+            err = 'Hardware "{}" does not exist or is already removed.'
+            raise KeyError(err.format(hardware))
 
-    def template(self):
+    def to_metadata(self):
         """Serializes supported hardware as template."""
-        return self._hardwares
+        if not self:
+            return {self.metadata: ANY}
+        return {self.metadata: self.all()}
 
-    def metadata(self):
+    def to_template(self):
         """Serializes supported hardware as template."""
-        metadata = []
-        for hardware, conf in self._hardwares.items():
-            if not conf['revisions']:
-                metadata.append({
-                    'hardware': hardware,
-                })
-            for revision in conf['revisions']:
-                metadata.append({
-                    'hardware': hardware,
-                    'hardware-rev': revision
-                })
-        metadata.sort(key=lambda v: (v['hardware'], v.get('hardware')))
-        return metadata
+        return self.to_metadata()
+
+    def __iter__(self):
+        return iter(self.all())
+
+    def __len__(self):
+        return len(self._hardware)
 
     def __str__(self):
-        if self.count() == 0:
-            return 'Supported hardware: all'
-        string = []
-        string.append('Supported hardware:')
-        string.append('')
-        for i, name in enumerate(sorted(self._hardwares), 1):
-            revisions = ', '.join(self.get(name)['revisions'])
-            revisions = revisions if revisions else 'all'
-            string.append(
-                '  {}# {} [revisions: {}]'.format(i, name, revisions))
-            string.append('')
-        return '\n'.join(string)
+        hardware = ', '.join(self.all()) or ANY
+        return 'Supported hardware: {}'.format(hardware)

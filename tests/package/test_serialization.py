@@ -16,16 +16,14 @@ class PackageSerializationsTestCase(PackageTestCase):
         pkg = Package(InstallationSetMode.Single, version=self.version,
                       product=self.product)
         pkg.objects.create(self.obj_mode, self.obj_options)
-        pkg.hardwares.add(name=self.hardware, revisions=self.hardware_revision)
+        pkg.supported_hardware.add(self.hardware)
         pkg.objects.load()
         metadata = pkg.metadata()
         self.assertEqual(metadata['version'], self.version)
         self.assertEqual(metadata['product'], self.product)
         # Supported hardware
         self.assertEqual(len(metadata['supported-hardware']), 1)
-        hardware = metadata['supported-hardware'][0]
-        self.assertEqual(hardware['hardware'], self.hardware)
-        self.assertEqual([hardware['hardware-rev']], self.hardware_revision)
+        self.assertEqual(metadata['supported-hardware'][0], self.hardware)
         # Objects
         objects = metadata['objects']
         self.assertEqual(len(objects), 1)
@@ -42,7 +40,7 @@ class PackageSerializationsTestCase(PackageTestCase):
         index = pkg.objects.create(self.obj_mode, self.obj_options)
         obj = pkg.objects.get(index=index, installation_set=0)
         expected_obj_template = obj.template()
-        pkg.hardwares.add(name=self.hardware, revisions=self.hardware_revision)
+        pkg.supported_hardware.add(self.hardware)
         template = pkg.template()
         self.assertEqual(template['version'], self.version)
         self.assertEqual(template['product'], self.product)
@@ -86,7 +84,7 @@ class PackageSerializationsTestCase(PackageTestCase):
 
     def test_can_serialize_package_as_string(self):
         cwd = os.getcwd()
-        os.chdir('tests/fixtures/package')
+        os.chdir('tests/package/fixtures')
         self.addCleanup(os.chdir, cwd)
         with open('package_full.txt') as fp:
             expected = fp.read()
@@ -135,7 +133,7 @@ class PackageSerializationsTestCase(PackageTestCase):
 
     def test_package_as_string_when_empty(self):
         cwd = os.getcwd()
-        os.chdir('tests/fixtures/package')
+        os.chdir('tests/package/fixtures')
         self.addCleanup(os.chdir, cwd)
         pkg = Package(InstallationSetMode.Single)
         observed = str(pkg)

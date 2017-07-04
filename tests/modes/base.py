@@ -122,6 +122,7 @@ class ModeTestCaseMixin(EnvironmentFixtureMixin, FileFixtureMixin):
         metadata = {
             'product': None,
             'version': None,
+            'supported-hardware': 'any',
             'objects': [objects_metadata]
         }
         pkg = Package.from_metadata(metadata)

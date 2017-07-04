@@ -51,7 +51,7 @@ class PackageConstructorsTestCase(PackageTestCase):
         pkg = Package.from_file(fn)
         self.assertEqual(pkg.version, self.version)
         self.assertEqual(pkg.product, self.product)
-        self.assertEqual(pkg.hardwares.all(), self.supported_hardware)
+        self.assertEqual(pkg.supported_hardware.all(), self.supported_hardware)
         self.assertEqual(len(pkg.objects.all()), 2)
         obj = pkg.objects.get(index=0, installation_set=0)
         self.assertEqual(obj.filename, self.obj_fn)
@@ -64,6 +64,7 @@ class PackageConstructorsTestCase(PackageTestCase):
         metadata = {
             'product': self.product,
             'version': self.version,
+            'supported-hardware': 'any',
             'objects': [
                 [
                     {
