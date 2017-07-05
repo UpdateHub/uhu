@@ -25,6 +25,7 @@ def write_json(obj, fn):
     """Saves an obj as JSON into fn in an opnionated way."""
     with open(fn, 'w') as fp:
         json.dump(obj, fp, indent=4, sort_keys=True)
+        fp.write('\n')
 
 
 class Package:
