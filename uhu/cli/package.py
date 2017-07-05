@@ -152,12 +152,10 @@ def pull_command(package_uid, metadata, objects, output):
 @click.argument('package-uid')
 def status_command(package_uid):
     """Prints the status of the given package."""
-    with open_package(read_only=True) as package:
-        package.uid = package_uid
-        try:
-            print(package.get_status())
-        except ValueError as err:
-            error(2, err)
+    try:
+        print(Package.get_status(package_uid))
+    except ValueError as err:
+        error(2, err)
 
 
 @package_cli.command(name='metadata')

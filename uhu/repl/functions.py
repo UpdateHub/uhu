@@ -114,8 +114,7 @@ def get_package_status(ctx):
     """Get the status from a package already pushed to server."""
     helpers.check_product(ctx)
     helpers.check_arg(ctx, 'You need to pass a package id')
-    ctx.package.uid = ctx.arg
-    print(ctx.package.get_status())
+    print(Package.get_status(ctx.arg))
 
 
 # Supported hardware

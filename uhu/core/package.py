@@ -30,9 +30,9 @@ def write_json(obj, fn):
 class Package:
     """A package represents a group of objects."""
 
-    def __init__(self, mode, uid=None, version=None, product=None):
+    def __init__(self, mode, version=None, product=None):
         self.mode = mode
-        self.uid = uid
+        self.uid = None
         self.version = version
         self.product = product
         self.objects = ObjectsManager(self.mode)
@@ -178,8 +178,9 @@ class Package:
             # downloaded.
         return objects
 
-    def get_status(self):
-        url = get_server_url('/packages/{}'.format(self.uid))
+    @classmethod
+    def get_status(cls, uid):
+        url = get_server_url('/packages/{}'.format(uid))
         response = Request(url, 'GET', json=True).send()
         if response.status_code != 200:
             raise ValueError('Status not found')
