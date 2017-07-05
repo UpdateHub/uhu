@@ -10,7 +10,7 @@ import unittest
 from uuid import uuid4
 
 from uhu.core import Package
-from uhu.core.manager import InstallationSetMode
+from uhu.core.objects import InstallationSetMode
 from uhu.utils import CHUNK_SIZE_VAR, LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 from httpmock.httpd import HTTPMockServer

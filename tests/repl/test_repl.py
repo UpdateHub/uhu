@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0
 
 from uhu.core.package import Package
-from uhu.core.manager import InstallationSetMode
+from uhu.core.objects import InstallationSetMode
 from uhu.repl.repl import UHURepl
 from uhu.utils import LOCAL_CONFIG_VAR
 

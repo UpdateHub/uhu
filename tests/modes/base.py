@@ -8,7 +8,7 @@ from pkgschema import validate_schema
 
 from uhu.core.object import Object, Modes
 from uhu.core.package import Package
-from uhu.core.manager import InstallationSetMode
+from uhu.core.objects import InstallationSetMode
 
 from utils import EnvironmentFixtureMixin, FileFixtureMixin
 

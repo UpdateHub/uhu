@@ -5,7 +5,7 @@ from click.testing import CliRunner
 
 from uhu.cli.package import push_command
 from uhu.core.package import Package
-from uhu.core.manager import InstallationSetMode
+from uhu.core.objects import InstallationSetMode
 from uhu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 from utils import BasePushTestCase

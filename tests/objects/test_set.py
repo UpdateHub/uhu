@@ -5,7 +5,7 @@ import os
 import unittest
 
 from uhu.core.object import Object
-from uhu.core.manager import InstallationSet
+from uhu.core.objects import InstallationSet
 
 
 class InstallationSetTestCase(unittest.TestCase):
@@ -88,7 +88,7 @@ class InstallationSetTestCase(unittest.TestCase):
 
     def test_installation_set_as_string(self):
         cwd = os.getcwd()
-        os.chdir('tests/manager/fixtures')
+        os.chdir('tests/objects/fixtures')
         self.addCleanup(os.chdir, cwd)
         with open('set.txt') as fp:
             expected = fp.read()

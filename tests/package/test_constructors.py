@@ -4,7 +4,7 @@
 import json
 import os
 
-from uhu.core.manager import InstallationSetMode
+from uhu.core.objects import InstallationSetMode
 from uhu.core.package import Package
 
 from . import PackageTestCase

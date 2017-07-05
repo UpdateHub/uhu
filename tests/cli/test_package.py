@@ -12,7 +12,7 @@ from uhu.cli.package import (
     metadata_command)
 from uhu.cli.utils import open_package
 from uhu.core import Package
-from uhu.core.manager import InstallationSetMode
+from uhu.core.objects import InstallationSetMode
 from uhu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 

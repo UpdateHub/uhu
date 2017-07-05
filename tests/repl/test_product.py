@@ -5,7 +5,7 @@ import os
 import tempfile
 import unittest
 
-from uhu.core.manager import InstallationSetMode
+from uhu.core.objects import InstallationSetMode
 from uhu.core.package import Package
 from uhu.repl.repl import UHURepl
 from uhu.repl import functions

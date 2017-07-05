@@ -14,7 +14,7 @@ from ..utils import call, get_server_url
 
 from .hardware import SupportedHardwareManager
 from .object import Object
-from .manager import InstallationSetManager, InstallationSetMode
+from .objects import ObjectsManager, InstallationSetMode
 from .upload import ObjectUploadResult
 
 
@@ -36,7 +36,7 @@ class Package:
         self.uid = uid
         self.version = version
         self.product = product
-        self.objects = InstallationSetManager(self.mode)
+        self.objects = ObjectsManager(self.mode)
         self.supported_hardware = SupportedHardwareManager()
 
     @classmethod

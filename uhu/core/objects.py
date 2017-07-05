@@ -74,7 +74,7 @@ class InstallationSetMode(Enum):
         return InstallationSetMode(len(objects))
 
 
-class InstallationSetManager:
+class ObjectsManager:
     """High level package objects manager.
 
     Represents a list of InstallationSet instances with methods to

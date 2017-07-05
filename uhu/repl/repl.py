@@ -13,7 +13,7 @@ from prompt_toolkit.contrib.regular_languages import compiler
 from .. import get_version
 from ..config import config, AUTH_SECTION
 from ..core.package import Package
-from ..core.manager import InstallationSetMode
+from ..core.objects import InstallationSetMode
 from ..utils import get_local_config_file
 
 from . import functions

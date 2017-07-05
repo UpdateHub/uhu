@@ -4,7 +4,7 @@
 import unittest
 from unittest.mock import patch
 
-from uhu.core.manager import InstallationSetMode
+from uhu.core.objects import InstallationSetMode
 from uhu.core.object import Object
 from uhu.core._options import StringOption
 from uhu.core.package import Package

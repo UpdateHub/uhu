@@ -4,7 +4,7 @@
 from uhu.cli.hardware import (
     add_supported_hardware, remove_supported_hardware)
 from uhu.core import Package
-from uhu.core.manager import InstallationSetMode
+from uhu.core.objects import InstallationSetMode
 
 from cli.test_package import PackageTestCase
 

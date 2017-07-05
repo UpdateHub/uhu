@@ -6,7 +6,7 @@ import sys
 from itertools import count
 
 from uhu.core import Package
-from uhu.core.manager import InstallationSetMode
+from uhu.core.objects import InstallationSetMode
 from uhu.utils import LOCAL_CONFIG_VAR, CHUNK_SIZE_VAR
 
 from tests.utils import (
