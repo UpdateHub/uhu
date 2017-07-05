@@ -75,27 +75,28 @@ an update. To set it, just type:
 ### 3. Set the hardware compatibility
 
 By default, the package that you are creating will be available for
-all hardwares that your product has. But if you have many devices in
-field it is possible that you also have different hardwares for the
-same product. Taking this in consideration, it is possible that, for
-example, hardwares from brand X require an incompatible configuration
-with hardwares from brand Y to update to version 2.0.
+all type of hardware that you have. But if you have many devices in
+field it is also possible that you also have different brands of
+hardware for the same product. Taking this in consideration, it is
+possible that, for example, hardware brand X requires an incompatible
+configuration with hardware brand Y to update to version 2.0.
 
-For this kind of issue, `uhu` presents a way to create a update
-package to only selected hardwares and revisions. To do so, just add
-the package compatible hardwares with the following command:
+For this kind of issue, `uhu` presents a way to create an update
+package to only selected hardware. To do so, just add the hardware
+identifiers that are compatible with the package that you are
+creating:
 
     hardware add
 
-It will start a new prompt that will ask you to specify the hardwares
-and revisions that you want to target with this package.
+It will start a new prompt that will ask you to specify a hardware
+identifier that you want to target with this package.
 
-If you need to remove a hardware, type:
+If you need to remove a hardware identifier, type the following:
 
     hardware remove
 
-And you all be presented to a prompt that will assist you to remove
-the hardwares or revisions you want.
+And you all be presented to a prompt that will assist you into remove
+the identifiers that you want.
 
 ### 4. Add objects (files, images, firmwares, etc...)
 
@@ -119,7 +120,7 @@ There are also 2 more commands to help you to manage objects, `edit` and `remove
 
 ### 5. Push the package
 
-After to set product, version, hardwares and objects, you are now able
+After to set product, version, supported hardware and objects, you are now able
 to upload your package to the UpdateHub server. To do so:
 
     package push
