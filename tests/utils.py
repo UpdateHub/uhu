@@ -10,7 +10,7 @@ import unittest
 from uuid import uuid4
 
 from uhu.core import Package
-from uhu.core.manager import InstallationSetMode
+from uhu.core.objects import InstallationSetMode
 from uhu.utils import CHUNK_SIZE_VAR, LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 from httpmock.httpd import HTTPMockServer
@@ -182,8 +182,9 @@ class BasePushTestCase(
             product=self.product)
         for _ in range(3):
             fn = self.create_file('123')
-            self.package.objects.create('raw', {
+            self.package.objects.create({
                 'filename': fn,
+                'mode': 'raw',
                 'target-type': 'device',
                 'target': '/dev/sda',
             })

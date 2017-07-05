@@ -3,7 +3,7 @@
 
 import json
 
-from uhu.core.manager import InstallationSetMode
+from uhu.core.objects import InstallationSetMode
 from uhu.core.package import Package
 from uhu.exceptions import UploadError
 from uhu.utils import SERVER_URL_VAR
@@ -39,7 +39,7 @@ class PushTestCase(BasePushTestCase):
         self.assertEqual(request.url, start_url)
         self.assertEqual(request.headers['Content-Type'], 'application/json')
         metadata = json.loads(request.body.decode())
-        self.assertEqual(metadata, self.package.metadata())
+        self.assertEqual(metadata, self.package.to_metadata())
 
     def test_upload_metadata_updates_package_uid(self):
         self.start_push_url(self.package_uid)
@@ -104,18 +104,14 @@ class PackageStatusTestCase(HTTPTestCaseMixin, PackageTestCase):
 
     def test_can_get_a_package_status(self):
         path = '/packages/{}'.format(self.pkg_uid)
-        package = Package(
-            InstallationSetMode.Single, product=self.product, uid=self.pkg_uid)
         expected = 'finished'
         self.httpd.register_response(
             path, status_code=200, body=json.dumps({'status': expected}))
-        observed = package.get_status()
+        observed = Package.get_status(self.pkg_uid)
         self.assertEqual(observed, expected)
 
     def test_get_package_status_raises_error_if_package_doesnt_exist(self):
         path = '/packages/{}'.format(self.pkg_uid)
         self.httpd.register_response(path, status_code=404)
-        package = Package(
-            InstallationSetMode.Single, product=self.product, uid=self.pkg_uid)
         with self.assertRaises(ValueError):
-            package.get_status()
+            Package.get_status(self.pkg_uid)

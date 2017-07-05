@@ -30,8 +30,9 @@ class ObjectDownloadTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
         self.fn = 'image.bin'
         self.content = b'spam'
         self.sha256 = hashlib.sha256(self.content).hexdigest()
-        self.obj = Object('raw', {
+        self.obj = Object({
             'filename': self.fn,
+            'mode': 'raw',
             'target-type': 'device',
             'target': '/dev/sda'
         })

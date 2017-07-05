@@ -56,8 +56,9 @@ class PushTestCase(BasePushTestCase):
         self.repl = UHURepl()
 
     def test_can_push_package(self):
-        self.repl.package.objects.create('raw', {
+        self.repl.package.objects.create({
             'filename': __file__,
+            'mode': 'raw',
             'target-type': 'device',
             'target': '/',
         })

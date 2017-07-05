@@ -50,6 +50,7 @@ class ObjectManagementTestCase(BaseTestCase):
         super().setUp()
         self.options = {
             'filename': __file__,
+            'mode': 'raw',
             'target-type': 'device',
             'target': '/dev/sda',
         }
@@ -83,7 +84,7 @@ class ObjectManagementTestCase(BaseTestCase):
     @patch('uhu.repl.helpers.prompt')
     def test_can_remove_object_using_uid(self, prompt):
         prompt.side_effect = ['0']
-        self.repl.package.objects.create('raw', self.options)
+        self.repl.package.objects.create(self.options)
         self.assertEqual(len(self.repl.package.objects.all()), 2)
         functions.remove_object(self.repl)
         self.assertEqual(len(self.repl.package.objects.all()), 0)
@@ -91,7 +92,7 @@ class ObjectManagementTestCase(BaseTestCase):
     @patch('uhu.repl.helpers.prompt')
     def test_can_remove_object_using_autocompleter_suggestion(self, prompt):
         prompt.side_effect = ['0# {}'.format(__file__)]
-        self.repl.package.objects.create('raw', self.options)
+        self.repl.package.objects.create(self.options)
         self.assertEqual(len(self.repl.package.objects.all()), 2)
         functions.remove_object(self.repl)
         self.assertEqual(len(self.repl.package.objects.all()), 0)
@@ -110,7 +111,7 @@ class ObjectManagementTestCase(BaseTestCase):
             '0',  # installation set index
             '/dev/sdb',  # value
         ]
-        index = self.repl.package.objects.create('raw', self.options)
+        index = self.repl.package.objects.create(self.options)
         for set_index in range(len(self.repl.package.objects)):
             obj = self.repl.package.objects.get(
                 index=index, installation_set=set_index)
@@ -132,7 +133,7 @@ class ObjectManagementTestCase(BaseTestCase):
             '200',  # value
         ]
         self.options['count'] = 100
-        index = self.repl.package.objects.create('raw', self.options)
+        index = self.repl.package.objects.create(self.options)
         for set_index in range(len(self.repl.package.objects)):
             obj = self.repl.package.objects.get(
                 index=index, installation_set=set_index)
@@ -147,7 +148,7 @@ class ObjectManagementTestCase(BaseTestCase):
 
     @patch('uhu.repl.helpers.prompt')
     def test_can_edit_object_filename(self, prompt):
-        self.repl.package.objects.create('raw', self.options)
+        self.repl.package.objects.create(self.options)
         with tempfile.NamedTemporaryFile() as fp:
             prompt.side_effect = [
                 '0',  # object index
@@ -168,6 +169,6 @@ class ObjectManagementTestCase(BaseTestCase):
     @patch('uhu.repl.helpers.prompt')
     def test_edit_object_raises_error_if_invalid_option(self, prompt):
         prompt.side_effect = ['1', 'invalid']
-        self.repl.package.objects.create('raw', self.options)
+        self.repl.package.objects.create(self.options)
         with self.assertRaises(ValueError):
             functions.edit_object(self.repl)

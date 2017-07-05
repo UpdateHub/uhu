@@ -13,8 +13,7 @@ from ..http.request import Request
 from ..utils import call, get_server_url
 
 from .hardware import SupportedHardwareManager
-from .object import Object
-from .manager import InstallationSetManager, InstallationSetMode
+from .objects import ObjectsManager
 from .upload import ObjectUploadResult
 
 
@@ -31,12 +30,12 @@ def write_json(obj, fn):
 class Package:
     """A package represents a group of objects."""
 
-    def __init__(self, mode, uid=None, version=None, product=None):
+    def __init__(self, mode, version=None, product=None):
         self.mode = mode
-        self.uid = uid
+        self.uid = None
         self.version = version
         self.product = product
-        self.objects = InstallationSetManager(self.mode)
+        self.objects = ObjectsManager(self.mode)
         self.supported_hardware = SupportedHardwareManager()
 
     @classmethod
@@ -44,77 +43,58 @@ class Package:
         """Creates a package from a dumped package."""
         with open(fn) as fp:
             dump = json.load(fp, object_pairs_hook=OrderedDict)
-        objects = dump.get('objects', [])
-        package = Package(
-            mode=InstallationSetMode.from_objects(objects),
-            version=dump.get('version'),
-            product=dump.get('product'))
-        package.supported_hardware = SupportedHardwareManager.from_file(dump)
-        blacklist = ('mode',)
-        for set_index, installation_set in enumerate(objects):
-            for obj in installation_set:
-                options = {option: value
-                           for option, value in obj.items()
-                           if option not in blacklist}
-                set_ = package.objects.get_installation_set(set_index)
-                set_.create(mode=obj['mode'], options=options)
-        return package
+        return cls._from_dump(dump, 'from_file')
 
     @classmethod
     def from_metadata(cls, metadata):
         """Creates a package from a metadata object."""
-        objects = metadata['objects']
+        return cls._from_dump(metadata, 'from_metadata')
+
+    @classmethod
+    def _from_dump(cls, dump, constructor):
+        objects_constructor = getattr(ObjectsManager, constructor)
+        objects = objects_constructor(dump)
         package = Package(
-            mode=InstallationSetMode.from_objects(objects),
-            version=metadata['version'],
-            product=metadata['product'])
-        package.supported_hardware = SupportedHardwareManager.from_metadata(metadata)  # nopep8
-        # Objects
-        for set_index, installation_set in enumerate(objects):
-            for obj in installation_set:
-                blacklist = ('mode', 'install-if-different')
-                options = {option: value
-                           for option, value in obj.items()
-                           if option not in blacklist}
-                install_if_different = obj.get('install-if-different')
-                if install_if_different is not None:
-                    options.update(Object.to_install_condition(obj))
-                set_ = package.objects.get_installation_set(set_index)
-                set_.create(mode=obj['mode'], options=options)
+            mode=objects.mode,
+            version=dump.get('version'),
+            product=dump.get('product'))
+        package.objects = objects
+        hardware_constructor = getattr(SupportedHardwareManager, constructor)
+        package.supported_hardware = hardware_constructor(dump)
         return package
 
-    def metadata(self):
+    def to_metadata(self):
         """Serialize package as metadata."""
         metadata = {
             'product': self.product,
             'version': self.version,
-            'objects': self.objects.metadata(),
         }
+        metadata.update(self.objects.to_metadata())
         metadata.update(self.supported_hardware.to_metadata())
         return metadata
 
-    def template(self):
+    def to_template(self):
         """Serialize package to dump to a file."""
         template = {
             'version': self.version,
             'product': self.product,
-            'objects': self.objects.template(),
         }
+        template.update(self.objects.to_template())
         template.update(self.supported_hardware.to_template())
         return template
 
     def export(self, dest):
         """Writes package template in dest file (without version)."""
-        template = self.template()
+        template = self.to_template()
         template['version'] = None
         write_json(template, dest)
 
     def dump(self, dest):
         """Writes package template in dest file (with version)."""
-        write_json(self.template(), dest)
+        write_json(self.to_template(), dest)
 
     def upload_metadata(self):
-        metadata = self.metadata()
+        metadata = self.to_metadata()
         validate_metadata(metadata)
         payload = json.dumps(metadata)
         url = get_server_url('/packages')
@@ -129,7 +109,7 @@ class Package:
 
     def upload_objects(self, callback=None):
         results = []
-        objects = self.objects.get_installation_set(index=0)
+        objects = self.objects[0]  # this means first installation set
         call(callback, 'start_package_upload', objects)
         for obj in objects:
             results.append(obj.upload(self.uid, callback))
@@ -198,8 +178,9 @@ class Package:
             # downloaded.
         return objects
 
-    def get_status(self):
-        url = get_server_url('/packages/{}'.format(self.uid))
+    @classmethod
+    def get_status(cls, uid):
+        url = get_server_url('/packages/{}'.format(uid))
         response = Request(url, 'GET', json=True).send()
         if response.status_code != 200:
             raise ValueError('Status not found')

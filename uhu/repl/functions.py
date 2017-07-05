@@ -55,7 +55,8 @@ def add_object(ctx):
     """Add an object into the current package."""
     obj_mode = helpers.prompt_object_mode()
     options = helpers.prompt_object_options(ctx.package.mode, obj_mode)
-    ctx.package.objects.create(obj_mode, options)
+    options['mode'] = obj_mode
+    ctx.package.objects.create(options)
 
 
 @helpers.cancellable
@@ -113,8 +114,7 @@ def get_package_status(ctx):
     """Get the status from a package already pushed to server."""
     helpers.check_product(ctx)
     helpers.check_arg(ctx, 'You need to pass a package id')
-    ctx.package.uid = ctx.arg
-    print(ctx.package.get_status())
+    print(Package.get_status(ctx.arg))
 
 
 # Supported hardware

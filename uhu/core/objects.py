@@ -9,6 +9,9 @@ from ._options import Options
 from ..utils import call, indent
 
 
+OBJECTS_ERROR = 'Cannot parse objects'
+
+
 class InstallationSet:
     """Low level package objects manager.
 
@@ -16,17 +19,32 @@ class InstallationSet:
     """
 
     def __init__(self):
-        self._objects = []
+        self.objects = []
 
-    def create(self, mode, options):
+    @classmethod
+    def from_file(cls, dump):
+        return cls._from_dump(dump, 'from_file')
+
+    @classmethod
+    def from_metadata(cls, metadata):
+        return cls._from_dump(metadata, 'from_metadata')
+
+    @classmethod
+    def _from_dump(cls, dump, constructor):
+        installation_set = cls()
+        obj_constructor = getattr(Object, constructor)
+        installation_set.objects = [obj_constructor(obj) for obj in dump]
+        return installation_set
+
+    def create(self, options):
         """Adds an object into set, returns its index."""
-        self._objects.append(Object(mode, options))
+        self.objects.append(Object(options))
         return len(self) - 1
 
     def get(self, index):
         """Retrives an object by index."""
         try:
-            return self._objects[index]
+            return self.objects[index]
         except IndexError:
             raise ValueError('Object not found')
 
@@ -38,21 +56,21 @@ class InstallationSet:
     def remove(self, index):
         """Removes an object."""
         try:
-            self._objects.pop(index)
+            self.objects.pop(index)
         except IndexError:
             raise ValueError('Object not found')
 
-    def metadata(self):
-        return [obj.metadata() for obj in self]
+    def to_metadata(self):
+        return [obj.to_metadata() for obj in self]
 
-    def template(self):
-        return [obj.template() for obj in self]
+    def to_template(self):
+        return [obj.to_template() for obj in self]
 
     def __iter__(self):
-        return iter(obj for obj in self._objects)
+        return iter(self.objects)
 
     def __len__(self):
-        return len(self._objects)
+        return len(self.objects)
 
     def __str__(self):
         string = []
@@ -74,25 +92,41 @@ class InstallationSetMode(Enum):
         return InstallationSetMode(len(objects))
 
 
-class InstallationSetManager:
+class ObjectsManager:
     """High level package objects manager.
 
     Represents a list of InstallationSet instances with methods to
     operate objects directly.
     """
 
+    metadata = 'objects'
+
     def __init__(self, mode):
         self.mode = mode
-        self._sets = []
+        self.sets = []
         for _ in range(self.mode.value):
-            self._sets.append(InstallationSet())
+            self.sets.append(InstallationSet())
 
-    def get_installation_set(self, index):
-        """Returns an installation set."""
+    @classmethod
+    def from_file(cls, dump):
+        return cls._from_dump(dump, 'from_file')
+
+    @classmethod
+    def from_metadata(cls, metadata):
+        return cls._from_dump(metadata, 'from_metadata')
+
+    @classmethod
+    def _from_dump(cls, dump, constructor):
+        objects = dump.get(cls.metadata)
         try:
-            return self._sets[index]
-        except IndexError:
-            raise ValueError('Installation set not found')
+            mode = InstallationSetMode.from_objects(objects)
+        except ValueError:
+            raise ValueError(OBJECTS_ERROR)
+        manager = cls(mode)
+        set_constructor = getattr(InstallationSet, constructor)
+        manager.sets = [set_constructor(installation_set)
+                        for installation_set in objects]
+        return manager
 
     def load(self, callback=None):
         call(callback, 'start_objects_load')
@@ -100,20 +134,20 @@ class InstallationSetManager:
             obj.load(callback=callback)
         call(callback, 'finish_objects_load')
 
-    def create(self, mode, options):
-        """Creates a new object in a given installation set."""
+    def create(self, options):
+        """Creates a new object in all installation sets."""
         for index, installation_set in enumerate(self):
             index_options = {}
             for opt, value in options.items():
                 if isinstance(value, tuple):
                     value = value[index]
                 index_options[opt] = value
-            obj_index = installation_set.create(mode, index_options)
+            obj_index = installation_set.create(index_options)
         return obj_index
 
     def get(self, index, installation_set):
         """Retrives an object from an given installation set."""
-        installation_set = self.get_installation_set(installation_set)
+        installation_set = self[installation_set]
         return installation_set.get(index)
 
     def update(self, index, option, value, installation_set=None):
@@ -130,7 +164,7 @@ class InstallationSetManager:
             if installation_set is None:
                 raise ValueError(
                     'You must specify an installation set for this option')
-            installation_set = self.get_installation_set(installation_set)
+            installation_set = self[installation_set]
             installation_set.update(index, option.metadata, value)
 
     def remove(self, index):
@@ -146,17 +180,28 @@ class InstallationSetManager:
         """Checks if it is single mode."""
         return self.mode is InstallationSetMode.Single
 
-    def metadata(self):
-        return [installation_set.metadata() for installation_set in self]
+    def to_metadata(self):
+        objects = [installation_set.to_metadata() for installation_set in self]
+        return {self.metadata: objects}
 
-    def template(self):
-        return [installation_set.template() for installation_set in self]
+    def to_template(self):
+        objects = [installation_set.to_template() for installation_set in self]
+        return {self.metadata: objects}
+
+    def __getitem__(self, index):
+        """Returns an installation set."""
+        try:
+            return self.sets[index]
+        except IndexError:
+            raise IndexError('Installation set not found')
+        except TypeError:
+            raise TypeError('Installation set index must be a integer')
 
     def __iter__(self):
-        return iter(installation_set for installation_set in self._sets)
+        return iter(self.sets)
 
     def __len__(self):
-        return len(self._sets)
+        return len(self.sets)
 
     def __str__(self):
         if not self.all():

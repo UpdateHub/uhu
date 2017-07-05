@@ -21,6 +21,7 @@ class PackageTestCase(FileFixtureMixin, EnvironmentFixtureMixin, UHUTestCase):
         self.obj_mode = 'raw'
         self.obj_options = {
             'filename': self.obj_fn,
+            'mode': self.obj_mode,
             'target-type': 'device',
             'target': '/dev/sda',
         }

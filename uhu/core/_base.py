@@ -1,6 +1,7 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # SPDX-License-Identifier: GPL-2.0
 
+
 import hashlib
 import json
 import math
@@ -87,14 +88,14 @@ class BaseObject(metaclass=ObjectType):
         self.chunk_size = get_chunk_size()
         self.md5 = None
 
-    def template(self):
+    def to_template(self):
         template = {opt.metadata: value
                     for opt, value in self._values.items()
                     if not opt.volatile}
         template['mode'] = self.mode
         return template
 
-    def metadata(self):
+    def to_metadata(self):
         self.load()
         metadata = {opt.metadata: value for opt, value in self._values.items()}
         metadata['mode'] = self.mode

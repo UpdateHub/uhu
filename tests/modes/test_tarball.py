@@ -12,6 +12,7 @@ class TarballObjectTestCase(ModeTestCaseMixin, UHUTestCase):
         super().setUp()
         self.default_options = {
             'filename': self.fn,
+            'mode': self.mode,
             'target-type': 'device',
             'target': '/dev/sda',
             'target-path': '/usr/bin',
@@ -40,6 +41,7 @@ class TarballObjectTestCase(ModeTestCaseMixin, UHUTestCase):
 
         self.full_options = {
             'filename': self.fn,
+            'mode': self.mode,
             'target-type': 'device',
             'target': '/dev/sda',
             'target-path': '/usr/bin',

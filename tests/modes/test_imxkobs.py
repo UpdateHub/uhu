@@ -12,6 +12,7 @@ class ImxkobsObjectTestCase(ModeTestCaseMixin, UHUTestCase):
         super().setUp()
         self.default_options = {
             'filename': self.fn,
+            'mode': self.mode,
         }
         self.default_template = {
             'filename': self.fn,
@@ -27,6 +28,7 @@ class ImxkobsObjectTestCase(ModeTestCaseMixin, UHUTestCase):
 
         self.full_options = {
             'filename': self.fn,
+            'mode': self.mode,
             'install-condition': 'always',
             'install-condition-pattern-type': None,
             'install-condition-pattern': None,

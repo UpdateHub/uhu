@@ -4,7 +4,7 @@
 import json
 import os
 
-from uhu.core.manager import InstallationSetMode
+from uhu.core.objects import InstallationSetMode
 from uhu.core.package import Package
 
 from . import PackageTestCase
@@ -109,36 +109,39 @@ class PackageConstructorsTestCase(PackageTestCase):
 
         pkg_fn = self.create_file(b'')
         pkg = Package(InstallationSetMode.ActiveInactive)
-        pkg.objects.create('raw', {
+        pkg.objects.create({
             'filename': __file__,
+            'mode': 'raw',
             'target-type': 'device',
             'target': '/'
         })
-        pkg.objects.create('raw', {
+        pkg.objects.create({
             'filename': compressed_fn,
+            'mode': 'raw',
             'target-type': 'device',
             'target': '/'
         })
-        expected = pkg.template(), pkg.metadata()
+        expected = pkg.to_template(), pkg.to_metadata()
 
         pkg.dump(pkg_fn)
         pkg = Package.from_file(pkg_fn)
-        observed = pkg.template(), pkg.metadata()
+        observed = pkg.to_template(), pkg.to_metadata()
         self.assertEqual(observed, expected)
 
     def test_can_load_from_metadata_with_compression(self):
         compressed_fn = os.path.join(
             os.path.dirname(__file__), '../fixtures/compressed/base.txt.gz')
         pkg = Package(InstallationSetMode.ActiveInactive)
-        pkg.objects.create('raw', {
+        pkg.objects.create({
             'filename': compressed_fn,
+            'mode': 'raw',
             'target-type': 'device',
             'target': '/',
         })
         pkg.objects.load()
-        expected = pkg.metadata()
+        expected = pkg.to_metadata()
 
-        pkg = Package.from_metadata(pkg.metadata())
+        pkg = Package.from_metadata(pkg.to_metadata())
         pkg.objects.load()
-        observed = pkg.metadata()
+        observed = pkg.to_metadata()
         self.assertEqual(observed, expected)

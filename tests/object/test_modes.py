@@ -197,7 +197,7 @@ class ObjectsTestCase(unittest.TestCase):
             'target-path': '/yey',
             'filesystem': 'ext4',
         })
-        metadata = obj.metadata()
+        metadata = obj.to_metadata()
         self.assertEqual(metadata, expected)
 
     def test_metadata_representation_with_compression(self):
@@ -227,7 +227,7 @@ class ObjectsTestCase(unittest.TestCase):
             'compressed': True,
             'required-uncompressed-size': os.path.getsize(uncompressed_fn),
         }
-        self.assertEqual(obj.metadata(), expected)
+        self.assertEqual(obj.to_metadata(), expected)
 
     def test_nested_option_validation_for_valid_options(self):
         valid_options = [
@@ -390,5 +390,5 @@ class ObjectsTestCase(unittest.TestCase):
             'parent': True,
             'child': True,
         }
-        observed = obj.template()
+        observed = obj.to_template()
         self.assertEqual(observed, expected)
