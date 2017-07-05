@@ -87,14 +87,20 @@ class ObjectsManagerTestCase(unittest.TestCase):
     @verify_all_modes
     def test_can_get_installation_set(self, mode):
         manager = ObjectsManager(mode)
-        installation_set = manager.get_installation_set(0)
+        installation_set = manager[0]
         self.assertIsInstance(installation_set, InstallationSet)
+
+    @verify_all_modes
+    def test_get_installation_set_raises_error_if_missing_index(self, mode):
+        manager = ObjectsManager(mode)
+        with self.assertRaises(IndexError):
+            manager[100]
 
     @verify_all_modes
     def test_get_installation_set_raises_error_if_invalid_index(self, mode):
         manager = ObjectsManager(mode)
-        with self.assertRaises(ValueError):
-            manager.get_installation_set(100)
+        with self.assertRaises(TypeError):
+            manager['invalid-index']
 
     @verify_all_modes
     def test_can_create_object(self, mode):

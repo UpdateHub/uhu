@@ -13,8 +13,7 @@ from ..http.request import Request
 from ..utils import call, get_server_url
 
 from .hardware import SupportedHardwareManager
-from .object import Object
-from .objects import ObjectsManager, InstallationSetMode
+from .objects import ObjectsManager
 from .upload import ObjectUploadResult
 
 
@@ -44,43 +43,24 @@ class Package:
         """Creates a package from a dumped package."""
         with open(fn) as fp:
             dump = json.load(fp, object_pairs_hook=OrderedDict)
-        objects = dump.get('objects', [])
-        package = Package(
-            mode=InstallationSetMode.from_objects(objects),
-            version=dump.get('version'),
-            product=dump.get('product'))
-        package.supported_hardware = SupportedHardwareManager.from_file(dump)
-        blacklist = ('mode',)
-        for set_index, installation_set in enumerate(objects):
-            for obj in installation_set:
-                options = {option: value
-                           for option, value in obj.items()
-                           if option not in blacklist}
-                set_ = package.objects.get_installation_set(set_index)
-                set_.create(mode=obj['mode'], options=options)
-        return package
+        return cls._from_dump(dump, 'from_file')
 
     @classmethod
     def from_metadata(cls, metadata):
         """Creates a package from a metadata object."""
-        objects = metadata['objects']
+        return cls._from_dump(metadata, 'from_metadata')
+
+    @classmethod
+    def _from_dump(cls, dump, constructor):
+        objects_constructor = getattr(ObjectsManager, constructor)
+        objects = objects_constructor(dump)
         package = Package(
-            mode=InstallationSetMode.from_objects(objects),
-            version=metadata['version'],
-            product=metadata['product'])
-        package.supported_hardware = SupportedHardwareManager.from_metadata(metadata)  # nopep8
-        # Objects
-        for set_index, installation_set in enumerate(objects):
-            for obj in installation_set:
-                blacklist = ('mode', 'install-if-different')
-                options = {option: value
-                           for option, value in obj.items()
-                           if option not in blacklist}
-                install_if_different = obj.get('install-if-different')
-                if install_if_different is not None:
-                    options.update(Object.to_install_condition(obj))
-                set_ = package.objects.get_installation_set(set_index)
-                set_.create(mode=obj['mode'], options=options)
+            mode=objects.mode,
+            version=dump.get('version'),
+            product=dump.get('product'))
+        package.objects = objects
+        hardware_constructor = getattr(SupportedHardwareManager, constructor)
+        package.supported_hardware = hardware_constructor(dump)
         return package
 
     def to_metadata(self):
@@ -129,7 +109,7 @@ class Package:
 
     def upload_objects(self, callback=None):
         results = []
-        objects = self.objects.get_installation_set(index=0)
+        objects = self.objects[0]  # this means first installation set
         call(callback, 'start_package_upload', objects)
         for obj in objects:
             results.append(obj.upload(self.uid, callback))
