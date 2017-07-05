@@ -48,6 +48,7 @@ class PromptsTestCase(unittest.TestCase):
         self.repl = UHURepl()
         self.options = {
             'filename': __file__,
+            'mode': 'raw',
             'target-type': 'device',
             'target': '/',
         }
@@ -60,7 +61,7 @@ class PromptsTestCase(unittest.TestCase):
 
     @patch('uhu.repl.helpers.prompt')
     def test_can_prompt_object_option(self, prompt):
-        obj = Object('raw', self.options)
+        obj = Object(self.options)
         prompt.return_value = 'target'
         option = helpers.prompt_object_option(obj)
         self.assertEqual(option.metadata, 'target')
@@ -134,7 +135,7 @@ class PromptsTestCase(unittest.TestCase):
     def test_can_prompt_object_uid(self, prompt):
         prompt.return_value = '1# {}'.format(__file__)
         pkg = Package(InstallationSetMode.ActiveInactive)
-        pkg.objects.create('raw', self.options)
+        pkg.objects.create(self.options)
         expected = 1
         observed = helpers.prompt_object_uid(pkg, 0)
         self.assertEqual(expected, observed)

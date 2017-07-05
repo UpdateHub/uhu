@@ -59,9 +59,10 @@ def add_object_command(filename, mode, **options):
                for opt, value in options.items()
                if value is not None}
     options['filename'] = filename
+    options['mode'] = mode
     with open_package() as package:
         try:
-            package.objects.create(mode, options)
+            package.objects.create(options)
         except ValueError as err:
             error(2, err)
 

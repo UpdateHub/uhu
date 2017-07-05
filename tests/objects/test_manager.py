@@ -36,6 +36,7 @@ class ObjectsManagerTestCase(unittest.TestCase):
     def setUp(self):
         self.options = {
             'filename': __file__,
+            'mode': 'raw',
             'target-type': 'device',
             'target': '/dev/sda',
         }
@@ -49,7 +50,7 @@ class ObjectsManagerTestCase(unittest.TestCase):
     @verify_all_modes
     def test_installation_set_as_metadata(self, mode):
         manager = ObjectsManager(mode)
-        manager.create('raw', self.options)
+        manager.create(self.options)
         metadata = manager.to_metadata()[manager.metadata]
         self.assertEqual(len(metadata), mode.value)
         for index, installation_set in enumerate(manager):
@@ -58,7 +59,7 @@ class ObjectsManagerTestCase(unittest.TestCase):
     @verify_all_modes
     def test_installation_set_as_template(self, mode):
         manager = ObjectsManager(mode)
-        manager.create('raw', self.options)
+        manager.create(self.options)
         template = manager.to_template()[manager.metadata]
         self.assertEqual(len(template), mode.value)
         for index, installation_set in enumerate(manager):
@@ -71,7 +72,7 @@ class ObjectsManagerTestCase(unittest.TestCase):
         os.chdir(os.path.join(os.path.dirname(__file__), fixtures_dir))
         manager = ObjectsManager(mode)
         self.options['filename'] = 'manager.txt'
-        manager.create('raw', self.options)
+        manager.create(self.options)
         fn = '{}-mode.txt'.format(mode.name.lower())
         with open(fn) as fp:
             self.assertEqual(str(manager), fp.read())
@@ -106,7 +107,7 @@ class ObjectsManagerTestCase(unittest.TestCase):
     def test_can_create_object(self, mode):
         manager = ObjectsManager(mode)
         self.assertEqual(len(manager.all()), 0)
-        index = manager.create('raw', self.options)
+        index = manager.create(self.options)
         self.assertEqual(len(manager.all()), mode.value * 1)
         for set_index, installation_set in enumerate(manager):
             self.assertEqual(len(installation_set), 1)
@@ -119,7 +120,7 @@ class ObjectsManagerTestCase(unittest.TestCase):
         manager = ObjectsManager(InstallationSetMode.ActiveInactive)
         self.assertEqual(len(manager.all()), 0)
         self.options['target'] = ('/dev/sda', '/dev/sdb')
-        index = manager.create('raw', self.options)
+        index = manager.create(self.options)
         obj0 = manager.get(index=0, installation_set=0)
         obj1 = manager.get(index=0, installation_set=1)
         self.assertEqual(obj0['target'], '/dev/sda')
@@ -128,7 +129,7 @@ class ObjectsManagerTestCase(unittest.TestCase):
     @verify_all_modes
     def test_can_get_object(self, mode):
         manager = ObjectsManager(mode)
-        index = manager.create('raw', self.options)
+        index = manager.create(self.options)
         for set_index, installation_set in enumerate(manager):
             obj = manager.get(index=index, installation_set=set_index)
             self.assertEqual(obj.filename, __file__)
@@ -138,7 +139,7 @@ class ObjectsManagerTestCase(unittest.TestCase):
     @verify_all_modes
     def test_can_update_asymmetrical_object_option(self, mode):
         manager = ObjectsManager(mode)
-        index = manager.create('raw', self.options)
+        index = manager.create(self.options)
         for set_index, installation_set in enumerate(manager):
             obj = manager.get(index=index, installation_set=set_index)
             self.assertEqual(obj['target'], '/dev/sda')
@@ -157,7 +158,7 @@ class ObjectsManagerTestCase(unittest.TestCase):
     @verify_all_modes
     def test_can_update_symmetrical_object_option(self, mode):
         manager = ObjectsManager(mode)
-        index = manager.create('raw', self.options)
+        index = manager.create(self.options)
         for set_index, installation_set in enumerate(manager):
             obj = manager.get(index=index, installation_set=set_index)
             self.assertEqual(obj.filename, __file__)
@@ -172,7 +173,7 @@ class ObjectsManagerTestCase(unittest.TestCase):
     @verify_all_modes
     def test_update_asymmetrical_option_raises_without_install_set(self, mode):
         manager = ObjectsManager(mode)
-        index = manager.create('raw', self.options)
+        index = manager.create(self.options)
 
         with self.assertRaises(ValueError):
             manager.update(index, 'target', '/dev/sdb')
@@ -185,7 +186,7 @@ class ObjectsManagerTestCase(unittest.TestCase):
     def test_update_symmetrical_option_raises_error_if_install_set(self, mode):
         manager = ObjectsManager(mode)
         self.options['count'] = 100
-        index = manager.create('raw', self.options)
+        index = manager.create(self.options)
         with self.assertRaises(ValueError):
             manager.update(index, 'count', 200, installation_set=0)
 
@@ -196,7 +197,7 @@ class ObjectsManagerTestCase(unittest.TestCase):
     @verify_all_modes
     def test_can_remove_object(self, mode):
         manager = ObjectsManager(mode)
-        index = manager.create('raw', self.options)
+        index = manager.create(self.options)
         self.assertEqual(len(manager.all()), 1 * mode.value)
         manager.remove(index)
         self.assertEqual(len(manager.all()), 0)
@@ -204,7 +205,7 @@ class ObjectsManagerTestCase(unittest.TestCase):
     @verify_all_modes
     def test_can_get_all_objects(self, mode):
         manager = ObjectsManager(mode)
-        index = manager.create('raw', self.options)
+        index = manager.create(self.options)
         expected = [set_.get(index) for set_ in manager]
         observed = manager.all()
         self.assertEqual(observed, expected)

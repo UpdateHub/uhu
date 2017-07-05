@@ -182,8 +182,9 @@ class BasePushTestCase(
             product=self.product)
         for _ in range(3):
             fn = self.create_file('123')
-            self.package.objects.create('raw', {
+            self.package.objects.create({
                 'filename': fn,
+                'mode': 'raw',
                 'target-type': 'device',
                 'target': '/dev/sda',
             })

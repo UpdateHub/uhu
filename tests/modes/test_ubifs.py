@@ -12,6 +12,7 @@ class UBIFSObjectTestCase(ModeTestCaseMixin, UHUTestCase):
         super().setUp()
         self.default_options = {
             'filename': self.fn,
+            'mode': self.mode,
             'target-type': 'ubivolume',
             'target': 'system0'
         }
@@ -32,6 +33,7 @@ class UBIFSObjectTestCase(ModeTestCaseMixin, UHUTestCase):
 
         self.full_options = {
             'filename': self.fn,
+            'mode': self.mode,
             'target-type': 'ubivolume',
             'target': 'system0'
         }

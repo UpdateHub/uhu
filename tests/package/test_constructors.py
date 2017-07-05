@@ -109,13 +109,15 @@ class PackageConstructorsTestCase(PackageTestCase):
 
         pkg_fn = self.create_file(b'')
         pkg = Package(InstallationSetMode.ActiveInactive)
-        pkg.objects.create('raw', {
+        pkg.objects.create({
             'filename': __file__,
+            'mode': 'raw',
             'target-type': 'device',
             'target': '/'
         })
-        pkg.objects.create('raw', {
+        pkg.objects.create({
             'filename': compressed_fn,
+            'mode': 'raw',
             'target-type': 'device',
             'target': '/'
         })
@@ -130,8 +132,9 @@ class PackageConstructorsTestCase(PackageTestCase):
         compressed_fn = os.path.join(
             os.path.dirname(__file__), '../fixtures/compressed/base.txt.gz')
         pkg = Package(InstallationSetMode.ActiveInactive)
-        pkg.objects.create('raw', {
+        pkg.objects.create({
             'filename': compressed_fn,
+            'mode': 'raw',
             'target-type': 'device',
             'target': '/',
         })

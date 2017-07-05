@@ -32,6 +32,7 @@ class PackageTestCase(EnvironmentFixtureMixin, FileFixtureMixin, UHUTestCase):
         self.obj_fn = __file__
         self.obj_options = {
             'filename': self.obj_fn,
+            'mode': 'raw',
             'target-type': 'device',
             'target': '/dev/sda',
         }
@@ -189,7 +190,7 @@ class EditObjectCommandTestCase(PackageTestCase):
     def setUp(self):
         super().setUp()
         pkg = Package(InstallationSetMode.Single)
-        pkg.objects.create('raw', self.obj_options)
+        pkg.objects.create(self.obj_options)
         pkg.dump(self.pkg_fn)
 
     def test_can_edit_object_with_edit_object_command(self):
@@ -242,7 +243,7 @@ class RemoveObjectCommandTestCase(PackageTestCase):
     def setUp(self):
         super().setUp()
         pkg = Package(InstallationSetMode.Single)
-        pkg.objects.create('raw', self.obj_options)
+        pkg.objects.create(self.obj_options)
         pkg.dump(self.pkg_fn)
 
     def test_can_remove_object_with_remove_command(self):
@@ -261,7 +262,7 @@ class ShowCommandTestCase(PackageTestCase):
 
     def test_show_command_returns_0_if_successful(self):
         pkg = Package(InstallationSetMode.Single)
-        pkg.objects.create('raw', self.obj_options)
+        pkg.objects.create(self.obj_options)
         pkg.dump(self.pkg_fn)
         result = self.runner.invoke(show_command)
         self.assertEqual(result.exit_code, 0)
@@ -272,7 +273,7 @@ class ExportCommandTestCase(PackageTestCase):
     def setUp(self):
         super().setUp()
         pkg = Package(InstallationSetMode.Single, version='1.0')
-        pkg.objects.create('raw', self.obj_options)
+        pkg.objects.create(self.obj_options)
         pkg.dump(self.pkg_fn)
         self.dest_pkg_fn = '/tmp/pkg-dump'
         self.addCleanup(self.remove_file, self.dest_pkg_fn)
@@ -376,7 +377,7 @@ class MetadataTestCase(PackageTestCase):
 
     def test_metadata_commands_returns_0_when_metadata_is_valid(self):
         pkg = Package(InstallationSetMode.ActiveInactive)
-        pkg.objects.create('raw', self.obj_options)
+        pkg.objects.create(self.obj_options)
         pkg.product = '0' * 64
         pkg.version = '2.0'
         pkg.dump(self.pkg_fn)

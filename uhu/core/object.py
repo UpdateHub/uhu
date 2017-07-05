@@ -8,23 +8,21 @@ from ._base import Modes
 
 class Object:
 
-    def __new__(cls, mode_name, values):
-        cls = Modes.get(mode_name)
-        return cls(values)
+    def __new__(cls, options):
+        opts = deepcopy(options)
+        mode = opts.pop('mode')
+        install_condition = cls.iid_to_ic(opts)
+        opts.update(install_condition)
+        cls = Modes.get(mode)
+        return cls(opts)
 
     @classmethod
     def from_file(cls, dump):
-        options = deepcopy(dump)
-        mode = options.pop('mode')
-        return cls(mode, options)
+        return cls(dump)
 
     @classmethod
     def from_metadata(cls, metadata):
-        options = deepcopy(metadata)
-        mode = options.pop('mode')
-        install_condition = cls.iid_to_ic(options)
-        options.update(install_condition)
-        return cls(mode, options)
+        return cls(metadata)
 
     @staticmethod
     def iid_to_ic(metadata):

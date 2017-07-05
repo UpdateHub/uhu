@@ -15,7 +15,7 @@ class PackageSerializationsTestCase(PackageTestCase):
     def test_can_serialize_package_as_metadata(self):
         pkg = Package(InstallationSetMode.Single, version=self.version,
                       product=self.product)
-        pkg.objects.create(self.obj_mode, self.obj_options)
+        pkg.objects.create(self.obj_options)
         pkg.supported_hardware.add(self.hardware)
         pkg.objects.load()
         metadata = pkg.to_metadata()
@@ -37,7 +37,7 @@ class PackageSerializationsTestCase(PackageTestCase):
     def test_can_serialize_package_as_template(self):
         pkg = Package(InstallationSetMode.Single,
                       version=self.version, product=self.product)
-        index = pkg.objects.create(self.obj_mode, self.obj_options)
+        index = pkg.objects.create(self.obj_options)
         obj = pkg.objects.get(index=index, installation_set=0)
         expected_obj_template = obj.to_template()
         pkg.supported_hardware.add(self.hardware)
@@ -56,7 +56,7 @@ class PackageSerializationsTestCase(PackageTestCase):
         self.addCleanup(self.remove_file, dest)
         pkg = Package(InstallationSetMode.Single,
                       version=self.version, product=self.product)
-        index = pkg.objects.create(self.obj_mode, self.obj_options)
+        index = pkg.objects.create(self.obj_options)
         obj = pkg.objects.get(index=index, installation_set=0)
         expected_obj_dump = obj.to_template()
         self.assertFalse(os.path.exists(dest))
@@ -93,16 +93,18 @@ class PackageSerializationsTestCase(PackageTestCase):
         package = Package(
             InstallationSetMode.Single, version='2.0',
             product='e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')  # nopep8
-        package.objects.create('raw', {
+        package.objects.create({
             'filename': 'files/pkg.json',
+            'mode': 'raw',
             'target-type': 'device',
             'target': '/dev/sda',
             'chunk-size': 1234,
             'skip': 0,
             'count': -1
         })
-        package.objects.create('raw', {
+        package.objects.create({
             'filename': 'files/setup.py',
+            'mode': 'raw',
             'target-type': 'device',
             'target': '/dev/sda',
             'seek': 5,
@@ -111,8 +113,9 @@ class PackageSerializationsTestCase(PackageTestCase):
             'skip': 19,
             'count': 3
         })
-        package.objects.create('copy', {
+        package.objects.create({
             'filename': 'files/tox.ini',
+            'mode': 'copy',
             'target-type': 'device',
             'target': '/dev/sda3',
             'target-path': '/dev/null',
@@ -121,8 +124,9 @@ class PackageSerializationsTestCase(PackageTestCase):
             'format-options': '-i 100 -J size=500',
             'mount-options': '--all --fstab=/etc/fstab2'
         })
-        package.objects.create('tarball', {
+        package.objects.create({
             'filename': 'files/archive.tar.gz',
+            'mode': 'tarball',
             'target-type': 'device',
             'target': '/dev/sda3',
             'target-path': '/dev/null',

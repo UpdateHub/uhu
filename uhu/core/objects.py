@@ -36,9 +36,9 @@ class InstallationSet:
         installation_set.objects = [obj_constructor(obj) for obj in dump]
         return installation_set
 
-    def create(self, mode, options):
+    def create(self, options):
         """Adds an object into set, returns its index."""
-        self.objects.append(Object(mode, options))
+        self.objects.append(Object(options))
         return len(self) - 1
 
     def get(self, index):
@@ -134,7 +134,7 @@ class ObjectsManager:
             obj.load(callback=callback)
         call(callback, 'finish_objects_load')
 
-    def create(self, mode, options):
+    def create(self, options):
         """Creates a new object in all installation sets."""
         for index, installation_set in enumerate(self):
             index_options = {}
@@ -142,7 +142,7 @@ class ObjectsManager:
                 if isinstance(value, tuple):
                     value = value[index]
                 index_options[opt] = value
-            obj_index = installation_set.create(mode, index_options)
+            obj_index = installation_set.create(index_options)
         return obj_index
 
     def get(self, index, installation_set):

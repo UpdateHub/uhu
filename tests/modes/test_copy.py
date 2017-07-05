@@ -12,6 +12,7 @@ class CopyObjectTestCase(ModeTestCaseMixin, UHUTestCase):
         super().setUp()
         self.default_options = {
             'filename': self.fn,
+            'mode': self.mode,
             'target-type': 'device',
             'target': '/dev/sda',
             'target-path': '/usr/bin',
@@ -41,6 +42,7 @@ class CopyObjectTestCase(ModeTestCaseMixin, UHUTestCase):
 
         self.full_options = {
             'filename': self.fn,
+            'mode': self.mode,
             'install-condition': 'always',
             'install-condition-pattern-type': None,
             'install-condition-pattern': None,

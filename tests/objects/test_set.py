@@ -15,15 +15,16 @@ class InstallationSetTestCase(unittest.TestCase):
         self.mode = 'raw'
         self.options = {
             'filename': __file__,
+            'mode': self.mode,
             'target-type': 'device',
             'target': '/dev/sda',
         }
-        self.obj = Object(self.mode, self.options)
+        self.obj = Object(self.options)
 
     def test_can_create_object(self):
         installation_set = InstallationSet()
         self.assertEqual(len(installation_set), 0)
-        index = installation_set.create(self.mode, self.options)
+        index = installation_set.create(self.options)
         self.assertEqual(index, 0)
         self.assertEqual(len(installation_set), 1)
         obj = installation_set.get(index)
@@ -33,7 +34,7 @@ class InstallationSetTestCase(unittest.TestCase):
 
     def test_can_get_object_by_index(self):
         installation_set = InstallationSet()
-        installation_set.create(self.mode, self.options)
+        installation_set.create(self.options)
         obj = installation_set.get(0)
         self.assertEqual(obj.filename, self.fn)
         self.assertEqual(obj.mode, self.mode)
@@ -46,7 +47,7 @@ class InstallationSetTestCase(unittest.TestCase):
 
     def test_can_update_object(self):
         installation_set = InstallationSet()
-        index = installation_set.create(self.mode, self.options)
+        index = installation_set.create(self.options)
         obj = installation_set.get(index)
         self.assertEqual(obj['target'], '/dev/sda')
         installation_set.update(index, 'target', '/')
@@ -60,7 +61,7 @@ class InstallationSetTestCase(unittest.TestCase):
     def test_can_remove_object(self):
         installation_set = InstallationSet()
         self.assertEqual(len(installation_set), 0)
-        index = installation_set.create(self.mode, self.options)
+        index = installation_set.create(self.options)
         self.assertEqual(len(installation_set), 1)
         installation_set.remove(index)
         self.assertEqual(len(installation_set), 0)
@@ -72,7 +73,7 @@ class InstallationSetTestCase(unittest.TestCase):
 
     def test_installation_set_as_metadata(self):
         installation_set = InstallationSet()
-        installation_set.create(self.mode, self.options)
+        installation_set.create(self.options)
         metadata = installation_set.to_metadata()
         self.assertEqual(len(metadata), 1)
         # First object metadata
@@ -80,7 +81,7 @@ class InstallationSetTestCase(unittest.TestCase):
 
     def test_installation_set_as_template(self):
         installation_set = InstallationSet()
-        installation_set.create(self.mode, self.options)
+        installation_set.create(self.options)
         template = installation_set.to_template()
         self.assertEqual(len(template), 1)
         # First object template
@@ -95,5 +96,5 @@ class InstallationSetTestCase(unittest.TestCase):
         installation_set = InstallationSet()
         self.options['filename'] = 'set.txt'
         for _ in range(3):
-            installation_set.create(self.mode, self.options)
+            installation_set.create(self.options)
         self.assertEqual(str(installation_set), expected)

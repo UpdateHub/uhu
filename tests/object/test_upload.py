@@ -22,10 +22,11 @@ class UploadTestCase(
         self.obj_fn = self.create_file(b'spam')
         self.options = {
             'filename': self.obj_fn,
+            'mode': 'raw',
             'target-type': 'device',
             'target': '/dev/sda'
         }
-        self.obj = Object('raw', self.options)
+        self.obj = Object(self.options)
         self.obj.load()
         self.product_uid = '0' * 64
         self.package_uid = '1' * 64
@@ -54,7 +55,7 @@ class UploadTestCase(
 
     def test_can_upload_compressed_object_from_symbolic_link(self):
         self.options['filename'] = 'tests/fixtures/compressed/symbolic.gz'
-        obj = Object('raw', self.options)
+        obj = Object(self.options)
         self.create_upload_conf(obj, self.package_uid)
         result = obj.upload(self.package_uid)
         self.assertEqual(result, ObjectUploadResult.SUCCESS)
