@@ -63,7 +63,9 @@ class PackageSerializationsTestCase(PackageTestCase):
         pkg.dump(dest)
         self.assertTrue(os.path.exists(dest))
         with open(dest) as fp:
-            dump = json.load(fp)
+            data = fp.read()
+            dump = json.loads(data)
+        self.assertEqual(data[-1], '\n')
         self.assertEqual(dump['version'], self.version)
         self.assertEqual(dump['product'], self.product)
         self.assertEqual(len(dump['objects']), 1)
