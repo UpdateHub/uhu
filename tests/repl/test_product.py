@@ -5,7 +5,6 @@ import os
 import tempfile
 import unittest
 
-from uhu.core.objects import InstallationSetMode
 from uhu.core.package import Package
 from uhu.repl.repl import UHURepl
 from uhu.repl import functions
@@ -32,7 +31,7 @@ class ProductTestCase(unittest.TestCase):
     def test_start_prompt_with_package_updates_prompt(self):
         _, fn = tempfile.mkstemp()
         self.addCleanup(os.remove, fn)
-        pkg = Package(InstallationSetMode.Single, product='123456789')
+        pkg = Package(product='123456789')
         pkg.dump(fn)
         self.repl = UHURepl(fn)
         self.assertEqual(self.repl.prompt, '[123456] uhu> ')

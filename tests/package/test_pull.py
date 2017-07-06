@@ -30,13 +30,13 @@ class PackagePullTestCase(BasePullTestCase):
     def test_get_download_list_returns_empty_list_with_identical_file(self):
         with open(self.obj_fn, 'bw') as fp:
             fp.write(self.obj_content)
-        package = Package.from_metadata(self.metadata)
+        package = Package(dump=self.metadata)
         objects = package.get_download_list()
         self.assertTrue(os.path.exists(self.obj_fn))
         self.assertEqual(len(objects), 0)
 
     def test_get_download_list_returns_objects_when_file_does_not_exists(self):
-        package = Package.from_metadata(self.metadata)
+        package = Package(dump=self.metadata)
         objects = package.get_download_list()
         self.assertFalse(os.path.exists(self.obj_fn))
         self.assertEqual(len(objects), 1)
@@ -45,7 +45,7 @@ class PackagePullTestCase(BasePullTestCase):
         content = 'overwrited'
         with open(self.obj_fn, 'w') as fp:
             fp.write(content)
-        package = Package.from_metadata(self.metadata)
+        package = Package(dump=self.metadata)
         with self.assertRaises(DownloadError):
             package.get_download_list()
         with open(self.obj_fn) as fp:
@@ -53,6 +53,6 @@ class PackagePullTestCase(BasePullTestCase):
 
     def test_can_download_objects(self):
         self.assertFalse(os.path.exists(self.obj_fn))
-        package = Package.from_metadata(self.metadata)
+        package = Package(dump=self.metadata)
         package.download_objects(self.pkg_uid)
         self.assertTrue(os.path.exists(self.obj_fn))

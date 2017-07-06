@@ -137,7 +137,7 @@ def pull_command(package_uid, metadata, objects, output):
 
     try:
         pkg_metadata = Package.download_metadata(package_uid)
-        package = Package.from_metadata(pkg_metadata)
+        package = Package(dump=pkg_metadata)
         if objects:
             package.download_objects(package_uid)
         if metadata:

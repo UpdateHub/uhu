@@ -4,7 +4,6 @@
 from uhu.cli.hardware import (
     add_supported_hardware, remove_supported_hardware)
 from uhu.core import Package
-from uhu.core.objects import InstallationSetMode
 
 from cli.test_package import PackageTestCase
 
@@ -13,7 +12,7 @@ class SupportedHardwareCommandsTestCase(PackageTestCase):
 
     def setUp(self):
         super().setUp()
-        self.pkg = Package(InstallationSetMode.Single)
+        self.pkg = Package()
         self.pkg.dump(self.pkg_fn)
 
     def test_can_add_supported_hardware_identifier(self):

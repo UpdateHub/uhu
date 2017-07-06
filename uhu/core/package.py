@@ -30,38 +30,25 @@ def write_json(obj, fn):
 class Package:
     """A package represents a group of objects."""
 
-    def __init__(self, mode, version=None, product=None):
-        self.mode = mode
+    def __init__(self, version=None, product=None, dump=None):
+        if dump is None:
+            self.version = version
+            self.product = product
+            self.objects = ObjectsManager()
+            self.supported_hardware = SupportedHardwareManager()
+        else:
+            self.version = dump.get('version')  # TODO: validate it
+            self.product = dump.get('product')  # TODO: validate it
+            self.objects = ObjectsManager(dump=dump)
+            self.supported_hardware = SupportedHardwareManager(dump=dump)
         self.uid = None
-        self.version = version
-        self.product = product
-        self.objects = ObjectsManager(self.mode)
-        self.supported_hardware = SupportedHardwareManager()
 
     @classmethod
     def from_file(cls, fn):
         """Creates a package from a dumped package."""
         with open(fn) as fp:
             dump = json.load(fp, object_pairs_hook=OrderedDict)
-        return cls._from_dump(dump, 'from_file')
-
-    @classmethod
-    def from_metadata(cls, metadata):
-        """Creates a package from a metadata object."""
-        return cls._from_dump(metadata, 'from_metadata')
-
-    @classmethod
-    def _from_dump(cls, dump, constructor):
-        objects_constructor = getattr(ObjectsManager, constructor)
-        objects = objects_constructor(dump)
-        package = Package(
-            mode=objects.mode,
-            version=dump.get('version'),
-            product=dump.get('product'))
-        package.objects = objects
-        hardware_constructor = getattr(SupportedHardwareManager, constructor)
-        package.supported_hardware = hardware_constructor(dump)
-        return package
+        return cls(dump=dump)
 
     def to_metadata(self):
         """Serialize package as metadata."""

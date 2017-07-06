@@ -13,7 +13,6 @@ from prompt_toolkit.contrib.regular_languages import compiler
 from .. import get_version
 from ..config import config, AUTH_SECTION
 from ..core.package import Package
-from ..core.objects import InstallationSetMode
 from ..utils import get_local_config_file
 
 from . import functions
@@ -108,7 +107,7 @@ class UHURepl:
         elif os.path.exists(self.local_config):
             self.package = load_package(self.local_config)
         else:
-            self.package = Package(InstallationSetMode.ActiveInactive)
+            self.package = Package()
 
         if self.package.product:
             self.prompt = set_product_prompt(self.package.product)

@@ -6,7 +6,7 @@ from copy import deepcopy
 from ._object import Modes
 
 
-class Object:
+class Object:  # pylint: disable=too-few-public-methods
 
     def __new__(cls, options):
         opts = deepcopy(options)
@@ -15,14 +15,6 @@ class Object:
         opts.update(install_condition)
         cls = Modes.get(mode)
         return cls(opts)
-
-    @classmethod
-    def from_file(cls, dump):
-        return cls(dump)
-
-    @classmethod
-    def from_metadata(cls, metadata):
-        return cls(metadata)
 
     @staticmethod
     def iid_to_ic(metadata):

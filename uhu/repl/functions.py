@@ -54,7 +54,7 @@ def save_package(ctx):
 def add_object(ctx):
     """Add an object into the current package."""
     obj_mode = helpers.prompt_object_mode()
-    options = helpers.prompt_object_options(ctx.package.mode, obj_mode)
+    options = helpers.prompt_object_options(len(ctx.package.objects), obj_mode)
     options['mode'] = obj_mode
     ctx.package.objects.create(options)
 
@@ -103,7 +103,7 @@ def pull_package(ctx):
     uid = helpers.prompt_package_uid()
     full = helpers.prompt_pull()
     metadata = ctx.package.download_metadata(uid)
-    package = Package.from_metadata(metadata)
+    package = Package(dump=metadata)
     if full:
         package.download_objects(uid)
     ctx.package = package

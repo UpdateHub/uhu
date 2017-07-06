@@ -159,23 +159,23 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
         self.assertEqual(obj['install-condition-pattern'], '\d+\.\d+')
 
     def test_can_load_from_metadata_always_object(self):
-        pkg = Package.from_metadata(self.metadata)
+        pkg = Package(dump=self.metadata)
         obj = pkg.objects.get(index=0, installation_set=0)
         self.assertEqual(obj['install-condition'], 'always')
 
     def test_can_load_from_metadata_content_diverges_object(self):
-        pkg = Package.from_metadata(self.metadata)
+        pkg = Package(dump=self.metadata)
         obj = pkg.objects.get(index=1, installation_set=0)
         self.assertEqual(obj['install-condition'], 'content-diverges')
 
     def test_can_load_from_metadata_known_version_diverges_object(self):
-        pkg = Package.from_metadata(self.metadata)
+        pkg = Package(dump=self.metadata)
         obj = pkg.objects.get(index=2, installation_set=0)
         self.assertEqual(obj['install-condition'], 'version-diverges')
         self.assertEqual(obj['install-condition-pattern-type'], 'linux-kernel')
 
     def test_can_load_from_metadata_custom_version_diverges_object(self):
-        pkg = Package.from_metadata(self.metadata)
+        pkg = Package(dump=self.metadata)
         obj = pkg.objects.get(index=3, installation_set=0)
         self.assertEqual(obj['install-condition'], 'version-diverges')
         self.assertEqual(obj['install-condition-pattern-type'], 'regexp')
@@ -184,7 +184,7 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
         self.assertEqual(obj['install-condition-buffer-size'], 200)
 
     def test_can_load_from_metadata_custom_version_object_with_default(self):
-        pkg = Package.from_metadata(self.metadata)
+        pkg = Package(dump=self.metadata)
         obj = pkg.objects.get(index=4, installation_set=0)
         self.assertEqual(obj['install-condition'], 'version-diverges')
         self.assertEqual(obj['install-condition-pattern-type'], 'regexp')

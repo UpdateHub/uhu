@@ -4,7 +4,6 @@
 import json
 import os
 
-from uhu.core.objects import InstallationSetMode
 from uhu.core.package import Package
 
 from . import PackageTestCase
@@ -13,12 +12,9 @@ from . import PackageTestCase
 class PackageConstructorsTestCase(PackageTestCase):
 
     def test_can_create_package_with_default_constructor(self):
-        pkg = Package(
-            InstallationSetMode.ActiveInactive, version=self.version,
-            product=self.product)
+        pkg = Package(version=self.version, product=self.product)
         self.assertEqual(pkg.version, self.version)
         self.assertEqual(pkg.product, self.product)
-        self.assertEqual(pkg.mode, InstallationSetMode.ActiveInactive)
 
     def test_can_create_package_from_dumped_file(self):
         fn = self.create_file(json.dumps({
@@ -92,7 +88,7 @@ class PackageConstructorsTestCase(PackageTestCase):
                 ]
             ]
         }
-        pkg = Package.from_metadata(metadata)
+        pkg = Package(dump=metadata)
         self.assertEqual(pkg.version, self.version)
         self.assertEqual(pkg.product, self.product)
         self.assertEqual(len(pkg.objects.all()), 2)
@@ -108,7 +104,7 @@ class PackageConstructorsTestCase(PackageTestCase):
             os.path.dirname(__file__), '../fixtures/compressed/base.txt.gz')
 
         pkg_fn = self.create_file(b'')
-        pkg = Package(InstallationSetMode.ActiveInactive)
+        pkg = Package()
         pkg.objects.create({
             'filename': __file__,
             'mode': 'raw',
@@ -131,7 +127,7 @@ class PackageConstructorsTestCase(PackageTestCase):
     def test_can_load_from_metadata_with_compression(self):
         compressed_fn = os.path.join(
             os.path.dirname(__file__), '../fixtures/compressed/base.txt.gz')
-        pkg = Package(InstallationSetMode.ActiveInactive)
+        pkg = Package()
         pkg.objects.create({
             'filename': compressed_fn,
             'mode': 'raw',
@@ -141,7 +137,7 @@ class PackageConstructorsTestCase(PackageTestCase):
         pkg.objects.load()
         expected = pkg.to_metadata()
 
-        pkg = Package.from_metadata(pkg.to_metadata())
+        pkg = Package(dump=pkg.to_metadata())
         pkg.objects.load()
         observed = pkg.to_metadata()
         self.assertEqual(observed, expected)

@@ -10,7 +10,6 @@ import unittest
 from uuid import uuid4
 
 from uhu.core import Package
-from uhu.core.objects import InstallationSetMode
 from uhu.utils import CHUNK_SIZE_VAR, LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 from httpmock.httpd import HTTPMockServer
@@ -177,9 +176,7 @@ class BasePushTestCase(
         self.product = '0' * 64
         self.version = '2.0'
         self.package_uid = '1' * 64
-        self.package = Package(
-            InstallationSetMode.Single, version=self.version,
-            product=self.product)
+        self.package = Package(version=self.version, product=self.product)
         for _ in range(3):
             fn = self.create_file('123')
             self.package.objects.create({
@@ -204,8 +201,7 @@ class BasePullTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
 
         self.product = 'product-uid'
         self.pkg_uid = 'package-uid'
-        self.package = Package(
-            InstallationSetMode.Single, product=self.product)
+        self.package = Package(product=self.product)
 
         # object
         self.obj_fn = 'image.bin'

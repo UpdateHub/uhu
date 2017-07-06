@@ -8,7 +8,6 @@ import tempfile
 from click.testing import CliRunner
 
 from uhu.cli.package import pull_command
-from uhu.core.objects import InstallationSetMode
 from uhu.utils import SERVER_URL_VAR
 
 from utils import BasePullTestCase

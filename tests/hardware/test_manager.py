@@ -9,45 +9,30 @@ from uhu.core.hardware import (
 
 class SupportedHardwareConstructors(unittest.TestCase):
 
-    def test_can_construct_from_file_dump_when_any(self):
-        manager = SupportedHardwareManager.from_file({
+    def test_can_construct_from_dump_when_any(self):
+        manager = SupportedHardwareManager(dump={
             'supported-hardware': ANY,
         })
         self.assertEqual(len(manager), 0)
 
-    def test_can_construct_from_file_dump_when_some(self):
-        manager = SupportedHardwareManager.from_file({
+    def test_can_construct_from_dump_when_some(self):
+        manager = SupportedHardwareManager(dump={
             'supported-hardware': ['h1', 'h2'],
         })
         self.assertEqual(len(manager), 2)
         self.assertIn('h1', manager)
         self.assertIn('h2', manager)
 
-    def test_construct_from_file_raises_error_when_invalid(self):
-        invalid_values = [{}, {'supported-hardware': None}]
-        for value in invalid_values:
+    def test_construct_from_dump_raises_error_when_invalid(self):
+        invalid_dumps = [
+            {},
+            {'supported-hardware': None},
+            {'supported-hardware': 'other'},
+            {'supported-hardware': 42},
+        ]
+        for dump in invalid_dumps:
             with self.assertRaises(ValueError, msg=SUPPORTED_HARDWARE_ERROR):
-                SupportedHardwareManager.from_file(value)
-
-    def test_can_construct_from_metadata_dump_when_any(self):
-        manager = SupportedHardwareManager.from_metadata({
-            'supported-hardware': ANY,
-        })
-        self.assertEqual(len(manager), 0)
-
-    def test_can_construct_from_metadata_dump_when_some(self):
-        manager = SupportedHardwareManager.from_metadata({
-            'supported-hardware': ['h1', 'h2'],
-        })
-        self.assertEqual(len(manager), 2)
-        self.assertIn('h1', manager)
-        self.assertIn('h2', manager)
-
-    def test_construct_from_metadata_raises_error_when_invalid(self):
-        invalid_values = [{}, {'supported-hardware': None}]
-        for value in invalid_values:
-            with self.assertRaises(ValueError, msg=SUPPORTED_HARDWARE_ERROR):
-                SupportedHardwareManager.from_metadata(value)
+                SupportedHardwareManager(dump=dump)
 
 
 class SupportedHardwareSerialization(unittest.TestCase):

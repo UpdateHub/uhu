@@ -57,7 +57,7 @@ class UtilsTestCase(EnvironmentFixtureMixin, UHUTestCase):
         self.assertEqual(observed, '/tmp/super_file')
 
 
-class StrinUtilsTestCase(unittest.TestCase):
+class StringUtilsTestCase(unittest.TestCase):
 
     def test_yes_or_no_returns_yes_if_true(self):
         expected = 'yes'

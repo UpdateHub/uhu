@@ -35,3 +35,36 @@ Objects:
             Format device:           yes [options: "-i 100 -J size=500"]
             Mount options:           "--all --fstab=/etc/fstab2"
             Target path:             /dev/null
+
+    1# Installation Set:
+
+        0# files/pkg.json [mode: raw]
+
+            Install condition:       always install
+            Target:                  /dev/sda [seek: 0, truncate: no]
+            Chunk size:              1.2 KiB
+            Skip from source:        0
+            Count:                   all content
+
+        1# files/setup.py [mode: raw]
+
+            Install condition:       always install
+            Target:                  /dev/sda [seek: 5, truncate: yes]
+            Chunk size:              9.8 KiB
+            Skip from source:        19
+            Count:                   3
+
+        2# files/tox.ini [mode: copy]
+
+            Install condition:       always install
+            Target:                  /dev/sda3 [filesystem: ext4]
+            Format device:           yes [options: "-i 100 -J size=500"]
+            Mount options:           "--all --fstab=/etc/fstab2"
+            Target path:             /dev/null
+
+        3# files/archive.tar.gz [mode: tarball]
+
+            Target:                  /dev/sda3 [filesystem: ext4]
+            Format device:           yes [options: "-i 100 -J size=500"]
+            Mount options:           "--all --fstab=/etc/fstab2"
+            Target path:             /dev/null

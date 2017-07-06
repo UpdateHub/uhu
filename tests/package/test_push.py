@@ -3,7 +3,6 @@
 
 import json
 
-from uhu.core.objects import InstallationSetMode
 from uhu.core.package import Package
 from uhu.exceptions import UploadError
 from uhu.utils import SERVER_URL_VAR

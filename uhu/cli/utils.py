@@ -4,7 +4,6 @@
 import sys
 from contextlib import contextmanager
 
-from ..core.objects import InstallationSetMode
 from ..core.package import Package
 from ..utils import get_local_config_file
 
@@ -20,7 +19,7 @@ def open_package(read_only=False):
     try:
         package = Package.from_file(pkg_file)
     except FileNotFoundError:
-        package = Package(InstallationSetMode.ActiveInactive)
+        package = Package()
     except ValueError as err:
         print('Invalid configuration file: {}'.format(err))
         sys.exit(1)

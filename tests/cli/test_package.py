@@ -12,7 +12,6 @@ from uhu.cli.package import (
     metadata_command)
 from uhu.cli.utils import open_package
 from uhu.core import Package
-from uhu.core.objects import InstallationSetMode
 from uhu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 
@@ -42,7 +41,7 @@ class AddObjectCommandTestCase(PackageTestCase):
 
     def setUp(self):
         super().setUp()
-        pkg = Package(InstallationSetMode.Single)
+        pkg = Package()
         pkg.dump(self.pkg_fn)
 
     def test_can_add_object(self):
@@ -189,7 +188,7 @@ class EditObjectCommandTestCase(PackageTestCase):
 
     def setUp(self):
         super().setUp()
-        pkg = Package(InstallationSetMode.Single)
+        pkg = Package()
         pkg.objects.create(self.obj_options)
         pkg.dump(self.pkg_fn)
 
@@ -242,7 +241,7 @@ class RemoveObjectCommandTestCase(PackageTestCase):
 
     def setUp(self):
         super().setUp()
-        pkg = Package(InstallationSetMode.Single)
+        pkg = Package()
         pkg.objects.create(self.obj_options)
         pkg.dump(self.pkg_fn)
 
@@ -261,7 +260,7 @@ class RemoveObjectCommandTestCase(PackageTestCase):
 class ShowCommandTestCase(PackageTestCase):
 
     def test_show_command_returns_0_if_successful(self):
-        pkg = Package(InstallationSetMode.Single)
+        pkg = Package()
         pkg.objects.create(self.obj_options)
         pkg.dump(self.pkg_fn)
         result = self.runner.invoke(show_command)
@@ -272,39 +271,37 @@ class ExportCommandTestCase(PackageTestCase):
 
     def setUp(self):
         super().setUp()
-        pkg = Package(InstallationSetMode.Single, version='1.0')
+        pkg = Package(version='1.0')
         pkg.objects.create(self.obj_options)
         pkg.dump(self.pkg_fn)
         self.dest_pkg_fn = '/tmp/pkg-dump'
         self.addCleanup(self.remove_file, self.dest_pkg_fn)
 
     def test_can_export_package_file(self):
+        obj = {
+            'filename': self.obj_fn,
+            'mode': 'raw',
+            'chunk-size': 131072,
+            'count': -1,
+            'seek': 0,
+            'skip': 0,
+            'target-type': 'device',
+            'target': '/dev/sda',
+            'truncate': False,
+            'install-condition': 'always',
+        }
         expected = {
             'product': None,
             'version': None,
             'supported-hardware': 'any',
-            'objects': [
-                [
-                    {
-                        'filename': self.obj_fn,
-                        'mode': 'raw',
-                        'chunk-size': 131072,
-                        'count': -1,
-                        'seek': 0,
-                        'skip': 0,
-                        'target-type': 'device',
-                        'target': '/dev/sda',
-                        'truncate': False,
-                        'install-condition': 'always',
-                    }
-                ]
-            ]
+            'objects': [[obj], [obj]],
         }
         self.assertFalse(os.path.exists(self.dest_pkg_fn))
         self.runner.invoke(export_command, args=[self.dest_pkg_fn])
         self.assertTrue(os.path.exists(self.dest_pkg_fn))
         with open(self.dest_pkg_fn) as fp:
             observed = json.load(fp)
+        print(observed)
         self.assertEqual(observed, expected)
 
     def test_export_package_command_returns_0_if_successful(self):
@@ -317,7 +314,7 @@ class SetVersionCommandTestCase(PackageTestCase):
 
     def setUp(self):
         super().setUp()
-        Package(InstallationSetMode.Single).dump(self.pkg_fn)
+        Package().dump(self.pkg_fn)
 
     def test_can_set_package_version(self):
         package = Package.from_file(self.pkg_fn)
@@ -337,9 +334,7 @@ class StatusCommandTestCase(HTTPTestCaseMixin, PackageTestCase):
 
     def setUp(self):
         super().setUp()
-        Package(
-            InstallationSetMode.Single, version=self.version,
-            product=self.product).dump(self.pkg_fn)
+        Package(version=self.version, product=self.product).dump(self.pkg_fn)
         self.set_env_var(SERVER_URL_VAR, self.httpd.url(''))
 
     def test_status_command_returns_0_if_successful(self):
@@ -362,7 +357,7 @@ class UtilsTestCase(FileFixtureMixin, EnvironmentFixtureMixin, UHUTestCase):
         pkg_fn = self.create_file(b'')
         self.set_env_var(LOCAL_CONFIG_VAR, pkg_fn)
 
-        pkg = Package(InstallationSetMode.ActiveInactive)
+        pkg = Package()
         template = pkg.to_template()
         del template['objects']
         with open(pkg_fn, 'w') as fp:
@@ -376,7 +371,7 @@ class UtilsTestCase(FileFixtureMixin, EnvironmentFixtureMixin, UHUTestCase):
 class MetadataTestCase(PackageTestCase):
 
     def test_metadata_commands_returns_0_when_metadata_is_valid(self):
-        pkg = Package(InstallationSetMode.ActiveInactive)
+        pkg = Package()
         pkg.objects.create(self.obj_options)
         pkg.product = '0' * 64
         pkg.version = '2.0'
@@ -385,7 +380,7 @@ class MetadataTestCase(PackageTestCase):
         self.assertEqual(result.exit_code, 0)
 
     def test_metadata_commands_returns_1_when_metadata_is_invalid(self):
-        pkg = Package(InstallationSetMode.ActiveInactive)
+        pkg = Package()
         pkg.dump(self.pkg_fn)
         result = self.runner.invoke(metadata_command)
         self.assertEqual(result.exit_code, 1)

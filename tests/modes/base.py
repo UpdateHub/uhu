@@ -8,7 +8,6 @@ from pkgschema import validate_schema
 
 from uhu.core.object import Object, Modes
 from uhu.core.package import Package
-from uhu.core.objects import InstallationSetMode
 
 from utils import EnvironmentFixtureMixin, FileFixtureMixin
 
@@ -101,7 +100,7 @@ class ModeTestCaseMixin(EnvironmentFixtureMixin, FileFixtureMixin):
     def test_can_load_from_file(self):
         # dumping
         pkg_fn = self.create_file(b'')
-        pkg = Package(InstallationSetMode.Single)
+        pkg = Package()
 
         pkg.objects.create(self.default_options)
         pkg.objects.create(self.full_options)
@@ -125,7 +124,7 @@ class ModeTestCaseMixin(EnvironmentFixtureMixin, FileFixtureMixin):
             'supported-hardware': 'any',
             'objects': [objects_metadata]
         }
-        pkg = Package.from_metadata(metadata)
+        pkg = Package(dump=metadata)
         observed = [obj.to_metadata() for obj in pkg.objects.all()]
         self.assertEqual(observed, objects_metadata)
 
