@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0
 
 from uhu.core.package import Package
+from uhu.core.utils import dump_package
 from uhu.repl.repl import UHURepl
 from uhu.utils import LOCAL_CONFIG_VAR
 
@@ -14,7 +15,7 @@ class UHUReplTestCase(EnvironmentFixtureMixin, FileFixtureMixin, UHUTestCase):
         pkg_fn = self.create_file(b'')
         self.set_env_var(LOCAL_CONFIG_VAR, pkg_fn)
         pkg = Package(version='2.0')
-        pkg.dump(pkg_fn)
+        dump_package(pkg.to_template(), pkg_fn)
         repl = UHURepl()
         self.assertEqual(repl.package.version, '2.0')
 
@@ -26,7 +27,7 @@ class UHUReplTestCase(EnvironmentFixtureMixin, FileFixtureMixin, UHUTestCase):
     def test_can_create_repl_with_custom_package_file(self):
         pkg_fn = self.create_file(b'')
         pkg = Package(version='2.0')
-        pkg.dump(pkg_fn)
+        dump_package(pkg.to_template(), pkg_fn)
         repl = UHURepl(pkg_fn)
         self.assertEqual(repl.package.version, '2.0')
 

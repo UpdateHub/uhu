@@ -13,6 +13,7 @@ from prompt_toolkit.contrib.regular_languages import compiler
 from .. import get_version
 from ..config import config, AUTH_SECTION
 from ..core.package import Package
+from ..core.utils import dump_package, load_package
 from ..utils import get_local_config_file
 
 from . import functions
@@ -65,14 +66,6 @@ GRAMMAR = compiler.compile(r'''
 ''')
 
 
-def load_package(fn):
-    try:
-        return Package.from_file(fn)
-    except ValueError as err:
-        print('Error: Invalid configuration file: {}'.format(err))
-        sys.exit(1)
-
-
 class UHURepl:
     """The main class for UpdateHub REPL."""
 
@@ -103,9 +96,9 @@ class UHURepl:
         self.local_config = get_local_config_file()
 
         if package_fn is not None:
-            self.package = load_package(package_fn)
+            self.package = self.load_package(package_fn)
         elif os.path.exists(self.local_config):
-            self.package = load_package(self.local_config)
+            self.package = self.load_package(self.local_config)
         else:
             self.package = Package()
 
@@ -116,6 +109,14 @@ class UHURepl:
 
         self.arg = None
         self.history = InMemoryHistory()
+
+    @staticmethod
+    def load_package(fn):
+        try:
+            return load_package(fn)
+        except ValueError as err:
+            print('Error: Invalid configuration file: {}'.format(err))
+            sys.exit(1)
 
     def repl(self):
         """Starts a new interactive prompt."""
@@ -177,7 +178,7 @@ class UHURepl:
         except Exception as err:  # pylint: disable=broad-except
             print('\033[91mError:\033[0m {}'.format(err))
         else:  # save package in every successful command
-            self.package.dump(self.local_config)
+            dump_package(self.package.to_template(), self.local_config)
 
 
 def repl(package):

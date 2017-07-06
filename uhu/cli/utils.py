@@ -5,6 +5,7 @@ import sys
 from contextlib import contextmanager
 
 from ..core.package import Package
+from ..core.utils import dump_package, load_package
 from ..utils import get_local_config_file
 
 
@@ -17,7 +18,7 @@ def open_package(read_only=False):
     """
     pkg_file = get_local_config_file()
     try:
-        package = Package.from_file(pkg_file)
+        package = load_package(pkg_file)
     except FileNotFoundError:
         package = Package()
     except ValueError as err:
@@ -25,7 +26,7 @@ def open_package(read_only=False):
         sys.exit(1)
     yield package
     if not read_only:
-        package.dump(pkg_file)
+        dump_package(package.to_template(), pkg_file)
 
 
 def error(code, msg):

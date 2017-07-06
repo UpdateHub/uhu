@@ -5,6 +5,7 @@ import json
 import os
 
 from uhu.core.package import Package
+from uhu.core.utils import dump_package
 
 from . import PackageTestCase
 
@@ -56,7 +57,7 @@ class PackageSerializationsTestCase(PackageTestCase):
         obj = pkg.objects.get(index=index, installation_set=0)
         expected_obj_dump = obj.to_template()
         self.assertFalse(os.path.exists(dest))
-        pkg.dump(dest)
+        dump_package(pkg.to_template(), dest)
         self.assertTrue(os.path.exists(dest))
         with open(dest) as fp:
             data = fp.read()
@@ -72,7 +73,7 @@ class PackageSerializationsTestCase(PackageTestCase):
         dest = '/tmp/uhu-dump.json'
         self.addCleanup(self.remove_file, dest)
         pkg = Package(product=self.product, version=self.version)
-        pkg.export(dest)
+        dump_package(pkg.to_template(with_version=False), dest)
         with open(dest) as fp:
             exported = json.load(fp)
         self.assertIsNone(exported.get('version'))

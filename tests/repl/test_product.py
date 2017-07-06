@@ -6,6 +6,7 @@ import tempfile
 import unittest
 
 from uhu.core.package import Package
+from uhu.core.utils import dump_package
 from uhu.repl.repl import UHURepl
 from uhu.repl import functions
 
@@ -32,7 +33,7 @@ class ProductTestCase(unittest.TestCase):
         _, fn = tempfile.mkstemp()
         self.addCleanup(os.remove, fn)
         pkg = Package(product='123456789')
-        pkg.dump(fn)
+        dump_package(pkg.to_template(), fn)
         self.repl = UHURepl(fn)
         self.assertEqual(self.repl.prompt, '[123456] uhu> ')
 

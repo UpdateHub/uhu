@@ -4,6 +4,7 @@
 
 from ..config import config
 from ..core.package import Package
+from ..core.utils import dump_package
 from ..ui import get_callback
 
 from . import helpers
@@ -45,7 +46,7 @@ def show_package(ctx):
 def save_package(ctx):
     """Save a local package file based in current package."""
     helpers.check_arg(ctx, 'You need to pass a filename')
-    ctx.package.dump(ctx.arg)
+    dump_package(ctx.package.to_template(), ctx.arg)
 
 
 # Objects
@@ -107,7 +108,7 @@ def pull_package(ctx):
     if full:
         package.download_objects(uid)
     ctx.package = package
-    ctx.package.dump(ctx.local_config)
+    dump_package(package.to_template(), ctx.local_config)
 
 
 def get_package_status(ctx):

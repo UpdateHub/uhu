@@ -5,6 +5,7 @@ import json
 import os
 
 from uhu.core.package import Package
+from uhu.core.utils import load_package, dump_package
 
 from . import PackageTestCase
 
@@ -44,7 +45,7 @@ class PackageConstructorsTestCase(PackageTestCase):
                 ]
             ]
         }))
-        pkg = Package.from_file(fn)
+        pkg = load_package(fn)
         self.assertEqual(pkg.version, self.version)
         self.assertEqual(pkg.product, self.product)
         self.assertEqual(pkg.supported_hardware.all(), self.supported_hardware)
@@ -118,9 +119,8 @@ class PackageConstructorsTestCase(PackageTestCase):
             'target': '/'
         })
         expected = pkg.to_template(), pkg.to_metadata()
-
-        pkg.dump(pkg_fn)
-        pkg = Package.from_file(pkg_fn)
+        dump_package(pkg.to_template(), pkg_fn)
+        pkg = load_package(pkg_fn)
         observed = pkg.to_template(), pkg.to_metadata()
         self.assertEqual(observed, expected)
 

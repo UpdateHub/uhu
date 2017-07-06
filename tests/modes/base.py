@@ -8,6 +8,7 @@ from pkgschema import validate_schema
 
 from uhu.core.object import Object, Modes
 from uhu.core.package import Package
+from uhu.core.utils import dump_package, load_package
 
 from utils import EnvironmentFixtureMixin, FileFixtureMixin
 
@@ -106,10 +107,10 @@ class ModeTestCaseMixin(EnvironmentFixtureMixin, FileFixtureMixin):
         pkg.objects.create(self.full_options)
         expected = [(obj.to_template(), obj.to_metadata())
                     for obj in pkg.objects.all()]
-        pkg.dump(pkg_fn)
+        dump_package(pkg.to_template(), pkg_fn)
 
         # loading
-        pkg = Package.from_file(pkg_fn)
+        pkg = load_package(pkg_fn)
         observed = [(obj.to_template(), obj.to_metadata())
                     for obj in pkg.objects.all()]
         self.assertEqual(observed, expected)

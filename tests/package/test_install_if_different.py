@@ -4,6 +4,7 @@
 import json
 
 from uhu.core.package import Package
+from uhu.core.utils import load_package
 
 from . import PackageTestCase
 
@@ -124,7 +125,7 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
         }
 
     def test_can_load_from_file_always_object(self):
-        pkg = Package.from_file(self.fn)
+        pkg = load_package(self.fn)
         obj = pkg.objects.get(index=0, installation_set=0)
         self.assertEqual(obj.filename, __file__)
         self.assertEqual(obj.mode, 'raw')
@@ -132,7 +133,7 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
         self.assertEqual(obj['install-condition'], 'always')
 
     def test_can_load_from_file_content_diverges_object(self):
-        pkg = Package.from_file(self.fn)
+        pkg = load_package(self.fn)
         obj = pkg.objects.get(index=1, installation_set=0)
         self.assertEqual(obj.filename, __file__)
         self.assertEqual(obj.mode, 'raw')
@@ -140,7 +141,7 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
         self.assertEqual(obj['install-condition'], 'content-diverges')
 
     def test_can_load_from_file_known_version_diverges_object(self):
-        pkg = Package.from_file(self.fn)
+        pkg = load_package(self.fn)
         obj = pkg.objects.get(index=2, installation_set=0)
         self.assertEqual(obj.filename, __file__)
         self.assertEqual(obj.mode, 'raw')
@@ -149,7 +150,7 @@ class PackageWithInstallIfDifferentObjectsTestCase(PackageTestCase):
         self.assertEqual(obj['install-condition-pattern-type'], 'u-boot')
 
     def test_can_load_from_file_custom_version_diverges_object(self):
-        pkg = Package.from_file(self.fn)
+        pkg = load_package(self.fn)
         obj = pkg.objects.get(index=3, installation_set=0)
         self.assertEqual(obj.filename, __file__)
         self.assertEqual(obj.mode, 'raw')

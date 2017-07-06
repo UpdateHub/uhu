@@ -11,6 +11,7 @@ from pkgschema import validate_metadata, ValidationError
 
 from ..core.object import Modes
 from ..core.package import Package
+from ..core.utils import dump_package
 from ..exceptions import DownloadError, UploadError
 from ..ui import get_callback
 from ..utils import get_local_config_file
@@ -44,7 +45,7 @@ def show_command():
 def export_command(filename):
     """Copy package file to the given filename."""
     with open_package() as package:
-        package.export(filename)
+        dump_package(package.to_template(with_version=False), filename)
 
 
 # Object commands
@@ -143,7 +144,7 @@ def pull_command(package_uid, metadata, objects, output):
         if metadata:
             with open('metadata.json', 'w') as fp:
                 json.dump(pkg_metadata, fp, indent=4, sort_keys=True)
-        package.dump(pkg_file)
+        dump_package(package.to_template(), pkg_file)
     except DownloadError as err:
         error(2, err)
 

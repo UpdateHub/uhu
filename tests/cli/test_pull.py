@@ -8,6 +8,7 @@ import tempfile
 from click.testing import CliRunner
 
 from uhu.cli.package import pull_command
+from uhu.core.utils import dump_package
 from uhu.utils import SERVER_URL_VAR
 
 from utils import BasePullTestCase
@@ -47,7 +48,7 @@ class PullCommandTestCase(BasePullTestCase):
         self.assertTrue(os.path.exists('metadata.json'))
 
     def test_pull_command_returns_1_if_dot_uhu_exists(self):
-        self.package.dump(self.pkg_fn)
+        dump_package(self.package.to_template(), self.pkg_fn)
         result = self.runner.invoke(pull_command, args=[self.pkg_uid])
         self.assertEqual(result.exit_code, 1)
 

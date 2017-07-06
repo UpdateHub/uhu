@@ -3,7 +3,6 @@
 
 import hashlib
 import json
-from collections import OrderedDict
 
 import requests
 from pkgschema import validate_metadata
@@ -18,13 +17,6 @@ from .upload import ObjectUploadResult
 
 
 MODES = ['single', 'active-inactive']
-
-
-def write_json(obj, fn):
-    """Saves an obj as JSON into fn in an opnionated way."""
-    with open(fn, 'w') as fp:
-        json.dump(obj, fp, indent=4, sort_keys=True)
-        fp.write('\n')
 
 
 class Package:
@@ -43,13 +35,6 @@ class Package:
             self.supported_hardware = SupportedHardwareManager(dump=dump)
         self.uid = None
 
-    @classmethod
-    def from_file(cls, fn):
-        """Creates a package from a dumped package."""
-        with open(fn) as fp:
-            dump = json.load(fp, object_pairs_hook=OrderedDict)
-        return cls(dump=dump)
-
     def to_metadata(self):
         """Serialize package as metadata."""
         metadata = {
@@ -60,25 +45,13 @@ class Package:
         metadata.update(self.supported_hardware.to_metadata())
         return metadata
 
-    def to_template(self):
+    def to_template(self, with_version=True):
         """Serialize package to dump to a file."""
-        template = {
-            'version': self.version,
-            'product': self.product,
-        }
+        template = {'product': self.product}
+        template['version'] = self.version if with_version else None
         template.update(self.objects.to_template())
         template.update(self.supported_hardware.to_template())
         return template
-
-    def export(self, dest):
-        """Writes package template in dest file (without version)."""
-        template = self.to_template()
-        template['version'] = None
-        write_json(template, dest)
-
-    def dump(self, dest):
-        """Writes package template in dest file (with version)."""
-        write_json(self.to_template(), dest)
 
     def upload_metadata(self):
         metadata = self.to_metadata()
