@@ -3,7 +3,7 @@
 
 from copy import deepcopy
 
-from ._base import Modes
+from ._object import Modes
 
 
 class Object:
