@@ -4,9 +4,10 @@
 import unittest
 
 from uhu.core._options import (
-    Options, BaseOption, IntegerOption, AbsolutePathOption, BooleanOption,
-    StringOption)
-from uhu.core.options import FormatOptionsOption
+    Options, BaseOption, IntegerOption,
+    AbsolutePathOption, BooleanOption, StringOption)
+from uhu.core.options import (
+    FormatOptionsOption, TargetTypeOption, VolumeOption)
 
 
 class OptionsTestCase(unittest.TestCase):
@@ -153,3 +154,22 @@ class StringOptionTestCase(unittest.TestCase):
             self.assertEqual(StringOption.validate(value), value)
         with self.assertRaises(ValueError):
             StringOption.validate('123456')
+
+
+class TargetTypeTestCase(unittest.TestCase):
+
+    def test_can_get_choices_when_there_are_choices(self):
+        class Mode:
+            target_types = [1, 2, 3]
+        self.assertEqual(TargetTypeOption.get_choices(Mode), [1, 2, 3])
+
+    def test_can_get_choices_when_choices_are_empty(self):
+        self.assertEqual(
+            TargetTypeOption.get_choices(None), TargetTypeOption.choices)
+
+
+class VolumeOptionTestCase(unittest.TestCase):
+
+    def test_humanize_returns_value_unchangend(self):
+        observed = VolumeOption.humanize('spam')
+        self.assertEqual(observed, 'spam')

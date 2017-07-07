@@ -47,6 +47,9 @@ class InstallationSet:
     def to_template(self):
         return [obj.to_template() for obj in self]
 
+    def __eq__(self, other):
+        return self.to_metadata() == other.to_metadata()
+
     def __iter__(self):
         return iter(self.objects)
 

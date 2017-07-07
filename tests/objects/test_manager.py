@@ -31,6 +31,27 @@ class ObjectsManagerTestCase(unittest.TestCase):
         manager = ObjectsManager(sets)
         self.assertEqual(len(manager), sets)
 
+    def test_can_only_create_manager_with_one_or_two_sets(self):
+        for n_sets in [-1, 0, 3, 4]:
+            with self.assertRaises(ValueError):
+                ObjectsManager(n_sets)
+
+    @verify_all_modes
+    def test_can_create_manager_from_dump(self, sets):
+        dump = {ObjectsManager.metadata: [[self.options] for _ in range(sets)]}
+        manager = ObjectsManager(dump=dump)
+        self.assertEqual(len(manager), sets)
+        for set_ in manager:
+            self.assertEqual(set_, InstallationSet([self.options]))
+
+    def test_create_from_dump_raises_error_if_missing_objects(self):
+        with self.assertRaises(ValueError):
+            ObjectsManager(dump={})
+
+    def test_create_from_dump_raises_error_if_invalid_type(self):
+        with self.assertRaises(TypeError):
+            ObjectsManager(dump={ObjectsManager.metadata: 1})
+
     @verify_all_modes
     def test_installation_set_as_metadata(self, sets):
         manager = ObjectsManager(sets)
@@ -62,6 +83,10 @@ class ObjectsManagerTestCase(unittest.TestCase):
         with open(fn) as fp:
             expected = fp.read().strip()
         self.assertEqual(str(manager), expected)
+
+    def test_installation_set_manager_as_string_when_empty(self):
+        manager = ObjectsManager()
+        self.assertEqual(str(manager), 'Objects: None')
 
     def test_is_single_returns_True_when_single(self):
         manager = ObjectsManager(1)
