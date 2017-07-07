@@ -154,6 +154,9 @@ class ObjectsManager:
         objects = [installation_set.to_template() for installation_set in self]
         return {self.metadata: objects}
 
+    def __eq__(self, other):
+        return self.to_metadata() == other.to_metadata()
+
     def __getitem__(self, index):
         """Returns an installation set."""
         try:

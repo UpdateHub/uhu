@@ -194,3 +194,13 @@ class ObjectsManagerTestCase(unittest.TestCase):
         expected = [set_.get(index) for set_ in manager]
         observed = manager.all()
         self.assertEqual(observed, expected)
+
+    @verify_all_modes
+    def test_can_compare_managers(self, sets):
+        manager1 = ObjectsManager()
+        manager2 = ObjectsManager()
+        self.assertEqual(manager1, manager2)
+        manager1.create(self.options)
+        self.assertNotEqual(manager1, manager2)
+        manager2.create(self.options)
+        self.assertEqual(manager1, manager2)
