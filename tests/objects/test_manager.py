@@ -60,7 +60,8 @@ class ObjectsManagerTestCase(unittest.TestCase):
         name = 'single' if sets == 1 else 'activeinactive'
         fn = '{}-mode.txt'.format(name)
         with open(fn) as fp:
-            self.assertEqual(str(manager), fp.read())
+            expected = fp.read().strip()
+        self.assertEqual(str(manager), expected)
 
     def test_is_single_returns_True_when_single(self):
         manager = ObjectsManager(1)

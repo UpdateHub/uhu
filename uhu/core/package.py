@@ -80,14 +80,11 @@ class Package:
                 raise UploadError(err)
 
     def finish_push(self, callback=None):
-        response = Request(self.get_finish_push_url(), 'PUT').send()
+        url = get_server_url('/packages/{}/finish'.format(self.uid))
+        response = Request(url, 'PUT').send()
         if response.status_code != 204:
-            error_msg = 'Push failed\n{}'
-            raise UploadError(error_msg.format(response.text))
+            raise UploadError('Push failed\n{}'.format(response.text))
         call(callback, 'push_finish', self.uid)
-
-    def get_finish_push_url(self):
-        return get_server_url('/packages/{}/finish'.format(self.uid))
 
     def push(self, callback=None):
         self.upload_metadata()

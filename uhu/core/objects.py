@@ -175,9 +175,9 @@ class ObjectsManager:
     def __str__(self):
         if not self.all():
             return 'Objects: None'
-        string = []
-        string.append('Objects:\n')
+        string = ['Objects:']
         for index, installation_set in enumerate(self):
-            string.append('    {}# {}\n'.format(
+            string.append('')
+            string.append('    {}# {}'.format(
                 index, indent(str(installation_set), 4)))
         return '\n'.join(string)

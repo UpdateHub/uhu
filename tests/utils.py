@@ -66,10 +66,13 @@ class FileFixtureMixin:
         super().__init__(*args, **kwargs)
         self._files = []
 
-    def create_file(self, content=None):
-        if not isinstance(content, bytes):
+    def create_file(self, content='', name=None):
+        if isinstance(content, str):
             content = content.encode()
-        _, fn = tempfile.mkstemp()
+        _, fn = tempfile.mkstemp(prefix='updatehub_')
+        if name is not None:
+            shutil.move(fn, name)
+            fn = name
         self._files.append(fn)
         with open(fn, 'bw') as fp:
             fp.write(content)
@@ -80,6 +83,10 @@ class FileFixtureMixin:
             os.remove(fn)
         except FileNotFoundError:
             pass  # already deleted
+
+    def read_file(self, fn):
+        with open(fn) as fp:
+            return fp.read().strip()
 
     def sha256sum(self, data):
         return hashlib.sha256(data).hexdigest()
