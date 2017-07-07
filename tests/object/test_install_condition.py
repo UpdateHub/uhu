@@ -7,6 +7,8 @@ import tempfile
 import unittest
 
 from uhu.core import install_condition as ic
+from uhu.core.install_condition import (
+    normalize_install_if_different, KNOWN_PATTERNS)
 from uhu.core.object import Object
 
 from utils import FileFixtureMixin, UHUTestCase
@@ -87,25 +89,25 @@ class KernelVersionTestCase(unittest.TestCase):
         expected = '4.4.1'
         with open(self.get_kernel_fixture('arm-zImage'), 'br') as fp:
             observed = ic.get_arm_z_image_version(fp)
-        self.assertEqual(expected, observed)
+            self.assertEqual(expected, observed)
 
     def test_can_get_arm_uImage_version(self):
         expected = '4.1.15-1.2.0+g274a055'
         with open(self.get_kernel_fixture('arm-uImage'), 'br') as fp:
             observed = ic.get_arm_u_image_version(fp)
-        self.assertEqual(expected, observed)
+            self.assertEqual(expected, observed)
 
     def test_can_get_x86_bzImage_version(self):
         expected = '4.1.30-1-MANJARO'
         with open(self.get_kernel_fixture('x86-bzImage'), 'br') as fp:
             observed = ic.get_x86_bz_image_version(fp)
-        self.assertEqual(expected, observed)
+            self.assertEqual(expected, observed)
 
     def test_can_get_x86_zImage_version(self):
         expected = '4.1.30-1-MANJARO'
         with open(self.get_kernel_fixture('x86-zImage'), 'br') as fp:
             observed = ic.get_x86_z_image_version(fp)
-        self.assertEqual(expected, observed)
+            self.assertEqual(expected, observed)
 
 
 class UBootVersionTestCase(unittest.TestCase):
@@ -116,7 +118,7 @@ class UBootVersionTestCase(unittest.TestCase):
         expected = '13.08.1988'
         with open(fn, 'br') as fp:
             observed = ic.get_uboot_version(fp)
-        self.assertEqual(observed, expected)
+            self.assertEqual(observed, expected)
 
     def test_get_uboot_version_raises_error_if_cant_find_version(self):
         with tempfile.TemporaryFile() as fp:
@@ -358,8 +360,8 @@ class KnownVersionPatternObjectIntegrationTestCase(unittest.TestCase):
             with open(image, 'rb') as fp:
                 sha256sum = hashlib.sha256(fp.read()).hexdigest()
                 self.metadata['sha256sum'] = sha256sum
-            obj = Object(self.options)
-            self.assertEqual(obj.to_metadata(), self.metadata)
+                obj = Object(self.options)
+                self.assertEqual(obj.to_metadata(), self.metadata)
 
     def test_can_represent_u_boot_object_as_metadata(self):
         fn = create_u_boot_file()
@@ -372,8 +374,8 @@ class KnownVersionPatternObjectIntegrationTestCase(unittest.TestCase):
         with open(fn, 'rb') as fp:
             sha256sum = hashlib.sha256(fp.read()).hexdigest()
             self.metadata['sha256sum'] = sha256sum
-        obj = Object(self.options)
-        self.assertEqual(obj.to_metadata(), self.metadata)
+            obj = Object(self.options)
+            self.assertEqual(obj.to_metadata(), self.metadata)
 
 
 class CustomVersionPatternObjectIntegrationTestCase(
@@ -525,3 +527,64 @@ class InstallConditionRepresentationTestCase(unittest.TestCase):
         })
         expected = self.get_fixture('install_condition_ubifs.txt')
         self.assertEqual(str(obj), expected)
+
+
+class InstallIfDifferentNormalizationTestCase(unittest.TestCase):
+
+    def make_iid(self, iid):
+        return {'install-if-different': iid}
+
+    def test_can_convert_when_iid_is_None(self):
+        observed = normalize_install_if_different({})
+        self.assertEqual(observed, {})
+
+    def test_can_convert_when_iid_is_sha256sum(self):
+        observed = normalize_install_if_different(self.make_iid('sha256sum'))
+        self.assertEqual(observed, {
+            'install-condition': 'content-diverges',
+        })
+
+    def test_normalizer_raises_error_if_not_object_or_sha256sum(self):
+        with self.assertRaises(TypeError):
+            normalize_install_if_different(self.make_iid(42))
+
+    def test_normalizer_raises_error_if_missing_version(self):
+        with self.assertRaises(ValueError):
+            normalize_install_if_different(self.make_iid({}))
+
+    def test_can_convert_when_known_pattern(self):
+        for pattern in KNOWN_PATTERNS:
+            observed = normalize_install_if_different(self.make_iid({
+                'version': '2.0',
+                'pattern': pattern,
+            }))
+            self.assertEqual(observed, {
+                'install-condition': 'version-diverges',
+                'install-condition-version': '2.0',
+                'install-condition-pattern-type': pattern,
+            })
+
+    def test_can_convert_when_custom_pattern(self):
+        observed = normalize_install_if_different(self.make_iid({
+            'version': '2.0',
+            'pattern': {
+                'regexp': 'spam',
+                'seek': 42,
+                'buffer-size': 42
+            },
+        }))
+        self.assertEqual(observed, {
+            'install-condition': 'version-diverges',
+            'install-condition-version': '2.0',
+            'install-condition-seek': 42,
+            'install-condition-buffer-size': 42,
+            'install-condition-pattern-type': 'regexp',
+            'install-condition-pattern': 'spam',
+        })
+
+    def test_raises_error_if_missing_regexp(self):
+        with self.assertRaises(ValueError):
+            normalize_install_if_different(self.make_iid({
+                'version': '2.0',
+                'pattern': {},
+            }))
