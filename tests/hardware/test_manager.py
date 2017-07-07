@@ -7,7 +7,7 @@ from uhu.core.hardware import (
     SupportedHardwareManager, ANY, SUPPORTED_HARDWARE_ERROR)
 
 
-class SupportedHardwareConstructors(unittest.TestCase):
+class SupportedHardwareTestCase(unittest.TestCase):
 
     def test_can_construct_from_dump_when_any(self):
         manager = SupportedHardwareManager(dump={
@@ -33,6 +33,15 @@ class SupportedHardwareConstructors(unittest.TestCase):
         for dump in invalid_dumps:
             with self.assertRaises(ValueError, msg=SUPPORTED_HARDWARE_ERROR):
                 SupportedHardwareManager(dump=dump)
+
+    def test_can_compare_managers(self):
+        manager1 = SupportedHardwareManager()
+        manager2 = SupportedHardwareManager()
+        self.assertEqual(manager1, manager2)
+        manager1.add('hardware')
+        self.assertNotEqual(manager1, manager2)
+        manager2.add('hardware')
+        self.assertEqual(manager1, manager2)
 
 
 class SupportedHardwareSerialization(unittest.TestCase):

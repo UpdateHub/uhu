@@ -60,6 +60,9 @@ class SupportedHardwareManager:
         """Serializes supported hardware as template."""
         return self.to_metadata()
 
+    def __eq__(self, other):
+        return self.to_metadata() == other.to_metadata()
+
     def __iter__(self):
         return iter(self.all())
 
