@@ -3,11 +3,16 @@
 
 import json
 import os
+import tarfile
+from unittest.mock import patch
+
+from pkgschema import ValidationError
 
 from uhu.core.hardware import SupportedHardwareManager
 from uhu.core.objects import ObjectsManager
 from uhu.core.package import Package
-from uhu.core.utils import dump_package, load_package
+from uhu.core.utils import dump_package, load_package, dump_package_archive
+from uhu.utils import get_local_config_file
 
 from . import PackageTestCase
 
@@ -25,6 +30,16 @@ class PackageSerializationTestCase(PackageTestCase):
         objs = ObjectsManager()
         objs.create(self.obj_options)
         return pkg, hw, objs
+
+    def verify_archive(self, dest):
+        self.assertTrue(os.path.exists(dest))
+        self.assertTrue(tarfile.is_tarfile(dest))
+
+        with tarfile.open(dest) as tar:
+            self.assertEqual(len(tar.getmembers()), 2)
+            files = tar.getnames()
+        self.assertIn('metadata', files)
+        self.assertIn(self.obj_sha256, files)
 
     def test_can_serialize_package_as_metadata(self):
         pkg, hw, objs = self.create_package()
@@ -92,3 +107,45 @@ class PackageSerializationTestCase(PackageTestCase):
         expected = self.read_file('package_string_empty.txt')
         pkg = Package()
         self.assertEqual(str(pkg), expected)
+
+    def test_can_archive_package(self):
+        pkg = self.create_package()[0]
+        expected = '{}-{}.uhupkg'.format(self.product, self.version)
+        self.addCleanup(os.remove, expected)
+        observed = dump_package_archive(pkg)
+        self.assertEqual(expected, observed)
+        self.verify_archive(observed)
+
+    def test_cannot_archive_package_when_output_exists(self):
+        pkg = self.create_package()[0]
+        output = self.create_file()
+        self.assertTrue(os.path.exists(output))
+        with self.assertRaises(FileExistsError):
+            dump_package_archive(pkg, output)
+
+    def test_can_archive_package_when_output_exists_and_force(self):
+        pkg = self.create_package()[0]
+        output = self.create_file()
+        self.assertTrue(os.path.exists(output))
+        dump_package_archive(pkg, output, force=True)
+        self.verify_archive(output)
+
+    def test_cannot_archive_package_when_package_misses_info(self):
+        invalid_packages = [
+            Package(product='1'),  # without version
+            Package(version='1'),  # without product UID
+            Package(version='1', product='1'),  # without objects
+        ]
+        output = self.create_file()
+        os.remove(output)
+        for pkg in invalid_packages:
+            with self.assertRaises(ValueError):
+                dump_package_archive(pkg, output)
+
+    @patch('uhu.core.utils.pkgschema.validate_metadata',
+           side_effect=ValidationError(None))
+    def test_cannot_archive_package_when_metadata_is_invalid(self, mock):
+        pkg = self.create_package()[0]
+        output = self.create_file()
+        with self.assertRaises(ValueError):
+            dump_package_archive(pkg, output, force=True)
