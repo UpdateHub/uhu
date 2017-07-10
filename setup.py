@@ -20,7 +20,7 @@ setup(
         'humanize>=0.5.1',
         'progress>=1.1',
         'prompt-toolkit>=0.57',
-        'updatehub-package-schema',
+        'updatehub-package-schema>=1.0.0a3',
         'requests>=2',
         'rfc3987>=1.3',
     ],
