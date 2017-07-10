@@ -38,16 +38,16 @@ class BaseCallback:
         print('Finished! Your package UID is {}'.format(uid))
 
     def object_read_load_callback(self):
-        pass
+        """Must be called when reading object during loading process."""
 
     def object_read_upload_callback(self):
-        pass
+        """Must be called when reading object during upload process."""
 
     def start_package_upload_callback(self):
-        pass
+        """Must be called when starting package upload process."""
 
     def finish_package_upload_callback(self):
-        pass
+        """Must be called when finished package upload process."""
 
 
 class TTYCallback(BaseCallback):
