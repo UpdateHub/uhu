@@ -75,7 +75,7 @@ class TTYCallback(BaseCallback):
         self.progress = Bar('Uploading objects:', max=self.max, suffix=suffix)
 
     def finish_package_upload_callback(self):
-        print('\033[1K\rUploading objects: ok\033[?25h')
+        print('\033[1K\rUploading objects: ok')
 
 
 class NoTTYCallback(BaseCallback):
@@ -113,3 +113,7 @@ def get_callback():
     if sys.stdout.isatty():
         return TTYCallback()
     return NoTTYCallback()
+
+
+def show_cursor():
+    print('\033[?25h', end='')

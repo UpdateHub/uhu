@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from ..core.package import Package
 from ..core.utils import dump_package, load_package
 from ..utils import get_local_config_file
+from ..ui import show_cursor
 
 
 @contextmanager
@@ -32,4 +33,5 @@ def open_package(read_only=False):
 def error(code, msg):
     """Terminates cli with an error code and message for the user."""
     print('Error: {}'.format(msg))
+    show_cursor()
     sys.exit(code)
