@@ -18,7 +18,11 @@ from .product import product_cli
     get_version(), message='UpdateHub Utils - %(version)s')
 @click.pass_context
 def cli(ctx, package):
-    """UpdateHub utility."""
+    """UpdateHub utility.
+
+    To push/pull packages, set USE_SERVER_URL environment variable to
+    UpdateHub API server address.
+    """
     if ctx.invoked_subcommand is None:
         repl(package)
 
