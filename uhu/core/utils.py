@@ -38,7 +38,8 @@ def dump_package_archive(package, output=None, force=False):
     metadata and all objects files.
 
     All objects are renamed to its hash and moved to the archive
-    root. Objects are included without duplication.
+    root. Objects are included without duplication and links are
+    resolved.
     """
     # Checks minimum package requirements
     if package.version is None:
@@ -70,5 +71,5 @@ def dump_package_archive(package, output=None, force=False):
                 if sha256sum in cache:
                     continue
                 cache.add(sha256sum)
-                tar.add(obj.filename, sha256sum)
+                tar.add(os.path.realpath(obj.filename), sha256sum)
     return output

@@ -38,8 +38,11 @@ class PackageSerializationTestCase(PackageTestCase):
         with tarfile.open(dest) as tar:
             self.assertEqual(len(tar.getmembers()), 2)
             files = tar.getnames()
+            member = tar.getmember(self.obj_sha256)
         self.assertIn('metadata', files)
         self.assertIn(self.obj_sha256, files)
+        self.assertFalse(member.islnk())
+        self.assertFalse(member.issym())
 
     def test_can_serialize_package_as_metadata(self):
         pkg, hw, objs = self.create_package()
@@ -114,6 +117,27 @@ class PackageSerializationTestCase(PackageTestCase):
         self.addCleanup(os.remove, expected)
         observed = dump_package_archive(pkg)
         self.assertEqual(expected, observed)
+        self.verify_archive(observed)
+
+    def test_dump_package_archive_does_not_archive_links(self):
+        pkg = Package(version=self.version, product=self.product)
+        expected = '{}-{}.uhupkg'.format(self.product, self.version)
+
+        hlink = 'updatehub_hlink'
+        self.addCleanup(os.remove, hlink)
+        self.obj_options['filename'] = hlink
+        os.symlink(self.obj_fn, hlink)
+        pkg.objects.create(self.obj_options)
+
+        slink = 'updatehub_slink'
+        self.addCleanup(os.remove, slink)
+        self.obj_options['filename'] = slink
+        os.link(self.obj_fn, slink)
+        pkg.objects.create(self.obj_options)
+
+        self.addCleanup(os.remove, expected)
+        observed = dump_package_archive(pkg)
+        self.assertEqual(len(pkg.objects.all()), 4)
         self.verify_archive(observed)
 
     def test_cannot_archive_package_when_output_exists(self):
