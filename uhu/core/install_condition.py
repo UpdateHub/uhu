@@ -5,11 +5,13 @@ import re
 import string
 import struct
 import zlib
+from copy import deepcopy
 
 
 # Utilities
 
 PRINTABLE = string.printable.encode()
+KNOWN_PATTERNS = ['linux-kernel', 'u-boot']
 
 
 def read(fp, seek, type_, buffer_size):
@@ -180,3 +182,50 @@ def get_version(fn, type_, **kwargs):
         elif type_ == 'regexp':
             kwargs = {k: v for k, v in kwargs.items() if v is not None}
             return get_object_version(fp, **kwargs)
+
+
+def normalize_install_if_different(values):
+    """Converts metadata install-if-different key to install-condition."""
+    values = deepcopy(values)
+    iid = values.pop('install-if-different', None)
+
+    # Without install-if-different
+    if iid is None:
+        return values
+
+    # Content diverges
+    if iid == 'sha256sum':
+        values.update({'install-condition': 'content-diverges'})
+        return values
+
+    if not isinstance(iid, dict):
+        raise TypeError('Cannot parse install if different.')
+
+    version = iid.get('version')
+    if version is None:
+        raise ValueError('Missing version in install-if-different property.')
+
+    # Known pattern
+    pattern = iid.get('pattern')
+    if pattern in KNOWN_PATTERNS:
+        values.update({
+            'install-condition': 'version-diverges',
+            'install-condition-version': version,
+            'install-condition-pattern-type': pattern,
+        })
+        return values
+
+    # Custom pattern
+    regexp = pattern.get('regexp')
+    if regexp is None:
+        raise ValueError('Missing regexp in install-if-different property.')
+    # TODO: validate seek and buffer-size
+    values.update({
+        'install-condition': 'version-diverges',
+        'install-condition-version': version,
+        'install-condition-pattern-type': 'regexp',
+        'install-condition-pattern': regexp,
+        'install-condition-seek': pattern.get('seek', 0),
+        'install-condition-buffer-size': pattern.get('buffer-size', -1),
+    })
+    return values

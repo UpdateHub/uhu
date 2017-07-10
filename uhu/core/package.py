@@ -3,7 +3,6 @@
 
 import hashlib
 import json
-from collections import OrderedDict
 
 import requests
 from pkgschema import validate_metadata
@@ -20,48 +19,21 @@ from .upload import ObjectUploadResult
 MODES = ['single', 'active-inactive']
 
 
-def write_json(obj, fn):
-    """Saves an obj as JSON into fn in an opnionated way."""
-    with open(fn, 'w') as fp:
-        json.dump(obj, fp, indent=4, sort_keys=True)
-        fp.write('\n')
-
-
 class Package:
     """A package represents a group of objects."""
 
-    def __init__(self, mode, version=None, product=None):
-        self.mode = mode
+    def __init__(self, version=None, product=None, dump=None):
+        if dump is None:
+            self.version = version
+            self.product = product
+            self.objects = ObjectsManager()
+            self.supported_hardware = SupportedHardwareManager()
+        else:
+            self.version = dump.get('version')  # TODO: validate it
+            self.product = dump.get('product')  # TODO: validate it
+            self.objects = ObjectsManager(dump=dump)
+            self.supported_hardware = SupportedHardwareManager(dump=dump)
         self.uid = None
-        self.version = version
-        self.product = product
-        self.objects = ObjectsManager(self.mode)
-        self.supported_hardware = SupportedHardwareManager()
-
-    @classmethod
-    def from_file(cls, fn):
-        """Creates a package from a dumped package."""
-        with open(fn) as fp:
-            dump = json.load(fp, object_pairs_hook=OrderedDict)
-        return cls._from_dump(dump, 'from_file')
-
-    @classmethod
-    def from_metadata(cls, metadata):
-        """Creates a package from a metadata object."""
-        return cls._from_dump(metadata, 'from_metadata')
-
-    @classmethod
-    def _from_dump(cls, dump, constructor):
-        objects_constructor = getattr(ObjectsManager, constructor)
-        objects = objects_constructor(dump)
-        package = Package(
-            mode=objects.mode,
-            version=dump.get('version'),
-            product=dump.get('product'))
-        package.objects = objects
-        hardware_constructor = getattr(SupportedHardwareManager, constructor)
-        package.supported_hardware = hardware_constructor(dump)
-        return package
 
     def to_metadata(self):
         """Serialize package as metadata."""
@@ -73,25 +45,13 @@ class Package:
         metadata.update(self.supported_hardware.to_metadata())
         return metadata
 
-    def to_template(self):
+    def to_template(self, with_version=True):
         """Serialize package to dump to a file."""
-        template = {
-            'version': self.version,
-            'product': self.product,
-        }
+        template = {'product': self.product}
+        template['version'] = self.version if with_version else None
         template.update(self.objects.to_template())
         template.update(self.supported_hardware.to_template())
         return template
-
-    def export(self, dest):
-        """Writes package template in dest file (without version)."""
-        template = self.to_template()
-        template['version'] = None
-        write_json(template, dest)
-
-    def dump(self, dest):
-        """Writes package template in dest file (with version)."""
-        write_json(self.to_template(), dest)
 
     def upload_metadata(self):
         metadata = self.to_metadata()
@@ -120,14 +80,11 @@ class Package:
                 raise UploadError(err)
 
     def finish_push(self, callback=None):
-        response = Request(self.get_finish_push_url(), 'PUT').send()
+        url = get_server_url('/packages/{}/finish'.format(self.uid))
+        response = Request(url, 'PUT').send()
         if response.status_code != 204:
-            error_msg = 'Push failed\n{}'
-            raise UploadError(error_msg.format(response.text))
+            raise UploadError('Push failed\n{}'.format(response.text))
         call(callback, 'push_finish', self.uid)
-
-    def get_finish_push_url(self):
-        return get_server_url('/packages/{}/finish'.format(self.uid))
 
     def push(self, callback=None):
         self.upload_metadata()

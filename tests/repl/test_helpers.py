@@ -4,7 +4,7 @@
 import unittest
 from unittest.mock import patch
 
-from uhu.core.objects import InstallationSetMode
+from uhu.core.objects import ObjectsManager
 from uhu.core.object import Object
 from uhu.core._options import StringOption
 from uhu.core.package import Package
@@ -91,8 +91,7 @@ class PromptsTestCase(unittest.TestCase):
             'chunk-size': 1000,
             'install-condition': 'always',
         }
-        pkg_mode = InstallationSetMode.ActiveInactive
-        observed = helpers.prompt_object_options(pkg_mode, 'raw')
+        observed = helpers.prompt_object_options(2, 'raw')
         self.assertEqual(expected, observed)
 
     @patch('uhu.repl.helpers.prompt')
@@ -120,8 +119,7 @@ class PromptsTestCase(unittest.TestCase):
             'chunk-size': 131072,
             'install-condition': 'always',
         }
-        pkg_mode = InstallationSetMode.ActiveInactive
-        observed = helpers.prompt_object_options(pkg_mode, 'raw')
+        observed = helpers.prompt_object_options(2, 'raw')
         self.assertEqual(expected, observed)
 
     @patch('uhu.repl.helpers.prompt')
@@ -134,7 +132,7 @@ class PromptsTestCase(unittest.TestCase):
     @patch('uhu.repl.helpers.prompt')
     def test_can_prompt_object_uid(self, prompt):
         prompt.return_value = '1# {}'.format(__file__)
-        pkg = Package(InstallationSetMode.ActiveInactive)
+        pkg = Package()
         pkg.objects.create(self.options)
         expected = 1
         observed = helpers.prompt_object_uid(pkg, 0)
@@ -186,13 +184,14 @@ class PromptsTestCase(unittest.TestCase):
 
     @patch('uhu.repl.helpers.prompt')
     def test_prompt_installation_set_returns_None_if_single(self, prompt):
-        pkg = Package(InstallationSetMode.Single)
+        pkg = Package()
+        pkg.objects = ObjectsManager(1)
         observed = helpers.prompt_installation_set(pkg)
         self.assertIsNone(observed)
 
     @patch('uhu.repl.helpers.prompt')
     def test_prompt_installation_set_returns_int_if_not_single(self, prompt):
-        pkg = Package(InstallationSetMode.ActiveInactive)
+        pkg = Package()
         helpers.prompt.return_value = '1'
         observed = helpers.prompt_installation_set(self.repl.package)
         self.assertEqual(observed, 1)

@@ -5,7 +5,7 @@ import hashlib
 import os
 import unittest
 
-from uhu.core._base import BaseObject
+from uhu.core._object import BaseObject
 from uhu.core._options import BooleanOption
 from uhu.core.modes import CopyObject
 

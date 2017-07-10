@@ -1,15 +1,10 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # SPDX-License-Identifier: GPL-2.0
 
-from enum import Enum, unique
-
 from .object import Object
 from ._options import Options
 
 from ..utils import call, indent
-
-
-OBJECTS_ERROR = 'Cannot parse objects'
 
 
 class InstallationSet:
@@ -18,23 +13,9 @@ class InstallationSet:
     Represents a list of Object instances.
     """
 
-    def __init__(self):
-        self.objects = []
-
-    @classmethod
-    def from_file(cls, dump):
-        return cls._from_dump(dump, 'from_file')
-
-    @classmethod
-    def from_metadata(cls, metadata):
-        return cls._from_dump(metadata, 'from_metadata')
-
-    @classmethod
-    def _from_dump(cls, dump, constructor):
-        installation_set = cls()
-        obj_constructor = getattr(Object, constructor)
-        installation_set.objects = [obj_constructor(obj) for obj in dump]
-        return installation_set
+    def __init__(self, objects=None):
+        objects = [] if objects is None else [Object(obj) for obj in objects]
+        self.objects = objects
 
     def create(self, options):
         """Adds an object into set, returns its index."""
@@ -66,6 +47,9 @@ class InstallationSet:
     def to_template(self):
         return [obj.to_template() for obj in self]
 
+    def __eq__(self, other):
+        return self.to_metadata() == other.to_metadata()
+
     def __iter__(self):
         return iter(self.objects)
 
@@ -80,18 +64,6 @@ class InstallationSet:
         return '\n'.join(string)
 
 
-@unique
-class InstallationSetMode(Enum):
-    Single = 1
-    ActiveInactive = 2
-
-    @classmethod
-    def from_objects(cls, objects):
-        if not objects:
-            raise ValueError('There are no objects in this set.')
-        return InstallationSetMode(len(objects))
-
-
 class ObjectsManager:
     """High level package objects manager.
 
@@ -101,32 +73,29 @@ class ObjectsManager:
 
     metadata = 'objects'
 
-    def __init__(self, mode):
-        self.mode = mode
-        self.sets = []
-        for _ in range(self.mode.value):
-            self.sets.append(InstallationSet())
+    def __init__(self, n_sets=2, dump=None):
+        n_sets = self._validate_n_sets(n_sets)
+        if dump is None:
+            self.sets = [InstallationSet() for _ in range(n_sets)]
+        else:
+            self.sets = self._from_dump(dump)
 
-    @classmethod
-    def from_file(cls, dump):
-        return cls._from_dump(dump, 'from_file')
+    @staticmethod
+    def _validate_n_sets(n_sets):
+        if n_sets not in range(1, 3):
+            msg = 'It is only possible to have one or two installation sets.'
+            raise ValueError(msg)
+        return n_sets
 
-    @classmethod
-    def from_metadata(cls, metadata):
-        return cls._from_dump(metadata, 'from_metadata')
-
-    @classmethod
-    def _from_dump(cls, dump, constructor):
-        objects = dump.get(cls.metadata)
+    def _from_dump(self, dump):
+        sets = dump.get(self.metadata)
+        if sets is None:
+            raise ValueError('objects key is not present within dump')
         try:
-            mode = InstallationSetMode.from_objects(objects)
-        except ValueError:
-            raise ValueError(OBJECTS_ERROR)
-        manager = cls(mode)
-        set_constructor = getattr(InstallationSet, constructor)
-        manager.sets = [set_constructor(installation_set)
-                        for installation_set in objects]
-        return manager
+            self._validate_n_sets(len(sets))
+        except TypeError:
+            raise TypeError('objects key has an invalid value')
+        return [InstallationSet(installation_set) for installation_set in sets]
 
     def load(self, callback=None):
         call(callback, 'start_objects_load')
@@ -178,7 +147,7 @@ class ObjectsManager:
 
     def is_single(self):
         """Checks if it is single mode."""
-        return self.mode is InstallationSetMode.Single
+        return len(self) == 1
 
     def to_metadata(self):
         objects = [installation_set.to_metadata() for installation_set in self]
@@ -187,6 +156,9 @@ class ObjectsManager:
     def to_template(self):
         objects = [installation_set.to_template() for installation_set in self]
         return {self.metadata: objects}
+
+    def __eq__(self, other):
+        return self.to_metadata() == other.to_metadata()
 
     def __getitem__(self, index):
         """Returns an installation set."""
@@ -206,9 +178,9 @@ class ObjectsManager:
     def __str__(self):
         if not self.all():
             return 'Objects: None'
-        string = []
-        string.append('Objects:\n')
+        string = ['Objects:']
         for index, installation_set in enumerate(self):
-            string.append('    {}# {}\n'.format(
+            string.append('')
+            string.append('    {}# {}'.format(
                 index, indent(str(installation_set), 4)))
         return '\n'.join(string)

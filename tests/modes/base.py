@@ -7,8 +7,6 @@ import os
 from pkgschema import validate_schema
 
 from uhu.core.object import Object, Modes
-from uhu.core.package import Package
-from uhu.core.objects import InstallationSetMode
 
 from utils import EnvironmentFixtureMixin, FileFixtureMixin
 
@@ -97,37 +95,6 @@ class ModeTestCaseMixin(EnvironmentFixtureMixin, FileFixtureMixin):
     def test_full_string_representation(self):
         obj = Object(self.full_options)
         self.assertEqual(str(obj), self.get_fixture(self.full_string_file))
-
-    def test_can_load_from_file(self):
-        # dumping
-        pkg_fn = self.create_file(b'')
-        pkg = Package(InstallationSetMode.Single)
-
-        pkg.objects.create(self.default_options)
-        pkg.objects.create(self.full_options)
-        expected = [(obj.to_template(), obj.to_metadata())
-                    for obj in pkg.objects.all()]
-        pkg.dump(pkg_fn)
-
-        # loading
-        pkg = Package.from_file(pkg_fn)
-        observed = [(obj.to_template(), obj.to_metadata())
-                    for obj in pkg.objects.all()]
-        self.assertEqual(observed, expected)
-
-    def test_can_load_from_metadata(self):
-        default_obj = Object(self.default_options)
-        full_obj = Object(self.full_options)
-        objects_metadata = [default_obj.to_metadata(), full_obj.to_metadata()]
-        metadata = {
-            'product': None,
-            'version': None,
-            'supported-hardware': 'any',
-            'objects': [objects_metadata]
-        }
-        pkg = Package.from_metadata(metadata)
-        observed = [obj.to_metadata() for obj in pkg.objects.all()]
-        self.assertEqual(observed, objects_metadata)
 
     def test_template_keeps_equal_after_object_load(self):
         obj = Object(self.default_options)

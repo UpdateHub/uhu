@@ -10,7 +10,6 @@ import unittest
 from uuid import uuid4
 
 from uhu.core import Package
-from uhu.core.objects import InstallationSetMode
 from uhu.utils import CHUNK_SIZE_VAR, LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 from httpmock.httpd import HTTPMockServer
@@ -67,10 +66,13 @@ class FileFixtureMixin:
         super().__init__(*args, **kwargs)
         self._files = []
 
-    def create_file(self, content=None):
-        if not isinstance(content, bytes):
+    def create_file(self, content='', name=None):
+        if isinstance(content, str):
             content = content.encode()
-        _, fn = tempfile.mkstemp()
+        _, fn = tempfile.mkstemp(prefix='updatehub_')
+        if name is not None:
+            shutil.move(fn, name)
+            fn = name
         self._files.append(fn)
         with open(fn, 'bw') as fp:
             fp.write(content)
@@ -81,6 +83,10 @@ class FileFixtureMixin:
             os.remove(fn)
         except FileNotFoundError:
             pass  # already deleted
+
+    def read_file(self, fn):
+        with open(fn) as fp:
+            return fp.read().strip()
 
     def sha256sum(self, data):
         return hashlib.sha256(data).hexdigest()
@@ -177,9 +183,7 @@ class BasePushTestCase(
         self.product = '0' * 64
         self.version = '2.0'
         self.package_uid = '1' * 64
-        self.package = Package(
-            InstallationSetMode.Single, version=self.version,
-            product=self.product)
+        self.package = Package(version=self.version, product=self.product)
         for _ in range(3):
             fn = self.create_file('123')
             self.package.objects.create({
@@ -204,8 +208,7 @@ class BasePullTestCase(EnvironmentFixtureMixin, FileFixtureMixin,
 
         self.product = 'product-uid'
         self.pkg_uid = 'package-uid'
-        self.package = Package(
-            InstallationSetMode.Single, product=self.product)
+        self.package = Package(product=self.product)
 
         # object
         self.obj_fn = 'image.bin'

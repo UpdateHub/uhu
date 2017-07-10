@@ -96,10 +96,10 @@ def parse_prompt_object_uid(value):
     return int(value.split('#')[0].strip())
 
 
-def prompt_object_options(package_mode, object_mode):
+def prompt_object_options(n_sets, object_mode):
     """Prompts user for object options.
 
-    :param pacakge_mode: A uhu `InstallationSetMode` instance.
+    :param n_sets: The number of installation sets in package.
     :param object_mode: A string indicating the object mode.
     """
     options = {}
@@ -113,7 +113,7 @@ def prompt_object_options(package_mode, object_mode):
             value = prompt_object_option_value(option, object_mode)
         else:
             value = []
-            for installation_set in range(package_mode.value):
+            for installation_set in range(n_sets):
                 default = value[-1] if value else ''
                 value.append(
                     prompt_object_option_value(

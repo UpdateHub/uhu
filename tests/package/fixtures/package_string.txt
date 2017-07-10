@@ -1,0 +1,24 @@
+Product: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+Version: 2.0
+Supported hardware: PowerX
+Objects:
+
+    0# Installation Set:
+
+        0# object [mode: raw]
+
+            Install condition:       always install
+            Target:                  /dev/sda [seek: 0, truncate: no]
+            Chunk size:              128.0 KiB
+            Skip from source:        0
+            Count:                   all content
+
+    1# Installation Set:
+
+        0# object [mode: raw]
+
+            Install condition:       always install
+            Target:                  /dev/sda [seek: 0, truncate: no]
+            Chunk size:              128.0 KiB
+            Skip from source:        0
+            Count:                   all content

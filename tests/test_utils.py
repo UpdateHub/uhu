@@ -57,7 +57,7 @@ class UtilsTestCase(EnvironmentFixtureMixin, UHUTestCase):
         self.assertEqual(observed, '/tmp/super_file')
 
 
-class StrinUtilsTestCase(unittest.TestCase):
+class StringUtilsTestCase(unittest.TestCase):
 
     def test_yes_or_no_returns_yes_if_true(self):
         expected = 'yes'
@@ -119,8 +119,7 @@ class LocalConfigTestCase(
 class CompressedObjectTestCase(FileFixtureMixin, UHUTestCase):
 
     def setUp(self):
-        base_dir = os.path.dirname(__file__)
-        self.fixtures_dir = os.path.join(base_dir, '../fixtures/compressed/')
+        self.fixtures_dir = 'tests/fixtures/compressed/'
         uncompressed_fn = os.path.join(self.fixtures_dir, 'base.txt')
         self.size = os.path.getsize(uncompressed_fn)
 

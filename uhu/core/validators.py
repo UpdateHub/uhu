@@ -4,6 +4,7 @@
 from copy import deepcopy
 
 from ._options import Options
+from .install_condition import normalize_install_if_different
 
 
 def normalize(obj, values):
@@ -113,8 +114,9 @@ def validate_option_requirements(option, values):
 
 def validate_options(obj, values):
     """Performs full object validation"""
-    normalized = normalize(obj, values)
-    values = inject_default_values(obj, normalized)
+    values = normalize_install_if_different(values)
+    values = normalize(obj, values)
+    values = inject_default_values(obj, values)
     validate_required_options(obj, values)
     validate_options_requirements(values)
     return values

@@ -5,4 +5,4 @@
 # load level so we can register all classes before anything else.
 from . import options
 from . import modes
-from . package import Package
+from .package import Package

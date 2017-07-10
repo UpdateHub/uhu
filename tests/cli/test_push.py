@@ -5,7 +5,7 @@ from click.testing import CliRunner
 
 from uhu.cli.package import push_command
 from uhu.core.package import Package
-from uhu.core.objects import InstallationSetMode
+from uhu.core.utils import dump_package
 from uhu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 from utils import BasePushTestCase
@@ -18,7 +18,7 @@ class PushCommandMixin:
         self.runner = CliRunner()
         self.pkg_fn = self.create_file('')
         self.set_env_var(LOCAL_CONFIG_VAR, self.pkg_fn)
-        self.package.dump(self.pkg_fn)
+        dump_package(self.package.to_template(), self.pkg_fn)
 
 
 class PushCommandTestCase(PushCommandMixin, BasePushTestCase):
@@ -50,8 +50,8 @@ class PushCommandTestCase(PushCommandMixin, BasePushTestCase):
         self.assertEqual(result.exit_code, 3)
 
     def test_push_command_returns_4_if_invalid_schema(self):
-        self.package = Package(InstallationSetMode.ActiveInactive)
-        self.package.dump(self.pkg_fn)
+        self.package = Package()
+        dump_package(self.package.to_template(), self.pkg_fn)
         self.set_push(self.package, self.package_uid)
         result = self.runner.invoke(push_command, catch_exceptions=False)
         self.assertEqual(result.exit_code, 4)
