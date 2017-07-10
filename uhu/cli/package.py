@@ -11,7 +11,7 @@ from pkgschema import validate_metadata, ValidationError
 
 from ..core.object import Modes
 from ..core.package import Package
-from ..core.utils import dump_package
+from ..core.utils import dump_package, dump_package_archive
 from ..exceptions import DownloadError, UploadError
 from ..ui import get_callback
 from ..utils import get_local_config_file
@@ -171,3 +171,19 @@ def metadata_command():
         print('Valid metadata.')
     except ValidationError as err:
         error(1, err)
+
+
+@package_cli.command(name='archive')
+@click.option('--output', type=click.Path(dir_okay=False),
+              help="Where to write archive")
+@click.option('--force', is_flag=True,
+              help="Overwrites output file if output exists")
+def archive_command(output, force):
+    """Saves package as archive."""
+    with open_package(read_only=True) as package:
+        try:
+            dump_package_archive(package, output, force)
+        except FileExistsError as err:
+            error(1, err)
+        except ValueError as err:
+            error(2, err)

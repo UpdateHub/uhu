@@ -3,13 +3,14 @@
 
 import json
 import os
+from unittest.mock import patch
 
 from click.testing import CliRunner
 
 from uhu.cli.package import (
     add_object_command, edit_object_command, remove_object_command,
-    export_command, show_command, set_version_command, status_command,
-    metadata_command)
+    archive_command, export_command, show_command, set_version_command,
+    status_command, metadata_command)
 from uhu.cli.utils import open_package
 from uhu.core.package import Package
 from uhu.core.utils import dump_package, load_package
@@ -183,6 +184,44 @@ class AddObjectCommandTestCase(PackageTestCase):
         for cmd in cmds:
             result = self.runner.invoke(add_object_command, cmd)
             self.assertEqual(result.exit_code, 2)
+
+
+class ArchiveCommand(PackageTestCase):
+
+    def setUp(self):
+        super().setUp()
+        pkg = Package()
+        pkg.objects.create(self.obj_options)
+        dump_package(pkg.to_template(), self.pkg_fn)
+
+    @patch('uhu.cli.package.dump_package_archive')
+    def test_can_archive_with_default_options(self, mock):
+        result = self.runner.invoke(archive_command)
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(mock.call_count, 1)
+        _, output, force = mock.call_args[0]
+        self.assertIsNone(output)
+        self.assertFalse(force)
+
+    @patch('uhu.cli.package.dump_package_archive')
+    def test_can_archive_with_custom_options(self, mock):
+        result = self.runner.invoke(
+            archive_command, ['--force', '--output', 'spam'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(mock.call_count, 1)
+        _, output, force = mock.call_args[0]
+        self.assertEqual(output, 'spam')
+        self.assertTrue(force)
+
+    @patch('uhu.cli.package.dump_package_archive', side_effect=FileExistsError)
+    def test_archive_command_returns_1_if_archive_exists(self, mock):
+        result = self.runner.invoke(archive_command)
+        self.assertEqual(result.exit_code, 1)
+
+    @patch('uhu.cli.package.dump_package_archive', side_effect=ValueError)
+    def test_archive_command_returns_2_if_package_is_invalid(self, mock):
+        result = self.runner.invoke(archive_command)
+        self.assertEqual(result.exit_code, 2)
 
 
 class EditObjectCommandTestCase(PackageTestCase):
