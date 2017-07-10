@@ -38,16 +38,16 @@ class BaseCallback:
         print('Finished! Your package UID is {}'.format(uid))
 
     def object_read_load_callback(self):
-        pass
+        """Must be called when reading object during loading process."""
 
     def object_read_upload_callback(self):
-        pass
+        """Must be called when reading object during upload process."""
 
     def start_package_upload_callback(self):
-        pass
+        """Must be called when starting package upload process."""
 
     def finish_package_upload_callback(self):
-        pass
+        """Must be called when finished package upload process."""
 
 
 class TTYCallback(BaseCallback):
@@ -68,13 +68,14 @@ class TTYCallback(BaseCallback):
     def finish_objects_load(self):
         self.progress.finish()
         print('\rLoading objects: ok')
+        print('Starting uploading objects...', end='', flush=True)
 
     def start_package_upload_callback(self):
         suffix = '%(percent)d%% ETA: %(eta)ds'
         self.progress = Bar('Uploading objects:', max=self.max, suffix=suffix)
 
     def finish_package_upload_callback(self):
-        print('\033[1K\rUploading objects: ok\033[?25h')
+        print('\033[1K\rUploading objects: ok')
 
 
 class NoTTYCallback(BaseCallback):
@@ -112,3 +113,7 @@ def get_callback():
     if sys.stdout.isatty():
         return TTYCallback()
     return NoTTYCallback()
+
+
+def show_cursor():
+    print('\033[?25h', end='')

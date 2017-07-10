@@ -1,6 +1,8 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # SPDX-License-Identifier: GPL-2.0
 
+from unittest.mock import patch
+
 from click.testing import CliRunner
 
 from uhu.cli.package import push_command
@@ -28,30 +30,40 @@ class PushCommandTestCase(PushCommandMixin, BasePushTestCase):
         result = self.runner.invoke(push_command, catch_exceptions=False)
         self.assertEqual(result.exit_code, 0)
 
-    def test_push_command_returns_2_if_error_on_start(self):
+    @patch('uhu.cli.utils.show_cursor')
+    def test_push_command_returns_2_if_error_on_start(self, mock):
         self.set_push(self.package, self.package_uid, start_success=False)
         result = self.runner.invoke(push_command, catch_exceptions=False)
         self.assertEqual(result.exit_code, 2)
+        self.assertEqual(mock.call_count, 1)
 
-    def test_push_command_returns_2_if_error_when_uploading(self):
+    @patch('uhu.cli.utils.show_cursor')
+    def test_push_command_returns_2_if_error_when_uploading(self, mock):
         self.set_push(self.package, self.package_uid, upload_success=False)
         result = self.runner.invoke(push_command, catch_exceptions=False)
         self.assertEqual(result.exit_code, 2)
+        self.assertEqual(mock.call_count, 1)
 
-    def test_push_command_returns_2_if_error_on_finish(self):
+    @patch('uhu.cli.utils.show_cursor')
+    def test_push_command_returns_2_if_error_on_finish(self, mock):
         self.set_push(self.package, self.package_uid, finish_success=False)
         result = self.runner.invoke(push_command, catch_exceptions=False)
         self.assertEqual(result.exit_code, 2)
+        self.assertEqual(mock.call_count, 1)
 
-    def test_push_command_returns_3_if_cant_establish_connection(self):
+    @patch('uhu.cli.utils.show_cursor')
+    def test_push_command_returns_3_if_cant_establish_connection(self, mock):
         self.set_env_var(SERVER_URL_VAR, 'http://updatehub-unreachable.com')
         self.set_push(self.package, self.package_uid)
         result = self.runner.invoke(push_command, catch_exceptions=False)
         self.assertEqual(result.exit_code, 3)
+        self.assertEqual(mock.call_count, 1)
 
-    def test_push_command_returns_4_if_invalid_schema(self):
+    @patch('uhu.cli.utils.show_cursor')
+    def test_push_command_returns_4_if_invalid_schema(self, mock):
         self.package = Package()
         dump_package(self.package.to_template(), self.pkg_fn)
         self.set_push(self.package, self.package_uid)
         result = self.runner.invoke(push_command, catch_exceptions=False)
         self.assertEqual(result.exit_code, 4)
+        self.assertEqual(mock.call_count, 1)

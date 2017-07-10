@@ -13,7 +13,7 @@ from ..core.object import Modes
 from ..core.package import Package
 from ..core.utils import dump_package, dump_package_archive
 from ..exceptions import DownloadError, UploadError
-from ..ui import get_callback
+from ..ui import get_callback, show_cursor
 from ..utils import get_local_config_file
 
 from ._object import CLICK_ADD_OPTIONS
@@ -114,6 +114,8 @@ def push_command():
             error(3, 'Can\'t reach server')
         except ValidationError:
             error(4, 'Tempered configuration file (invalid metadata)')
+        finally:
+            show_cursor()
 
 
 @package_cli.command(name='pull')
