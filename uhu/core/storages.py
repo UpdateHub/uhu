@@ -20,8 +20,8 @@ class ObjectReader:  # pylint: disable=too-few-public-methods
 
     def __iter__(self):
         for chunk in self.obj:
-            call(self.callback, 'object_read')
             yield chunk
+            call(self.callback, 'object_read')
 
 
 def dummy_object_upload(obj, url, callback=None):

@@ -68,6 +68,7 @@ class TTYCallback(BaseCallback):
     def finish_objects_load(self):
         self.progress.finish()
         print('\rLoading objects: ok')
+        print('Starting uploading objects...', end='', flush=True)
 
     def start_package_upload_callback(self):
         suffix = '%(percent)d%% ETA: %(eta)ds'
