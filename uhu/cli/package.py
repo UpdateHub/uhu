@@ -109,6 +109,7 @@ def push_command():
         try:
             package.push(callback)
         except UploadError as err:
+            print()
             error(2, err)
         except requests.exceptions.ConnectionError:
             error(3, 'Can\'t reach server')

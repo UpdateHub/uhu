@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0
 
 import json
+from unittest.mock import patch
 
 from uhu.core.package import Package
 from uhu.exceptions import UploadError
@@ -24,6 +25,12 @@ class PushTestCase(BasePushTestCase):
     def test_upload_metadata_raises_exception_when_fail(self):
         self.start_push_url(self.package_uid, success=False)
         self.package.objects.load()
+        with self.assertRaises(UploadError):
+            self.package.upload_metadata()
+
+    @patch('uhu.core.package.Request')
+    def test_upload_metadata_raises_error_when_unathorized(self, mock):
+        mock.return_value.send.return_value.status_code = 401
         with self.assertRaises(UploadError):
             self.package.upload_metadata()
 

@@ -93,3 +93,20 @@ class Request(object):
             **self._requests_kwargs
         )
         return response
+
+
+def format_server_error(response):
+    base = 'It was not possible to start pushing:'
+    error = response.get('error_message')
+    if error is not None:
+        return '{} {}.'.format(base, error)
+    errors = response.get('errors')
+    if errors is None:
+        return '{} unknown error.'.format(base)
+    try:
+        error = '\n'.join(['  - {}: {}'.format(key, ', '.join(error))
+                           for key, error in errors.items()])
+        error = '\n{}'.format(error)
+    except (AttributeError, TypeError):
+        error = ' unknown error'
+    return '{}{}.'.format(base, error)
