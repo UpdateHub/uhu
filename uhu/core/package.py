@@ -60,6 +60,10 @@ class Package:
         url = get_server_url('/packages')
         response = Request(
             url, method='POST', payload=payload, json=True).send()
+        if response.status_code == 401:
+            err = ('You are not authorized to push. '
+                   'Did you set your credentials?')
+            raise UploadError(err)
         response_body = response.json()
         if response.status_code != 201:
             error_msg = format_server_error(response_body)
