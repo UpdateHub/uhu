@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0
 
 import hashlib
+import os
 import unittest
 from unittest.mock import Mock
 
@@ -81,6 +82,16 @@ class ObjectOptionValueValidator(unittest.TestCase):
             option, Modes.get('copy'))
         with self.assertRaises(ValidationError):
             validator.validate(document('not-an-absolut-path'))
+
+    def test_filename_option_requires_a_valid_filename(self):
+        option = Options.get('filename')
+        validator = validators.ObjectOptionValueValidator(
+            option, Modes.get('copy'))
+        dirname = os.path.dirname(__file__)
+        with self.assertRaises(ValidationError):
+            validator.validate(document('invalid-file'))
+        with self.assertRaises(ValidationError):
+            validator.validate(document(dirname))
 
 
 class PackageUIDValidatorTestCase(unittest.TestCase):
