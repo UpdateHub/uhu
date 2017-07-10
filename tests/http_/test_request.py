@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from unittest.mock import patch
 
 from uhu.http.auth import UHV1Signature
-from uhu.http.request import Request
+from uhu.http.request import Request, format_server_error
 
 from utils import HTTPTestCaseMixin, UHUTestCase
 
@@ -211,3 +211,31 @@ class SignedRequestTestCase(HTTPTestCaseMixin, UHUTestCase):
         self.assertIsNone(request.headers.get('Authorization', None))
         response = request.send()
         self.assertEqual(response.request.headers['Authorization'], sig)
+
+
+class FormatServerErrorTestCase(unittest.TestCase):
+
+    def test_returns_unkown_error_when_unknown_error(self):
+        expected = 'It was not possible to start pushing: unknown error.'
+        observed = format_server_error({})
+        self.assertEqual(observed, expected)
+
+    def test_returns_error_message_when_error_message(self):
+        expected = 'It was not possible to start pushing: message.'
+        observed = format_server_error({'error_message': 'message'})
+        self.assertEqual(observed, expected)
+
+    def test_returns_error_list_when_error_list(self):
+        expected = 'It was not possible to start pushing:\n  - field: message.'
+        observed = format_server_error({'errors': {'field': ['message']}})
+        self.assertEqual(observed, expected)
+
+    def test_returns_unknown_error_when_list_is_invalid(self):
+        invalid_errors = [
+            {'errors': 1},
+            {'errors': {'field': None}},
+        ]
+        expected = 'It was not possible to start pushing: unknown error.'
+        for errors in invalid_errors:
+            observed = format_server_error(errors)
+            self.assertEqual(observed, expected)

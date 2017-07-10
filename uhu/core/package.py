@@ -8,7 +8,7 @@ import requests
 from pkgschema import validate_metadata
 
 from ..exceptions import DownloadError, UploadError
-from ..http.request import Request
+from ..http.request import Request, format_server_error
 from ..utils import call, get_server_url
 
 from .hardware import SupportedHardwareManager
@@ -62,9 +62,8 @@ class Package:
             url, method='POST', payload=payload, json=True).send()
         response_body = response.json()
         if response.status_code != 201:
-            errors = '\n'.join(response_body.get('errors', []))
-            error_msg = 'It was not possible to start pushing:\n{}'
-            raise UploadError(error_msg.format(errors))
+            error_msg = format_server_error(response_body)
+            raise UploadError(error_msg.format(error_msg))
         self.uid = response_body['uid']
 
     def upload_objects(self, callback=None):
