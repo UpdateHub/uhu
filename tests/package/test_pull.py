@@ -22,11 +22,6 @@ class PackagePullTestCase(BasePullTestCase):
         with self.assertRaises(DownloadError):
             self.package.download_metadata(self.pkg_uid)
 
-    def test_download_metadata_raises_error_if_cant_reach_server(self):
-        self.set_env_var(SERVER_URL_VAR, 'http://updatehub-unreachable.com')
-        with self.assertRaises(DownloadError):
-            self.package.download_metadata(self.pkg_uid)
-
     def test_get_download_list_returns_empty_list_with_identical_file(self):
         with open(self.obj_fn, 'bw') as fp:
             fp.write(self.obj_content)

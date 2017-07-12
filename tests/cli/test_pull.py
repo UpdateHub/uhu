@@ -52,7 +52,7 @@ class PullCommandTestCase(BasePullTestCase):
         result = self.runner.invoke(pull_command, args=[self.pkg_uid])
         self.assertEqual(result.exit_code, 1)
 
-    def test_pull_command_returns_2_if_cant_reach_server(self):
+    def test_pull_command_returns_2_if_http_error(self):
         self.set_env_var(SERVER_URL_VAR, 'http://updatehub-unreach.com')
         result = self.runner.invoke(pull_command, args=[self.pkg_uid])
         self.assertEqual(result.exit_code, 2)

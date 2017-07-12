@@ -5,7 +5,7 @@ import hashlib
 import hmac
 
 
-class UHV1Signature():  # pylint: disable=too-few-public-methods
+class UHV1Signature:  # pylint: disable=too-few-public-methods
     """UpdateHub server Signature V1.
 
     This signature uses the hmac-sha256 hash algorithm to generate the

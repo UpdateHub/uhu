@@ -6,8 +6,11 @@ import unittest
 from datetime import datetime, timezone
 from unittest.mock import patch
 
+import requests
+
+from uhu.http._request import Request
+from uhu.http import format_server_error, HTTPError, request
 from uhu.http.auth import UHV1Signature
-from uhu.http.request import Request, format_server_error
 
 from utils import HTTPTestCaseMixin, UHUTestCase
 
@@ -20,8 +23,8 @@ class RequestTestCase(HTTPTestCaseMixin, UHUTestCase):
         # 60 seconds of tolerance between expected and observed
         self.assertAlmostEqual(observed, expected, delta=60)
 
-    @patch('uhu.http.request.datetime')
-    @patch('uhu.http.request.get_version', return_value='2.0')
+    @patch('uhu.http._request.datetime')
+    @patch('uhu.http._request.get_version', return_value='2.0')
     def test_request_has_minimal_headers(self, mock_version, mock_date):
         mock_date.now.return_value = datetime(1970, 1, 1, tzinfo=timezone.utc)
         request = Request('https://localhost/', 'POST', b'\0')
@@ -99,7 +102,7 @@ class RequestTestCase(HTTPTestCaseMixin, UHUTestCase):
         observed = req.headers.get('Host')
         self.assertEqual(observed, expected)
 
-    @patch('uhu.http.request.requests.request')
+    @patch('uhu.http._request.requests.request')
     def test_can_pass_extra_kwargs_to_requests(self, mock):
         Request('http://localhost', 'GET', stream=True).send()
         observed = list(mock.call_args)[1].get('stream')
@@ -108,8 +111,8 @@ class RequestTestCase(HTTPTestCaseMixin, UHUTestCase):
 
 class CanonicalRequestTestCase(unittest.TestCase):
 
-    @patch('uhu.http.request.datetime')
-    @patch('uhu.http.request.get_version', return_value='2.0')
+    @patch('uhu.http._request.datetime')
+    @patch('uhu.http._request.get_version', return_value='2.0')
     def test_canonical_request(self, mock_version, mock_date):
         mock_date.now.return_value = datetime(1970, 1, 1, tzinfo=timezone.utc)
         request = Request(
@@ -239,3 +242,54 @@ class FormatServerErrorTestCase(unittest.TestCase):
         for errors in invalid_errors:
             observed = format_server_error(errors)
             self.assertEqual(observed, expected)
+
+
+class RequestErrorsTestCase(unittest.TestCase):
+
+    @patch('uhu.http.requests.request')
+    def test_raises_error_when_invalid_url(self, mock):
+        exceptions = [
+            requests.exceptions.MissingSchema,
+            requests.exceptions.InvalidSchema,
+            requests.exceptions.URLRequired,
+            requests.exceptions.InvalidURL,
+        ]
+        mock.side_effect = exceptions
+        for _ in exceptions:
+            with self.assertRaises(HTTPError):
+                request('GET', 'foo')
+
+    @patch('uhu.http.requests.request')
+    def test_raises_error_when_server_is_unavailable(self, mock):
+        exceptions = [requests.ConnectionError, requests.ConnectTimeout]
+        mock.side_effect = exceptions
+        for _ in exceptions:
+            with self.assertRaises(HTTPError):
+                request('GET', 'foo')
+
+    @patch('uhu.http.requests.request')
+    def test_raises_error_with_any_other_requests_exception(self, mock):
+        exceptions = [
+            requests.exceptions.HTTPError,
+            requests.exceptions.ConnectionError,
+            requests.exceptions.ProxyError,
+            requests.exceptions.SSLError,
+            requests.exceptions.Timeout,
+            requests.exceptions.ConnectTimeout,
+            requests.exceptions.ReadTimeout,
+            requests.exceptions.URLRequired,
+            requests.exceptions.TooManyRedirects,
+            requests.exceptions.MissingSchema,
+            requests.exceptions.InvalidSchema,
+            requests.exceptions.InvalidURL,
+            requests.exceptions.InvalidHeader,
+            requests.exceptions.ChunkedEncodingError,
+            requests.exceptions.ContentDecodingError,
+            requests.exceptions.StreamConsumedError,
+            requests.exceptions.RetryError,
+            requests.exceptions.UnrewindableBodyError,
+        ]
+        mock.side_effect = exceptions
+        for _ in exceptions:
+            with self.assertRaises(HTTPError):
+                request('GET', 'foo')

@@ -3,8 +3,7 @@
 
 import os
 
-import requests
-
+from .. import http
 from ..utils import call
 
 
@@ -26,7 +25,7 @@ class ObjectReader:  # pylint: disable=too-few-public-methods
 
 def dummy_object_upload(obj, url, callback=None):
     data = ObjectReader(obj, callback)
-    response = requests.put(url, data=data)
+    response = http.put(url, data=data, sign=False)
     return response.ok
 
 

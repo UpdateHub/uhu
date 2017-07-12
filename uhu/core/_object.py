@@ -1,16 +1,13 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # SPDX-License-Identifier: GPL-2.0
 
-
 import hashlib
 import json
 import math
 import os
 
-import requests
-
+from .. import http
 from ..exceptions import DownloadError, UploadError
-from ..http import Request
 from ..utils import (
     call, get_chunk_size, get_compressor_format, get_server_url,
     get_uncompressed_size)
@@ -177,7 +174,7 @@ class BaseObject(metaclass=ObjectType):
         url = get_server_url('/packages/{}/objects/{}'.format(
             package_uid, self['sha256sum']))
         body = json.dumps({'etag': self.md5})
-        response = Request(url, 'POST', body, json=True).send()
+        response = http.post(url, body, json=True)
         if response.status_code == 200:  # Object already uploaded
             result = ObjectUploadResult.EXISTS
             call(callback, 'object_read', len(self))
@@ -199,10 +196,7 @@ class BaseObject(metaclass=ObjectType):
         """Downloads object from server."""
         if self.exists:
             return
-        try:
-            response = requests.get(url, stream=True)
-        except requests.exceptions.ConnectionError:
-            raise DownloadError('Can\'t reach the server.')
+        response = http.get(url, stream=True, sign=False)
         if not response.ok:
             error_msg = 'It was not possible to download object:\n{}'
             raise DownloadError(error_msg.format(response.text))
