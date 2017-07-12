@@ -5,7 +5,6 @@ import json
 import os
 
 import click
-import requests
 
 from pkgschema import validate_metadata, ValidationError
 
@@ -13,6 +12,7 @@ from ..core.object import Modes
 from ..core.package import Package
 from ..core.utils import dump_package, dump_package_archive
 from ..exceptions import DownloadError, UploadError
+from ..http import HTTPError
 from ..ui import get_callback, show_cursor
 from ..utils import get_local_config_file
 
@@ -111,8 +111,8 @@ def push_command():
         except UploadError as err:
             print()
             error(2, err)
-        except requests.exceptions.ConnectionError:
-            error(3, 'Can\'t reach server')
+        except HTTPError as err:
+            error(3, err)
         except ValidationError:
             error(4, 'Tempered configuration file (invalid metadata)')
         finally:
@@ -148,7 +148,7 @@ def pull_command(package_uid, metadata, objects, output):
             with open('metadata.json', 'w') as fp:
                 json.dump(pkg_metadata, fp, indent=4, sort_keys=True)
         dump_package(package.to_template(), pkg_file)
-    except DownloadError as err:
+    except (HTTPError, DownloadError) as err:
         error(2, err)
 
 

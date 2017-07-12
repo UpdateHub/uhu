@@ -4,11 +4,10 @@
 import hashlib
 import json
 
-import requests
 from pkgschema import validate_metadata
 
+from .. import http
 from ..exceptions import DownloadError, UploadError
-from ..http.request import Request, format_server_error
 from ..utils import call, get_server_url
 
 from .hardware import SupportedHardwareManager
@@ -58,15 +57,14 @@ class Package:
         validate_metadata(metadata)
         payload = json.dumps(metadata)
         url = get_server_url('/packages')
-        response = Request(
-            url, method='POST', payload=payload, json=True).send()
+        response = http.post(url, payload=payload, json=True)
         if response.status_code == 401:
             err = ('You are not authorized to push. '
                    'Did you set your credentials?')
             raise UploadError(err)
         response_body = response.json()
         if response.status_code != 201:
-            error_msg = format_server_error(response_body)
+            error_msg = http.format_server_error(response_body)
             raise UploadError(error_msg.format(error_msg))
         self.uid = response_body['uid']
 
@@ -84,7 +82,7 @@ class Package:
 
     def finish_push(self, callback=None):
         url = get_server_url('/packages/{}/finish'.format(self.uid))
-        response = Request(url, 'PUT').send()
+        response = http.put(url)
         if response.status_code != 204:
             raise UploadError('Push failed\n{}'.format(response.text))
         call(callback, 'push_finish', self.uid)
@@ -96,11 +94,8 @@ class Package:
 
     @classmethod
     def download_metadata(cls, uid):
-        path = '/packages/{}'.format(uid)
-        try:
-            response = Request(get_server_url(path), 'GET').send()
-        except requests.exceptions.ConnectionError:
-            raise DownloadError('Can\'t reach server.')
+        url = get_server_url('/packages/{}'.format(uid))
+        response = http.get(url)
         if response.ok:
             return response.json()
         raise DownloadError(response.text)
@@ -141,7 +136,7 @@ class Package:
     @classmethod
     def get_status(cls, uid):
         url = get_server_url('/packages/{}'.format(uid))
-        response = Request(url, 'GET', json=True).send()
+        response = http.get(url, json=True)
         if response.status_code != 200:
             raise ValueError('Status not found')
         return response.json().get('status')
