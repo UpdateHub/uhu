@@ -3,8 +3,7 @@
 
 import json
 import os
-import tarfile
-import tempfile
+import zipfile
 from collections import OrderedDict
 
 import pkgschema
@@ -62,14 +61,12 @@ def dump_package_archive(package, output=None, force=False):
 
     # Writes archive
     cache = set()
-    with tempfile.NamedTemporaryFile('w') as fp:
-        dump_package(metadata, fp.name)
-        with tarfile.open(output, mode='w:gz') as tar:
-            tar.add(fp.name, arcname='metadata')
-            for obj in package.objects.all():
-                sha256sum = obj['sha256sum']
-                if sha256sum in cache:
-                    continue
-                cache.add(sha256sum)
-                tar.add(os.path.realpath(obj.filename), sha256sum)
+    with zipfile.ZipFile(output, mode='w') as archive:
+        archive.writestr('metadata', json.dumps(metadata))
+        for obj in package.objects.all():
+            sha256sum = obj['sha256sum']
+            if sha256sum in cache:
+                continue
+            cache.add(sha256sum)
+            archive.write(os.path.realpath(obj.filename), sha256sum)
     return output
