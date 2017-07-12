@@ -3,7 +3,7 @@
 
 import json
 import os
-import tarfile
+import zipfile
 from unittest.mock import patch
 
 from pkgschema import ValidationError
@@ -33,16 +33,16 @@ class PackageSerializationTestCase(PackageTestCase):
 
     def verify_archive(self, dest):
         self.assertTrue(os.path.exists(dest))
-        self.assertTrue(tarfile.is_tarfile(dest))
+        self.assertTrue(zipfile.is_zipfile(dest))
 
-        with tarfile.open(dest) as tar:
-            self.assertEqual(len(tar.getmembers()), 2)
-            files = tar.getnames()
-            member = tar.getmember(self.obj_sha256)
+        with zipfile.ZipFile(dest) as archive:
+            files = archive.namelist()
+            member = archive.extract(self.obj_sha256)
+            self.addCleanup(os.remove, member)
+        self.assertEqual(len(files), 2)
         self.assertIn('metadata', files)
         self.assertIn(self.obj_sha256, files)
-        self.assertFalse(member.islnk())
-        self.assertFalse(member.issym())
+        self.assertFalse(os.path.islink(member))
 
     def test_can_serialize_package_as_metadata(self):
         pkg, hw, objs = self.create_package()
