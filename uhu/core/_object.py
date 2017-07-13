@@ -10,7 +10,6 @@ from ..utils import (
 
 from ._options import Options
 from .install_condition import get_version
-from .updatehub import upload_object
 from .validators import validate_options
 
 
@@ -87,8 +86,8 @@ class BaseObject(metaclass=ObjectType):
         template['mode'] = self.mode
         return template
 
-    def to_metadata(self):
-        self.load()
+    def to_metadata(self, callback=None):
+        self.load(callback)
         metadata = {opt.metadata: value for opt, value in self._values.items()}
         metadata['mode'] = self.mode
         self._metadata_install_condition(metadata)
@@ -162,10 +161,6 @@ class BaseObject(metaclass=ObjectType):
         self['sha256sum'] = sha256sum.hexdigest()
         self['size'] = self.size
         self.md5 = md5.hexdigest()
-
-    def upload(self, package_uid, callback=None):
-        """Uploads object to server."""
-        return upload_object(self, package_uid, callback)
 
     def __setitem__(self, key, value):
         try:

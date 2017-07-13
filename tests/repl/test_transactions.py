@@ -4,15 +4,14 @@
 import copy
 import json
 import os
+import unittest
 from unittest.mock import Mock, patch
 
 from uhu.repl.repl import UHURepl
 from uhu.repl import functions
 from uhu.utils import SERVER_URL_VAR
 
-from utils import (
-    HTTPTestCaseMixin, UHUTestCase, EnvironmentFixtureMixin,
-    BasePushTestCase)
+from utils import HTTPTestCaseMixin, UHUTestCase, EnvironmentFixtureMixin
 
 
 class PackageStatusTestCase(
@@ -49,32 +48,25 @@ class PackageStatusTestCase(
             functions.package_status(self.repl)
 
 
-class PushTestCase(BasePushTestCase):
+class PushPackageTestCase(unittest.TestCase):
 
     def setUp(self):
         super().setUp()
         self.repl = UHURepl()
 
     def test_can_push_package(self):
-        self.repl.package.objects.create({
-            'filename': __file__,
-            'mode': 'raw',
-            'target-type': 'device',
-            'target': '/',
-        })
-        self.repl.package.product = self.product
-        self.repl.package.version = '2.0'
-        self.set_push(self.repl.package, '100')
-        self.assertIsNone(self.repl.package.uid)
-        functions.push_package(self.repl)
-        self.assertEqual(self.repl.package.uid, '100')
+        ctx = Mock()
+        ctx.package.push.return_value = '100'
+        ctx.package.uid = None
+        functions.push_package(ctx)
+        self.assertEqual(ctx.package.uid, '100')
 
-    def test_push_raises_error_if_missing_product(self):
+    def test_raises_error_if_missing_product(self):
         self.repl.package.version = '2.0'
         with self.assertRaises(ValueError):
             functions.push_package(self.repl)
 
-    def test_push_raises_error_if_missing_version(self):
-        self.repl.package.product = self.product
+    def test_raises_error_if_missing_version(self):
+        self.repl.package.product = 'product'
         with self.assertRaises(ValueError):
             functions.push_package(self.repl)

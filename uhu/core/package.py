@@ -1,9 +1,11 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # SPDX-License-Identifier: GPL-2.0
 
+from ..utils import call
+
 from .hardware import SupportedHardwareManager
 from .objects import ObjectsManager
-from .updatehub import upload_metadata, finish_package, upload_objects
+from .updatehub import push_package
 
 
 MODES = ['single', 'active-inactive']
@@ -25,14 +27,14 @@ class Package:
             self.supported_hardware = SupportedHardwareManager(dump=dump)
         self.uid = None
 
-    def to_metadata(self):
+    def to_metadata(self, callback=None):
         """Serialize package as metadata."""
         metadata = {
             'product': self.product,
             'version': self.version,
         }
-        metadata.update(self.objects.to_metadata())
         metadata.update(self.supported_hardware.to_metadata())
+        metadata.update(self.objects.to_metadata(callback))
         return metadata
 
     def to_template(self, with_version=True):
@@ -43,24 +45,14 @@ class Package:
         template.update(self.supported_hardware.to_template())
         return template
 
-    def upload_metadata(self):
-        """Uploads package metadata to server."""
-        metadata = self.to_metadata()
-        self.uid = upload_metadata(metadata)
-
-    def upload_objects(self, callback=None):
-        """Uploads package objects."""
-        objects = self.objects[0]  # this means first installation set
-        return upload_objects(self.uid, objects, callback)
-
-    def finish_push(self, callback=None):
-        """Tells server that package upload is finished."""
-        return finish_package(self.uid, callback)
-
     def push(self, callback=None):
-        self.upload_metadata()
-        self.upload_objects(callback)
-        self.finish_push(callback)
+        """Uploads package to UpdateHub server."""
+        call(callback, 'start_objects_load')
+        metadata = self.to_metadata(callback)
+        call(callback, 'finish_objects_load')
+        objects = self.objects.to_upload()
+        self.uid = push_package(metadata, objects, callback)
+        return self.uid
 
     def __str__(self):
         return '\n'.join([

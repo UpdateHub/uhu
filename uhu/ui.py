@@ -27,7 +27,7 @@ class BaseCallback:
 
     def start_package_upload(self, objects):
         self.uploading = True
-        self.max = sum(len(obj) for obj in objects)
+        self.max = sum(obj['chunks'] for obj in objects)
         self.start_package_upload_callback()
 
     def finish_package_upload(self):

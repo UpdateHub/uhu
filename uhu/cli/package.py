@@ -101,9 +101,8 @@ def remove_object_command(object_id):
 @package_cli.command(name='push')
 def push_command():
     """Pushes a package file to server with the given version."""
+    callback = get_callback()
     with open_package(read_only=True) as package:
-        callback = get_callback()
-        package.objects.load(callback)
         try:
             package.push(callback)
         except UploadError as err:
@@ -111,8 +110,6 @@ def push_command():
             error(2, err)
         except HTTPError as err:
             error(3, err)
-        except ValidationError:
-            error(4, 'Tempered configuration file (invalid metadata)')
         finally:
             show_cursor()
 

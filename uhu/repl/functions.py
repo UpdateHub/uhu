@@ -94,8 +94,7 @@ def push_package(ctx):
     helpers.check_product(ctx)
     helpers.check_version(ctx)
     callback = get_callback()
-    ctx.package.objects.load(callback)
-    ctx.package.push(callback)
+    ctx.package.uid = ctx.package.push(callback)
 
 
 def package_status(ctx):

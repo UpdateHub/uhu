@@ -41,8 +41,8 @@ class InstallationSet:
         except IndexError:
             raise ValueError('Object not found')
 
-    def to_metadata(self):
-        return [obj.to_metadata() for obj in self]
+    def to_metadata(self, callback=None):
+        return [obj.to_metadata(callback) for obj in self]
 
     def to_template(self):
         return [obj.to_template() for obj in self]
@@ -149,13 +149,26 @@ class ObjectsManager:
         """Checks if it is single mode."""
         return len(self) == 1
 
-    def to_metadata(self):
-        objects = [installation_set.to_metadata() for installation_set in self]
+    def to_metadata(self, callback=None):
+        objects = [installation_set.to_metadata(callback)
+                   for installation_set in self]
         return {self.metadata: objects}
 
     def to_template(self):
         objects = [installation_set.to_template() for installation_set in self]
         return {self.metadata: objects}
+
+    def to_upload(self):
+        upload_list = {}
+        for obj in self.all():
+            upload_list[obj['sha256sum']] = {
+                'filename': obj['filename'],
+                'size': obj['size'],
+                'sha256sum': obj['sha256sum'],
+                'md5': obj.md5,
+                'chunks': len(obj),
+            }
+        return upload_list.values()
 
     def __eq__(self, other):
         return self.to_metadata() == other.to_metadata()

@@ -5,11 +5,11 @@ import json
 import os
 from enum import Enum
 
-from pkgschema import validate_metadata
+from pkgschema import validate_metadata, ValidationError
 
 from .. import http
 from ..exceptions import UploadError
-from ..utils import call, get_server_url
+from ..utils import call, get_server_url, get_chunk_size
 
 
 # Utilities
@@ -17,21 +17,24 @@ from ..utils import call, get_server_url
 class ObjectReader:  # pylint: disable=too-few-public-methods
     """Read-only object class. Used when uploading with requests."""
 
-    def __init__(self, obj, callback=None):
-        self.obj = obj
+    def __init__(self, filename, callback=None):
+        self.filename = os.path.realpath(filename)
         self.callback = callback
 
     def __len__(self):
-        return os.path.getsize(self.obj.filename)
+        return os.path.getsize(self.filename)
 
     def __iter__(self):
-        for chunk in self.obj:
-            yield chunk
-            call(self.callback, 'object_read')
+        """Yields every single chunk."""
+        chunk_size = get_chunk_size()
+        with open(self.filename, 'br') as fp:
+            for chunk in iter(lambda: fp.read(chunk_size), b''):
+                yield chunk
+                call(self.callback, 'object_read')
 
 
-def dummy_object_upload(obj, url, callback=None):
-    data = ObjectReader(obj, callback)
+def dummy_object_upload(filename, url, callback=None):
+    data = ObjectReader(filename, callback)
     response = http.put(url, data=data, sign=False)
     return response.ok
 
@@ -63,8 +66,18 @@ class ObjectUploadResult(Enum):
 
 # Push Package
 
+def push_package(metadata, objects, callback=None):
+    package_uid = upload_metadata(metadata)
+    upload_objects(package_uid, objects, callback)
+    finish_package(package_uid, callback)
+    return package_uid
+
+
 def upload_metadata(metadata):
-    validate_metadata(metadata)
+    try:
+        validate_metadata(metadata)
+    except ValidationError:
+        raise UploadError('You have an invalid package metadata.')
     url = get_server_url('/packages')
     payload = json.dumps(metadata)
     response = http.post(url, payload=payload, json=True)
@@ -74,8 +87,7 @@ def upload_metadata(metadata):
         raise UploadError(err)
     response_body = response.json()
     if response.status_code != 201:
-        error_msg = http.format_server_error(response_body)
-        raise UploadError(error_msg.format(error_msg))
+        raise UploadError(http.format_server_error(response_body))
     return response_body['uid']
 
 
@@ -84,29 +96,27 @@ def upload_object(obj, package_uid, callback=None):
     # First, check if we can upload the object
     url = get_server_url('/packages/{}/objects/{}'.format(
         package_uid, obj['sha256sum']))
-    body = json.dumps({'etag': obj.md5})
+    body = json.dumps({'etag': obj['md5']})
     response = http.post(url, body, json=True)
     if response.status_code == 200:  # Object already uploaded
         result = ObjectUploadResult.EXISTS
-        call(callback, 'object_read', len(obj))
+        call(callback, 'object_read', obj['chunks'])
     elif response.status_code == 201:  # Object must be uploaded
         body = response.json()
         upload = STORAGES[body['storage']]
-        success = upload(obj, body['url'], callback)
+        success = upload(obj['filename'], body['url'], callback)
         if success:
             result = ObjectUploadResult.SUCCESS
         else:
             result = ObjectUploadResult.FAIL
     else:  # It was not possible to check if we can upload
-        errors = response.json().get('errors', [])
-        error_msg = 'It was not possible to get url:\n{}'
-        raise UploadError(error_msg.format('\n'.join(errors)))
+        raise UploadError(http.format_server_error(response.json()))
     return result
 
 
 def upload_objects(package_uid, objects, callback=None):
     call(callback, 'start_package_upload', objects)
-    results = [obj.upload(package_uid, callback) for obj in objects]
+    results = [upload_object(obj, package_uid, callback) for obj in objects]
     call(callback, 'finish_package_upload')
     for result in results:
         if not ObjectUploadResult.is_ok(result):

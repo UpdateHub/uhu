@@ -1,69 +1,48 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # SPDX-License-Identifier: GPL-2.0
 
-from unittest.mock import patch
+import unittest
+from unittest.mock import Mock, patch
 
 from click.testing import CliRunner
 
 from uhu.cli.package import push_command
-from uhu.core.package import Package
-from uhu.core.utils import dump_package
-from uhu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
-
-from utils import BasePushTestCase
+from uhu.exceptions import UploadError
+from uhu.http import HTTPError
 
 
-class PushCommandMixin:
+class PushCommandTestCase(unittest.TestCase):
 
     def setUp(self):
-        super().setUp()
         self.runner = CliRunner()
-        self.pkg_fn = self.create_file('')
-        self.set_env_var(LOCAL_CONFIG_VAR, self.pkg_fn)
-        dump_package(self.package.to_template(), self.pkg_fn)
 
-
-class PushCommandTestCase(PushCommandMixin, BasePushTestCase):
-
-    def test_push_command_returns_0_when_success(self):
-        self.set_push(self.package, self.package_uid)
-        result = self.runner.invoke(push_command, catch_exceptions=False)
+    @patch('uhu.cli.package.open_package')
+    def test_returns_0_when_success(self, open_package):
+        open_package.return_value.__enter__.return_value = Mock()
+        result = self.runner.invoke(push_command)
         self.assertEqual(result.exit_code, 0)
 
-    @patch('uhu.cli.utils.show_cursor')
-    def test_push_command_returns_2_if_error_on_start(self, mock):
-        self.set_push(self.package, self.package_uid, start_success=False)
-        result = self.runner.invoke(push_command, catch_exceptions=False)
+    @patch('uhu.cli.package.open_package')
+    def test_returns_2_when_upload_error(self, open_package):
+        package = Mock()
+        package.push.side_effect = UploadError
+        open_package.return_value.__enter__.return_value = package
+        result = self.runner.invoke(push_command)
         self.assertEqual(result.exit_code, 2)
-        self.assertEqual(mock.call_count, 1)
 
-    @patch('uhu.cli.utils.show_cursor')
-    def test_push_command_returns_2_if_error_when_uploading(self, mock):
-        self.set_push(self.package, self.package_uid, upload_success=False)
-        result = self.runner.invoke(push_command, catch_exceptions=False)
-        self.assertEqual(result.exit_code, 2)
-        self.assertEqual(mock.call_count, 1)
-
-    @patch('uhu.cli.utils.show_cursor')
-    def test_push_command_returns_2_if_error_on_finish(self, mock):
-        self.set_push(self.package, self.package_uid, finish_success=False)
-        result = self.runner.invoke(push_command, catch_exceptions=False)
-        self.assertEqual(result.exit_code, 2)
-        self.assertEqual(mock.call_count, 1)
-
-    @patch('uhu.cli.utils.show_cursor')
-    def test_push_command_returns_3_if_cant_establish_connection(self, mock):
-        self.set_env_var(SERVER_URL_VAR, 'http://updatehub-unreachable.com')
-        self.set_push(self.package, self.package_uid)
-        result = self.runner.invoke(push_command, catch_exceptions=False)
+    @patch('uhu.cli.package.open_package')
+    def test_returns_3_when_http_error(self, open_package):
+        package = Mock()
+        package.push.side_effect = HTTPError
+        open_package.return_value.__enter__.return_value = package
+        result = self.runner.invoke(push_command)
         self.assertEqual(result.exit_code, 3)
-        self.assertEqual(mock.call_count, 1)
 
     @patch('uhu.cli.utils.show_cursor')
-    def test_push_command_returns_4_if_invalid_schema(self, mock):
-        self.package = Package()
-        dump_package(self.package.to_template(), self.pkg_fn)
-        self.set_push(self.package, self.package_uid)
-        result = self.runner.invoke(push_command, catch_exceptions=False)
-        self.assertEqual(result.exit_code, 4)
-        self.assertEqual(mock.call_count, 1)
+    def test_always_display_cursor_after_all(self, show_cursor):
+        effects = [None, UploadError, HTTPError, Exception]
+        package = Mock()
+        package.push.side_effect = effects
+        for effect in effects:
+            result = self.runner.invoke(push_command)
+        self.assertEqual(show_cursor.call_count, len(effects))
