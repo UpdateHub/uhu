@@ -2,20 +2,17 @@
 # SPDX-License-Identifier: GPL-2.0
 
 import json
-import os
 
 import click
 
 from pkgschema import validate_metadata, ValidationError
 
 from ..core.object import Modes
-from ..core.package import Package
 from ..core.updatehub import get_package_status
 from ..core.utils import dump_package, dump_package_archive
-from ..exceptions import DownloadError, UploadError
+from ..exceptions import UploadError
 from ..http import HTTPError
 from ..ui import get_callback, show_cursor
-from ..utils import get_local_config_file
 
 from ._object import CLICK_ADD_OPTIONS
 from .utils import error, open_package
@@ -118,39 +115,6 @@ def push_command():
             error(4, 'Tempered configuration file (invalid metadata)')
         finally:
             show_cursor()
-
-
-@package_cli.command(name='pull')
-@click.argument('package-uid')
-@click.option('--metadata', is_flag=True,
-              help='Downloads metadata.json too.')
-@click.option('--objects', is_flag=True,
-              help='Downloads all objects too.')
-@click.option('--output',
-              type=click.Path(
-                  file_okay=False, writable=True, resolve_path=True),
-              help='Output directory', default='.')
-def pull_command(package_uid, metadata, objects, output):
-    """Pulls a package from server."""
-    if not os.path.exists(output):
-        os.mkdir(output)
-    os.chdir(output)
-
-    pkg_file = get_local_config_file()
-    if os.path.exists(pkg_file):
-        error(1, 'You have a local configuration that would be overwritten.')
-
-    try:
-        pkg_metadata = Package.download_metadata(package_uid)
-        package = Package(dump=pkg_metadata)
-        if objects:
-            package.download_objects(package_uid)
-        if metadata:
-            with open('metadata.json', 'w') as fp:
-                json.dump(pkg_metadata, fp, indent=4, sort_keys=True)
-        dump_package(package.to_template(), pkg_file)
-    except (HTTPError, DownloadError) as err:
-        error(2, err)
 
 
 @package_cli.command(name='status')

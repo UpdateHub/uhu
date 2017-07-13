@@ -169,12 +169,6 @@ class PromptsTestCase(unittest.TestCase):
         observed = helpers.prompt_package_uid()
         self.assertEqual(observed, uid)
 
-    @patch('uhu.repl.helpers.prompt')
-    def test_can_prompt_pull(self, prompt):
-        prompt.return_value = 'yes'
-        observed = helpers.prompt_pull()
-        self.assertEqual(observed, True)
-
     def test_can_parse_prompt_object_uid(self):
         uids = [0, 1, 2, 3]
         values = ['0# some name', '  1#  some-name  ', '2', '  3  ']

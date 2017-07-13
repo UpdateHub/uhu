@@ -40,7 +40,6 @@ GROUPS = {
         'edit': functions.edit_object,
         'remove': functions.remove_object,
         # transactions
-        'pull': functions.pull_package,
         'push': functions.push_package,
         'status': functions.package_status,
     },

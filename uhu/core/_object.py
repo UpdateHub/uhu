@@ -5,8 +5,6 @@ import hashlib
 import math
 import os
 
-from .. import http
-from ..exceptions import DownloadError
 from ..utils import (
     call, get_chunk_size, get_compressor_format, get_uncompressed_size)
 
@@ -168,18 +166,6 @@ class BaseObject(metaclass=ObjectType):
     def upload(self, package_uid, callback=None):
         """Uploads object to server."""
         return upload_object(self, package_uid, callback)
-
-    def download(self, url):
-        """Downloads object from server."""
-        if self.exists:
-            return
-        response = http.get(url, stream=True, sign=False)
-        if not response.ok:
-            error_msg = 'It was not possible to download object:\n{}'
-            raise DownloadError(error_msg.format(response.text))
-        with open(self.filename, 'wb') as fp:
-            for chunk in response.iter_content(chunk_size=self.chunk_size):
-                fp.write(chunk)
 
     def __setitem__(self, key, value):
         try:

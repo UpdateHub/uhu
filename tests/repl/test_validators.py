@@ -109,25 +109,3 @@ class PackageUIDValidatorTestCase(unittest.TestCase):
     def test_invalid_value_raises_error(self):
         with self.assertRaises(ValidationError):
             self.validator.validate(document('invalid-package-uid'))
-
-
-class YesNoValidator(unittest.TestCase):
-
-    validator = validators.YesNoValidator()
-
-    def test_valid_value_returns_None(self):
-        values = ['yes', 'no', 'y', 'n']
-        for value in values:
-            self.assertIsNone(self.validator.validate(document(value)))
-
-    def test_empty_value_returns_none_if_answer_is_not_required(self):
-        validator = validators.YesNoValidator(required=False)
-        self.assertIsNone(validator.validate(document('')))
-
-    def test_empty_value_raises_error_by_default(self):
-        with self.assertRaises(ValidationError):
-            self.validator.validate(document(''))
-
-    def test_invalid_value_raises_error(self):
-        with self.assertRaises(ValidationError):
-            self.validator.validate(document('invalid-answer'))

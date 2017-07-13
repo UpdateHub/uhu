@@ -12,7 +12,7 @@ from uhu.utils import SERVER_URL_VAR
 
 from utils import (
     HTTPTestCaseMixin, UHUTestCase, EnvironmentFixtureMixin,
-    BasePullTestCase, BasePushTestCase)
+    BasePushTestCase)
 
 
 class PackageStatusTestCase(
@@ -78,32 +78,3 @@ class PushTestCase(BasePushTestCase):
         self.repl.package.product = self.product
         with self.assertRaises(ValueError):
             functions.push_package(self.repl)
-
-
-class PullTestCase(BasePullTestCase):
-
-    def setUp(self):
-        super().setUp()
-        self.repl = UHURepl()
-
-    @patch('uhu.repl.helpers.prompt')
-    def test_can_download_package_fully(self, prompt):
-        prompt.side_effect = [self.pkg_uid, 'yes']
-        self.assertIsNone(self.repl.package.product)
-        functions.pull_package(self.repl)
-        print(os.getcwd())
-        print(os.listdir())
-        self.assertTrue(os.path.exists(self.pkg_fn))
-        self.assertEqual(self.repl.package.product, self.product)
-        self.assertTrue(os.path.exists(self.obj_fn))
-
-    @patch('uhu.repl.helpers.prompt')
-    def test_can_download_only_metadata_package(self, prompt):
-        prompt.side_effect = [self.pkg_uid, 'no']
-        self.assertIsNone(self.repl.package.product)
-        functions.pull_package(self.repl)
-        print(os.getcwd())
-        print(os.listdir())
-        self.assertTrue(os.path.exists(self.pkg_fn))
-        self.assertFalse(os.path.exists(self.obj_fn))
-        self.assertEqual(self.repl.package.product, self.product)

@@ -3,7 +3,6 @@
 """Main UHU REPL command functions."""
 
 from ..config import config
-from ..core.package import Package
 from ..core.updatehub import get_package_status
 from ..core.utils import dump_package
 from ..ui import get_callback
@@ -97,19 +96,6 @@ def push_package(ctx):
     callback = get_callback()
     ctx.package.objects.load(callback)
     ctx.package.push(callback)
-
-
-@helpers.cancellable
-def pull_package(ctx):
-    """Download and load a package from server."""
-    uid = helpers.prompt_package_uid()
-    full = helpers.prompt_pull()
-    metadata = ctx.package.download_metadata(uid)
-    package = Package(dump=metadata)
-    if full:
-        package.download_objects(uid)
-    ctx.package = package
-    dump_package(package.to_template(), ctx.local_config)
 
 
 def package_status(ctx):

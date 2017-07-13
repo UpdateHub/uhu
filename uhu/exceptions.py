@@ -4,11 +4,3 @@
 
 class UploadError(Exception):
     pass
-
-
-class DownloadError(Exception):
-    pass
-
-
-class CommitDoesNotExist(Exception):
-    pass
