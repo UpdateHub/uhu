@@ -2,20 +2,17 @@
 # SPDX-License-Identifier: GPL-2.0
 
 import hashlib
-import json
 import math
 import os
 
 from .. import http
-from ..exceptions import DownloadError, UploadError
+from ..exceptions import DownloadError
 from ..utils import (
-    call, get_chunk_size, get_compressor_format, get_server_url,
-    get_uncompressed_size)
+    call, get_chunk_size, get_compressor_format, get_uncompressed_size)
 
 from ._options import Options
 from .install_condition import get_version
-from .storages import STORAGES
-from .upload import ObjectUploadResult
+from .updatehub import upload_object
 from .validators import validate_options
 
 
@@ -170,27 +167,7 @@ class BaseObject(metaclass=ObjectType):
 
     def upload(self, package_uid, callback=None):
         """Uploads object to server."""
-        # First, check if we can upload the object
-        url = get_server_url('/packages/{}/objects/{}'.format(
-            package_uid, self['sha256sum']))
-        body = json.dumps({'etag': self.md5})
-        response = http.post(url, body, json=True)
-        if response.status_code == 200:  # Object already uploaded
-            result = ObjectUploadResult.EXISTS
-            call(callback, 'object_read', len(self))
-        elif response.status_code == 201:  # Object must be uploaded
-            body = response.json()
-            upload = STORAGES[body['storage']]
-            success = upload(self, body['url'], callback)
-            if success:
-                result = ObjectUploadResult.SUCCESS
-            else:
-                result = ObjectUploadResult.FAIL
-        else:  # It was not possible to check if we can upload
-            errors = response.json().get('errors', [])
-            error_msg = 'It was not possible to get url:\n{}'
-            raise UploadError(error_msg.format('\n'.join(errors)))
-        return result
+        return upload_object(self, package_uid, callback)
 
     def download(self, url):
         """Downloads object from server."""

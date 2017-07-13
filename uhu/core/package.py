@@ -2,17 +2,14 @@
 # SPDX-License-Identifier: GPL-2.0
 
 import hashlib
-import json
-
-from pkgschema import validate_metadata
 
 from .. import http
-from ..exceptions import DownloadError, UploadError
-from ..utils import call, get_server_url
+from ..exceptions import DownloadError
+from ..utils import get_server_url
 
 from .hardware import SupportedHardwareManager
 from .objects import ObjectsManager
-from .upload import ObjectUploadResult
+from .updatehub import upload_metadata, finish_package, upload_objects
 
 
 MODES = ['single', 'active-inactive']
@@ -53,39 +50,18 @@ class Package:
         return template
 
     def upload_metadata(self):
+        """Uploads package metadata to server."""
         metadata = self.to_metadata()
-        validate_metadata(metadata)
-        payload = json.dumps(metadata)
-        url = get_server_url('/packages')
-        response = http.post(url, payload=payload, json=True)
-        if response.status_code == 401:
-            err = ('You are not authorized to push. '
-                   'Did you set your credentials?')
-            raise UploadError(err)
-        response_body = response.json()
-        if response.status_code != 201:
-            error_msg = http.format_server_error(response_body)
-            raise UploadError(error_msg.format(error_msg))
-        self.uid = response_body['uid']
+        self.uid = upload_metadata(metadata)
 
     def upload_objects(self, callback=None):
-        results = []
+        """Uploads package objects."""
         objects = self.objects[0]  # this means first installation set
-        call(callback, 'start_package_upload', objects)
-        for obj in objects:
-            results.append(obj.upload(self.uid, callback))
-        call(callback, 'finish_package_upload')
-        for result in results:
-            if not ObjectUploadResult.is_ok(result):
-                err = 'Some objects has not been fully uploaded'
-                raise UploadError(err)
+        return upload_objects(self.uid, objects, callback)
 
     def finish_push(self, callback=None):
-        url = get_server_url('/packages/{}/finish'.format(self.uid))
-        response = http.put(url)
-        if response.status_code != 204:
-            raise UploadError('Push failed\n{}'.format(response.text))
-        call(callback, 'push_finish', self.uid)
+        """Tells server that package upload is finished."""
+        return finish_package(self.uid, callback)
 
     def push(self, callback=None):
         self.upload_metadata()

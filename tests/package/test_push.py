@@ -28,7 +28,7 @@ class PushTestCase(BasePushTestCase):
         with self.assertRaises(UploadError):
             self.package.upload_metadata()
 
-    @patch('uhu.core.package.http')
+    @patch('uhu.core.updatehub.http')
     def test_upload_metadata_raises_error_when_unathorized(self, mock):
         mock.post.return_value.status_code = 401
         with self.assertRaises(UploadError):
