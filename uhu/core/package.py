@@ -109,14 +109,6 @@ class Package:
             # downloaded.
         return objects
 
-    @classmethod
-    def get_status(cls, uid):
-        url = get_server_url('/packages/{}'.format(uid))
-        response = http.get(url, json=True)
-        if response.status_code != 200:
-            raise ValueError('Status not found')
-        return response.json().get('status')
-
     def __str__(self):
         return '\n'.join([
             'Product: {}'.format(self.product),

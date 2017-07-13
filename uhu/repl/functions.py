@@ -4,6 +4,7 @@
 
 from ..config import config
 from ..core.package import Package
+from ..core.updatehub import get_package_status
 from ..core.utils import dump_package
 from ..ui import get_callback
 
@@ -111,11 +112,11 @@ def pull_package(ctx):
     dump_package(package.to_template(), ctx.local_config)
 
 
-def get_package_status(ctx):
+def package_status(ctx):
     """Get the status from a package already pushed to server."""
     helpers.check_product(ctx)
     helpers.check_arg(ctx, 'You need to pass a package id')
-    print(Package.get_status(ctx.arg))
+    print(get_package_status(ctx.arg))
 
 
 # Supported hardware

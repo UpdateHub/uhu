@@ -10,6 +10,7 @@ from pkgschema import validate_metadata, ValidationError
 
 from ..core.object import Modes
 from ..core.package import Package
+from ..core.updatehub import get_package_status
 from ..core.utils import dump_package, dump_package_archive
 from ..exceptions import DownloadError, UploadError
 from ..http import HTTPError
@@ -157,7 +158,7 @@ def pull_command(package_uid, metadata, objects, output):
 def status_command(package_uid):
     """Prints the status of the given package."""
     try:
-        print(Package.get_status(package_uid))
+        print(get_package_status(package_uid))
     except ValueError as err:
         error(2, err)
 

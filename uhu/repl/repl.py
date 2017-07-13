@@ -42,7 +42,7 @@ GROUPS = {
         # transactions
         'pull': functions.pull_package,
         'push': functions.push_package,
-        'status': functions.get_package_status,
+        'status': functions.package_status,
     },
     'hardware': {
         'add': functions.add_hardware,

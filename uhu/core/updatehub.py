@@ -119,3 +119,13 @@ def finish_package(package_uid, callback=None):
     if response.status_code != 204:
         raise UploadError('Push failed\n{}'.format(response.text))
     call(callback, 'push_finish', package_uid)
+
+
+# Package status
+
+def get_package_status(package_uid):
+    url = get_server_url('/packages/{}'.format(package_uid))
+    response = http.get(url, json=True)
+    if response.status_code != 200:
+        raise ValueError('Status not found')
+    return response.json().get('status')

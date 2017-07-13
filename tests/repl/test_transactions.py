@@ -34,19 +34,19 @@ class PackageStatusTestCase(
         with patch.dict(functions.__builtins__, builtins):
             self.repl.package.product = self.product
             self.repl.arg = self.pkg_uid
-            functions.get_package_status(self.repl)
+            functions.package_status(self.repl)
             functions.__builtins__['print'].assert_called_once_with('success')
 
     def test_get_package_status_raises_error_if_missing_product(self):
         self.assertIsNone(self.repl.package.product)
         with self.assertRaises(ValueError):
-            functions.get_package_status(self.repl)
+            functions.package_status(self.repl)
 
     def test_get_package_status_raises_error_if_missing_package_uid(self):
         self.repl.package.product = '1'
         self.assertIsNone(self.repl.arg)
         with self.assertRaises(ValueError):
-            functions.get_package_status(self.repl)
+            functions.package_status(self.repl)
 
 
 class PushTestCase(BasePushTestCase):

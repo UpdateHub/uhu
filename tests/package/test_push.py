@@ -5,6 +5,7 @@ import json
 from unittest.mock import patch
 
 from uhu.core.package import Package
+from uhu.core.updatehub import get_package_status
 from uhu.exceptions import UploadError
 from uhu.utils import SERVER_URL_VAR
 
@@ -111,16 +112,16 @@ class PackageStatusTestCase(HTTPTestCaseMixin, PackageTestCase):
         super().setUp()
         self.set_env_var(SERVER_URL_VAR, self.httpd.url(''))
 
-    def test_can_get_a_package_status(self):
+    def test_can_get_package_status(self):
         path = '/packages/{}'.format(self.pkg_uid)
         expected = 'finished'
         self.httpd.register_response(
             path, status_code=200, body=json.dumps({'status': expected}))
-        observed = Package.get_status(self.pkg_uid)
+        observed = get_package_status(self.pkg_uid)
         self.assertEqual(observed, expected)
 
     def test_get_package_status_raises_error_if_package_doesnt_exist(self):
         path = '/packages/{}'.format(self.pkg_uid)
         self.httpd.register_response(path, status_code=404)
         with self.assertRaises(ValueError):
-            Package.get_status(self.pkg_uid)
+            get_package_status(self.pkg_uid)
