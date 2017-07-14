@@ -79,19 +79,3 @@ class PackageUIDValidator(Validator):
         if not re.match(r'[a-fA-F0-9]{64}', uid):
             raise ValidationError(
                 message='You need specify a valid package UID')
-
-
-class YesNoValidator(Validator):
-
-    def __init__(self, required=True, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.required = required
-
-    def validate(self, document):
-        answer = document.text.strip().lower()
-        if not answer:
-            if not self.required:
-                return None
-            raise ValidationError(message='{} is required'.format('Answer'))
-        if answer[0] not in 'yn':
-            raise ValidationError(message='Only yes or no values are allowed')

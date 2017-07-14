@@ -3,22 +3,23 @@
 
 import json
 import os
-from unittest.mock import patch
+import unittest
+from unittest.mock import Mock, patch
 
 from click.testing import CliRunner
 
 from uhu.cli.package import (
     add_object_command, edit_object_command, remove_object_command,
     archive_command, export_command, show_command, set_version_command,
-    status_command, metadata_command)
+    status_command, metadata_command, push_command)
 from uhu.cli.utils import open_package
 from uhu.core.package import Package
 from uhu.core.utils import dump_package, load_package
+from uhu.core.updatehub import UpdateHubError
 from uhu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 
-from utils import (
-    UHUTestCase, FileFixtureMixin, EnvironmentFixtureMixin, HTTPTestCaseMixin)
+from utils import UHUTestCase, FileFixtureMixin, EnvironmentFixtureMixin
 
 
 class PackageTestCase(EnvironmentFixtureMixin, FileFixtureMixin, UHUTestCase):
@@ -370,25 +371,22 @@ class SetVersionCommandTestCase(PackageTestCase):
         self.assertEqual(result.exit_code, 0)
 
 
-class StatusCommandTestCase(HTTPTestCaseMixin, PackageTestCase):
+class PackageStatusCommandTestCase(unittest.TestCase):
 
     def setUp(self):
-        super().setUp()
-        pkg = Package(version=self.version, product=self.product)
-        dump_package(pkg.to_template(), self.pkg_fn)
-        self.set_env_var(SERVER_URL_VAR, self.httpd.url(''))
+        self.runner = CliRunner()
 
-    def test_status_command_returns_0_if_successful(self):
-        path = '/packages/{}'.format(self.pkg_uid)
-        self.httpd.register_response(
-            path, status_code=200, body=json.dumps({'status': 'finished'}))
-        result = self.runner.invoke(status_command, args=[self.pkg_uid])
+    @patch('uhu.cli.package.open_package')
+    @patch('uhu.cli.package.get_package_status', return_value='Done')
+    def test_returns_0_if_successful(self, mock, open_package):
+        open_package.return_value.__enter__.return_value = Mock()
+        result = self.runner.invoke(status_command, args=['pkg_uid'])
         self.assertEqual(result.exit_code, 0)
 
-    def test_status_command_returns_2_if_status_doesnt_exist(self):
-        path = '/packages/{}'.format(self.pkg_uid)
-        self.httpd.register_response(path, status_code=404)
-        result = self.runner.invoke(status_command, args=[self.pkg_uid])
+    @patch('uhu.cli.package.open_package')
+    @patch('uhu.cli.package.get_package_status', side_effect=UpdateHubError)
+    def test_returns_2_if_fail(self, mock, open_package):
+        result = self.runner.invoke(status_command, args=['pkg_uid'])
         self.assertEqual(result.exit_code, 2)
 
 
@@ -425,3 +423,32 @@ class MetadataTestCase(PackageTestCase):
         dump_package(pkg.to_template(), self.pkg_fn)
         result = self.runner.invoke(metadata_command)
         self.assertEqual(result.exit_code, 1)
+
+
+class PushCommandTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.runner = CliRunner()
+
+    @patch('uhu.cli.package.open_package')
+    def test_returns_0_when_success(self, open_package):
+        open_package.return_value.__enter__.return_value = Mock()
+        result = self.runner.invoke(push_command)
+        self.assertEqual(result.exit_code, 0)
+
+    @patch('uhu.cli.package.open_package')
+    def test_returns_2_when_updatehub_error(self, open_package):
+        package = Mock()
+        package.push.side_effect = UpdateHubError
+        open_package.return_value.__enter__.return_value = package
+        result = self.runner.invoke(push_command)
+        self.assertEqual(result.exit_code, 2)
+
+    @patch('uhu.cli.utils.show_cursor')
+    def test_always_display_cursor_after_all(self, show_cursor):
+        effects = [None, UpdateHubError, Exception]
+        package = Mock()
+        package.push.side_effect = effects
+        for effect in effects:
+            result = self.runner.invoke(push_command)
+        self.assertEqual(show_cursor.call_count, len(effects))

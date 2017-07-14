@@ -20,7 +20,7 @@ from .product import product_cli
 def cli(ctx, package):
     """UpdateHub utility.
 
-    To push/pull packages, set USE_SERVER_URL environment variable to
+    To push packages, set USE_SERVER_URL environment variable to
     UpdateHub API server address.
     """
     if ctx.invoked_subcommand is None:

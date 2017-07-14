@@ -1,7 +1,6 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # SPDX-License-Identifier: GPL-2.0
 
-import json
 import os
 import unittest
 from unittest.mock import patch

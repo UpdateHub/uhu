@@ -2,20 +2,14 @@
 # SPDX-License-Identifier: GPL-2.0
 
 import hashlib
-import json
 import math
 import os
 
-from .. import http
-from ..exceptions import DownloadError, UploadError
 from ..utils import (
-    call, get_chunk_size, get_compressor_format, get_server_url,
-    get_uncompressed_size)
+    call, get_chunk_size, get_compressor_format, get_uncompressed_size)
 
 from ._options import Options
 from .install_condition import get_version
-from .storages import STORAGES
-from .upload import ObjectUploadResult
 from .validators import validate_options
 
 
@@ -92,8 +86,8 @@ class BaseObject(metaclass=ObjectType):
         template['mode'] = self.mode
         return template
 
-    def to_metadata(self):
-        self.load()
+    def to_metadata(self, callback=None):
+        self.load(callback)
         metadata = {opt.metadata: value for opt, value in self._values.items()}
         metadata['mode'] = self.mode
         self._metadata_install_condition(metadata)
@@ -167,42 +161,6 @@ class BaseObject(metaclass=ObjectType):
         self['sha256sum'] = sha256sum.hexdigest()
         self['size'] = self.size
         self.md5 = md5.hexdigest()
-
-    def upload(self, package_uid, callback=None):
-        """Uploads object to server."""
-        # First, check if we can upload the object
-        url = get_server_url('/packages/{}/objects/{}'.format(
-            package_uid, self['sha256sum']))
-        body = json.dumps({'etag': self.md5})
-        response = http.post(url, body, json=True)
-        if response.status_code == 200:  # Object already uploaded
-            result = ObjectUploadResult.EXISTS
-            call(callback, 'object_read', len(self))
-        elif response.status_code == 201:  # Object must be uploaded
-            body = response.json()
-            upload = STORAGES[body['storage']]
-            success = upload(self, body['url'], callback)
-            if success:
-                result = ObjectUploadResult.SUCCESS
-            else:
-                result = ObjectUploadResult.FAIL
-        else:  # It was not possible to check if we can upload
-            errors = response.json().get('errors', [])
-            error_msg = 'It was not possible to get url:\n{}'
-            raise UploadError(error_msg.format('\n'.join(errors)))
-        return result
-
-    def download(self, url):
-        """Downloads object from server."""
-        if self.exists:
-            return
-        response = http.get(url, stream=True, sign=False)
-        if not response.ok:
-            error_msg = 'It was not possible to download object:\n{}'
-            raise DownloadError(error_msg.format(response.text))
-        with open(self.filename, 'wb') as fp:
-            for chunk in response.iter_content(chunk_size=self.chunk_size):
-                fp.write(chunk)
 
     def __setitem__(self, key, value):
         try:

@@ -24,7 +24,7 @@ from .completers import (
 from .exceptions import CancelPromptException
 from .validators import (
     ObjectUIDValidator, ContainerValidator, ObjectOptionValueValidator,
-    PackageUIDValidator, YesNoValidator)
+    PackageUIDValidator)
 
 
 manager = KeyBindingManager.for_prompt()  # pylint: disable=invalid-name
@@ -229,15 +229,6 @@ def prompt_package_uid():
     validator = PackageUIDValidator()
     uid = prompt(msg, validator=validator)
     return uid.strip()
-
-
-def prompt_pull():
-    """Prompts user to set if a pull should download all files or not."""
-    msg = 'Should we download all files [Y/n]?:  '
-    completer = YesNoCompleter()
-    validator = YesNoValidator()
-    answer = prompt(msg, completer=completer, validator=validator)
-    return {'y': True, 'n': False}[answer.strip().lower()[0]]
 
 
 def prompt_installation_set(package, msg=None):
