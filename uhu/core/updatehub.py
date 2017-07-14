@@ -8,7 +8,6 @@ from enum import Enum
 from pkgschema import validate_metadata, ValidationError
 
 from .. import http
-from ..exceptions import UploadError
 from ..utils import call, get_server_url, get_chunk_size
 
 
@@ -35,8 +34,11 @@ class ObjectReader:  # pylint: disable=too-few-public-methods
 
 def dummy_object_upload(filename, url, callback=None):
     data = ObjectReader(filename, callback)
-    response = http.put(url, data=data, sign=False)
-    return response.ok
+    try:
+        http.put(url, data=data, sign=False)
+        return ObjectUploadResult.SUCCESS
+    except http.HTTPError:
+        return ObjectUploadResult.FAIL
 
 
 def swift_object_upload(*args, **kw):
@@ -64,6 +66,10 @@ class ObjectUploadResult(Enum):
         return result in (cls.SUCCESS, cls.EXISTS)
 
 
+class UpdateHubError(Exception):
+    """Exception to be used when API is broken."""
+
+
 # Push Package
 
 def push_package(metadata, objects, callback=None):
@@ -77,41 +83,42 @@ def upload_metadata(metadata):
     try:
         validate_metadata(metadata)
     except ValidationError:
-        raise UploadError('You have an invalid package metadata.')
+        raise UpdateHubError('You have an invalid package metadata.')
     url = get_server_url('/packages')
     payload = json.dumps(metadata)
-    response = http.post(url, payload=payload, json=True)
-    if response.status_code == 401:
-        err = ('You are not authorized to push. '
-               'Did you set your credentials?')
-        raise UploadError(err)
-    response_body = response.json()
-    if response.status_code != 201:
-        raise UploadError(http.format_server_error(response_body))
-    return response_body['uid']
+    try:
+        response = http.post(url, payload=payload, json=True).json()
+        return response['uid']
+    except http.HTTPError as error:
+        raise UpdateHubError('Could not upload metadata: {}'.format(error))
+    except (ValueError, KeyError):
+        raise UpdateHubError('Could not upload metadata: unknown error.')
 
 
 def upload_object(obj, package_uid, callback=None):
     """Uploads a package object to UpdateHub server."""
-    # First, check if we can upload the object
+    # First, check if we should upload the object
     url = get_server_url('/packages/{}/objects/{}'.format(
         package_uid, obj['sha256sum']))
     body = json.dumps({'etag': obj['md5']})
-    response = http.post(url, body, json=True)
-    if response.status_code == 200:  # Object already uploaded
-        result = ObjectUploadResult.EXISTS
+    try:
+        response = http.post(url, body, json=True)
+    except http.HTTPError:
+        return ObjectUploadResult.FAIL
+
+    # Object already uploaded, return EXISTS.
+    if response.status_code == 200:
         call(callback, 'object_read', obj['chunks'])
-    elif response.status_code == 201:  # Object must be uploaded
+        return ObjectUploadResult.EXISTS
+
+    # Object not uploaded, try to uploaded it.
+    try:
         body = response.json()
-        upload = STORAGES[body['storage']]
-        success = upload(obj['filename'], body['url'], callback)
-        if success:
-            result = ObjectUploadResult.SUCCESS
-        else:
-            result = ObjectUploadResult.FAIL
-    else:  # It was not possible to check if we can upload
-        raise UploadError(http.format_server_error(response.json()))
-    return result
+        uploader = STORAGES[body['storage']]
+        url = body['url']
+    except (ValueError, KeyError):
+        return ObjectUploadResult.FAIL
+    return uploader(obj['filename'], url, callback)
 
 
 def upload_objects(package_uid, objects, callback=None):
@@ -120,22 +127,28 @@ def upload_objects(package_uid, objects, callback=None):
     call(callback, 'finish_package_upload')
     for result in results:
         if not ObjectUploadResult.is_ok(result):
-            raise UploadError('Some objects has not been fully uploaded')
+            raise UpdateHubError(
+                'Some objects has not been fully uploaded. Try again later.')
 
 
 def finish_package(package_uid, callback=None):
     url = get_server_url('/packages/{}/finish'.format(package_uid))
-    response = http.put(url)
-    if response.status_code != 204:
-        raise UploadError('Push failed\n{}'.format(response.text))
-    call(callback, 'push_finish', package_uid)
+    try:
+        http.put(url)
+    except http.HTTPError as error:
+        raise UpdateHubError(
+            'Could not finish package on server: {}'.format(error))
+    finally:
+        call(callback, 'push_finish', package_uid)
 
 
 # Package status
 
 def get_package_status(package_uid):
     url = get_server_url('/packages/{}'.format(package_uid))
-    response = http.get(url, json=True)
-    if response.status_code != 200:
-        raise ValueError('Status not found')
-    return response.json().get('status')
+    try:
+        return http.get(url, json=True).json()['status']
+    except http.HTTPError as error:
+        raise UpdateHubError(error)
+    except (ValueError, KeyError):
+        raise UpdateHubError('Could not get package info. Try again later.')

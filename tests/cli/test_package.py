@@ -385,7 +385,7 @@ class StatusCommandTestCase(HTTPTestCaseMixin, PackageTestCase):
         result = self.runner.invoke(status_command, args=[self.pkg_uid])
         self.assertEqual(result.exit_code, 0)
 
-    def test_status_command_returns_2_if_status_doesnt_exist(self):
+    def test_status_command_returns_2_if_fail(self):
         path = '/packages/{}'.format(self.pkg_uid)
         self.httpd.register_response(path, status_code=404)
         result = self.runner.invoke(status_command, args=[self.pkg_uid])

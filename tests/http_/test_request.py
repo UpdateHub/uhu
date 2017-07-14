@@ -4,12 +4,12 @@
 import hashlib
 import unittest
 from datetime import datetime, timezone
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 import requests
 
 from uhu.http._request import Request
-from uhu.http import format_server_error, HTTPError, request
+from uhu.http import format_server_error, HTTPError, request, UNKNOWN_ERROR
 from uhu.http.auth import UHV1Signature
 
 from utils import HTTPTestCaseMixin, UHUTestCase
@@ -218,30 +218,37 @@ class SignedRequestTestCase(HTTPTestCaseMixin, UHUTestCase):
 
 class FormatServerErrorTestCase(unittest.TestCase):
 
+    def setUp(self):
+        self.response = Mock()
+
     def test_returns_unkown_error_when_unknown_error(self):
-        expected = 'It was not possible to start pushing: unknown error.'
-        observed = format_server_error({})
-        self.assertEqual(observed, expected)
+        self.response.json.return_value = {}
+        observed = format_server_error(self.response)
+        self.assertEqual(observed, UNKNOWN_ERROR)
 
     def test_returns_error_message_when_error_message(self):
-        expected = 'It was not possible to start pushing: message.'
-        observed = format_server_error({'error_message': 'message'})
-        self.assertEqual(observed, expected)
+        self.response.json.return_value = {'error_message': 'message'}
+        observed = format_server_error(self.response)
+        self.assertEqual(observed, 'message')
 
     def test_returns_error_list_when_error_list(self):
-        expected = 'It was not possible to start pushing:\n  - field: message.'
-        observed = format_server_error({'errors': {'field': ['message']}})
-        self.assertEqual(observed, expected)
+        self.response.json.return_value = {
+            'errors': {
+                'field': ['message'],
+            },
+        }
+        observed = format_server_error(self.response)
+        self.assertEqual(observed, '- field: message')
 
     def test_returns_unknown_error_when_list_is_invalid(self):
         invalid_errors = [
             {'errors': 1},
             {'errors': {'field': None}},
         ]
-        expected = 'It was not possible to start pushing: unknown error.'
         for errors in invalid_errors:
-            observed = format_server_error(errors)
-            self.assertEqual(observed, expected)
+            self.response.json.return_value = errors
+            observed = format_server_error(self.response)
+            self.assertEqual(observed, UNKNOWN_ERROR)
 
 
 class RequestErrorsTestCase(unittest.TestCase):
@@ -293,3 +300,9 @@ class RequestErrorsTestCase(unittest.TestCase):
         for _ in exceptions:
             with self.assertRaises(HTTPError):
                 request('GET', 'foo')
+
+    @patch('uhu.http.requests.request')
+    def test_raises_error_when_unathorized(self, mock):
+        mock.return_value.status_code = 401
+        with self.assertRaises(HTTPError):
+            request('GET', 'foo')

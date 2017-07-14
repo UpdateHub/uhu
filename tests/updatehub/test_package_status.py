@@ -4,7 +4,7 @@
 import unittest
 from unittest.mock import patch
 
-from uhu.core.updatehub import get_package_status
+from uhu.core.updatehub import get_package_status, UpdateHubError
 
 
 class PackageStatusTestCase(unittest.TestCase):
@@ -18,8 +18,11 @@ class PackageStatusTestCase(unittest.TestCase):
         self.assertEqual(status, 'done')
 
     @patch('uhu.core.updatehub.http.get')
-    def test_raises_error_if_package_doesnt_exist(self, mock):
-        mock.return_value.ok = True
+    def test_raises_error_if_server_error(self, mock):
+        effects = [{}, ValueError]
+        mock.return_value.ok = False
         mock.return_value.status_code = 404
-        with self.assertRaises(ValueError):
-            get_package_status('1234')
+        mock.return_value.json.side_effect = effects
+        for _ in effects:
+            with self.assertRaises(UpdateHubError):
+                get_package_status('1234')

@@ -8,10 +8,8 @@ import click
 from pkgschema import validate_metadata, ValidationError
 
 from ..core.object import Modes
-from ..core.updatehub import get_package_status
+from ..core.updatehub import get_package_status, UpdateHubError
 from ..core.utils import dump_package, dump_package_archive
-from ..exceptions import UploadError
-from ..http import HTTPError
 from ..ui import get_callback, show_cursor
 
 from ._object import CLICK_ADD_OPTIONS
@@ -105,11 +103,8 @@ def push_command():
     with open_package(read_only=True) as package:
         try:
             package.push(callback)
-        except UploadError as err:
-            print()
+        except UpdateHubError as err:
             error(2, err)
-        except HTTPError as err:
-            error(3, err)
         finally:
             show_cursor()
 
@@ -120,7 +115,7 @@ def status_command(package_uid):
     """Prints the status of the given package."""
     try:
         print(get_package_status(package_uid))
-    except ValueError as err:
+    except UpdateHubError as err:
         error(2, err)
 
 
@@ -128,7 +123,6 @@ def status_command(package_uid):
 def metadata_command():
     """Loads package and prints its metadata."""
     with open_package(read_only=True) as package:
-        package.objects.load()
         metadata = package.to_metadata()
         print(json.dumps(metadata, indent=4, sort_keys=True))
     try:

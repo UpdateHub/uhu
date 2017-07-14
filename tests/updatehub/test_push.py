@@ -6,8 +6,8 @@ from unittest.mock import patch
 
 from uhu.core.updatehub import (
     finish_package, ObjectUploadResult, push_package,
-    upload_metadata, upload_object, upload_objects)
-from uhu.exceptions import UploadError
+    upload_metadata, upload_object, upload_objects, UpdateHubError)
+from uhu.http import HTTPError
 
 
 class PushPackageTestCase(unittest.TestCase):
@@ -31,22 +31,13 @@ class UploadMetadataTestCase(unittest.TestCase):
         self.assertEqual(uid, '1234')
 
     def test_raises_error_when_invalid_metadata(self):
-        with self.assertRaises(UploadError):
+        with self.assertRaises(UpdateHubError):
             upload_metadata({})
 
     @patch('uhu.core.updatehub.validate_metadata')
-    @patch('uhu.core.updatehub.http.post')
-    def test_raises_error_when_unathorized(self, http, mock):
-        http.return_value.status_code = 401
-        with self.assertRaises(UploadError):
-            upload_metadata({})
-
-    @patch('uhu.core.updatehub.validate_metadata')
-    @patch('uhu.core.updatehub.http')
+    @patch('uhu.core.updatehub.http.post', side_effect=HTTPError)
     def test_raises_error_if_invalid_request(self, http, mock):
-        http.post.return_value.status_code = 400
-        http.format_server_error.return_value = 'error'
-        with self.assertRaises(UploadError):
+        with self.assertRaises(UpdateHubError):
             upload_metadata({})
 
 
@@ -63,7 +54,7 @@ class UploadObjectTestCase(unittest.TestCase):
 
     @patch('uhu.core.updatehub.http.post')
     @patch('uhu.core.updatehub.http.put')
-    def test_returns_SUCCESS_when_upload_fails(self, put, post):
+    def test_returns_SUCCESS_when_upload_success(self, put, post):
         post.return_value.status_code = 201
         post.return_value.json.return_value = {
             'storage': 'dummy',
@@ -73,11 +64,10 @@ class UploadObjectTestCase(unittest.TestCase):
         result = upload_object(self.obj, self.package_uid)
         self.assertEqual(result, ObjectUploadResult.SUCCESS)
 
-    @patch('uhu.core.updatehub.http.post')
-    def test_raises_error_when_cannot_get_upload_url(self, http):
-        http.return_value.status_code = 400
-        with self.assertRaises(UploadError):
-            upload_object(self.obj, self.package_uid)
+    @patch('uhu.core.updatehub.http.post', side_effect=HTTPError)
+    def test_returns_FAIL_when_cannot_get_upload_url(self, post):
+        result = upload_object(self.obj, self.package_uid)
+        self.assertEqual(result, ObjectUploadResult.FAIL)
 
     @patch('uhu.core.updatehub.http.post')
     def test_returns_EXISTS_when_file_exists_on_server(self, http):
@@ -86,14 +76,13 @@ class UploadObjectTestCase(unittest.TestCase):
         self.assertEqual(result, ObjectUploadResult.EXISTS)
 
     @patch('uhu.core.updatehub.http.post')
-    @patch('uhu.core.updatehub.http.put')
+    @patch('uhu.core.updatehub.http.put', side_effect=HTTPError)
     def test_returns_FAIL_when_upload_fails(self, put, post):
         post.return_value.status_code = 201
         post.return_value.json.return_value = {
             'storage': 'dummy',
             'url': 'http://someplace',
         }
-        put.return_value.ok = False
         result = upload_object(self.obj, self.package_uid)
         self.assertEqual(result, ObjectUploadResult.FAIL)
 
@@ -116,7 +105,7 @@ class UploadObjectsTestCase(unittest.TestCase):
             ObjectUploadResult.SUCCESS,
             ObjectUploadResult.FAIL,
         ]
-        with self.assertRaises(UploadError):
+        with self.assertRaises(UpdateHubError):
             upload_objects('1234', [{}, {}])
 
 
@@ -127,8 +116,7 @@ class FinishPackageTestCase(unittest.TestCase):
         http.return_value.status_code = 204
         self.assertIsNone(finish_package('1234'))
 
-    @patch('uhu.core.updatehub.http.put')
+    @patch('uhu.core.updatehub.http.put', side_effect=HTTPError)
     def test_raises_error_when_fail(self, http):
-        http.return_value.status_code = 400
-        with self.assertRaises(UploadError):
+        with self.assertRaises(UpdateHubError):
             finish_package('1234')
