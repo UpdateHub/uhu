@@ -12,10 +12,8 @@ from uhu.http._request import Request
 from uhu.http import format_server_error, HTTPError, request, UNKNOWN_ERROR
 from uhu.http.auth import UHV1Signature
 
-from utils import HTTPTestCaseMixin, UHUTestCase
 
-
-class RequestTestCase(HTTPTestCaseMixin, UHUTestCase):
+class RequestTestCase(unittest.TestCase):
 
     def test_request_date_is_in_utc(self):
         expected = datetime.now(timezone.utc).timestamp()
@@ -77,18 +75,17 @@ class RequestTestCase(HTTPTestCaseMixin, UHUTestCase):
         for header in headers:
             self.assertEqual(str(headers[header]), prepared_headers[header])
 
-    def test_send_request(self):
-        self.httpd.register_response('/', body='{"status": "ok"}')
-        request = Request(self.httpd.url(), 'GET')
-        response = request.send()
-        self.assertEqual(response.json()['status'], 'ok')
+    @patch('uhu.http._request.requests.request')
+    def test_send_request(self, request):
+        Request('localhost', 'GET').send()
+        args, kwargs = request.call_args
+        self.assertEqual(args, ('GET', 'localhost'))
 
-    def test_request_is_signed(self):
-        self.httpd.register_response('/signed', body='{"status": "ok"}')
-        Request(self.httpd.url('/signed'), 'GET').send()
-        response = self.httpd.requests[-1]
-        auth_header = response.headers.get('Authorization')
-        self.assertIsNotNone(auth_header)
+    @patch('uhu.http._request.requests.request')
+    def test_request_is_signed(self, request):
+        Request('/signed', 'GET').send()
+        headers = request.call_args[1]['headers']
+        self.assertIsNotNone(headers.get('Authorization'))
 
     def test_host_header_includes_port_if_provided(self):
         req = Request('http://localhost:123', 'GET')
@@ -177,7 +174,7 @@ timestamp:123456.1234'''
         self.assertEqual(observed, expected)
 
 
-class SignedRequestTestCase(HTTPTestCaseMixin, UHUTestCase):
+class SignedRequestTestCase(unittest.TestCase):
 
     def test_signed_request_has_the_authorization_header(self):
         request = Request('https://127.0.0.1/upload', 'POST')
@@ -188,10 +185,9 @@ class SignedRequestTestCase(HTTPTestCaseMixin, UHUTestCase):
         header = request.headers.get('Authorization', None)
         self.assertIsNotNone(header)
 
-    def test_signatured_is_calculated_with_right_headers(self):
-        self.httpd.register_response('/')
-
-        request = Request(self.httpd.url(), 'POST')
+    @patch('uhu.http._request.requests.request')
+    def test_signatured_is_calculated_with_right_headers(self, mock):
+        request = Request('localhost', 'POST')
         self.assertIsNone(request.headers.get('Authorization', None))
 
         sig = UHV1Signature(request, None, None).signature
@@ -203,17 +199,21 @@ class SignedRequestTestCase(HTTPTestCaseMixin, UHUTestCase):
         self.assertEqual(sig, request.headers['Authorization'])
 
         del request.headers['Authorization']
-        response = request.send()
-        self.assertEqual(response.request.headers['Authorization'], sig)
+        request.send()
+
+        args, kwargs = mock.call_args
+        self.assertEqual(kwargs['headers']['Authorization'], sig)
 
         # It is right when we send the request
-        request = Request(self.httpd.url(), 'POST')
+        request = Request('localhost', 'POST')
         self.assertIsNone(request.headers.get('Authorization', None))
 
         sig = UHV1Signature(request, None, None).signature
         self.assertIsNone(request.headers.get('Authorization', None))
-        response = request.send()
-        self.assertEqual(response.request.headers['Authorization'], sig)
+        request.send()
+
+        args, kwargs = mock.call_args
+        self.assertEqual(kwargs['headers']['Authorization'], sig)
 
 
 class FormatServerErrorTestCase(unittest.TestCase):

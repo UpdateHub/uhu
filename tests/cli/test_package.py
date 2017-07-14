@@ -3,7 +3,8 @@
 
 import json
 import os
-from unittest.mock import patch
+import unittest
+from unittest.mock import Mock, patch
 
 from click.testing import CliRunner
 
@@ -14,11 +15,11 @@ from uhu.cli.package import (
 from uhu.cli.utils import open_package
 from uhu.core.package import Package
 from uhu.core.utils import dump_package, load_package
+from uhu.core.updatehub import UpdateHubError
 from uhu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 
-from utils import (
-    UHUTestCase, FileFixtureMixin, EnvironmentFixtureMixin, HTTPTestCaseMixin)
+from utils import UHUTestCase, FileFixtureMixin, EnvironmentFixtureMixin
 
 
 class PackageTestCase(EnvironmentFixtureMixin, FileFixtureMixin, UHUTestCase):
@@ -370,25 +371,22 @@ class SetVersionCommandTestCase(PackageTestCase):
         self.assertEqual(result.exit_code, 0)
 
 
-class StatusCommandTestCase(HTTPTestCaseMixin, PackageTestCase):
+class PackageStatusCommandTestCase(unittest.TestCase):
 
     def setUp(self):
-        super().setUp()
-        pkg = Package(version=self.version, product=self.product)
-        dump_package(pkg.to_template(), self.pkg_fn)
-        self.set_env_var(SERVER_URL_VAR, self.httpd.url(''))
+        self.runner = CliRunner()
 
-    def test_status_command_returns_0_if_successful(self):
-        path = '/packages/{}'.format(self.pkg_uid)
-        self.httpd.register_response(
-            path, status_code=200, body=json.dumps({'status': 'finished'}))
-        result = self.runner.invoke(status_command, args=[self.pkg_uid])
+    @patch('uhu.cli.package.open_package')
+    @patch('uhu.cli.package.get_package_status', return_value='Done')
+    def test_returns_0_if_successful(self, mock, open_package):
+        open_package.return_value.__enter__.return_value = Mock()
+        result = self.runner.invoke(status_command, args=['pkg_uid'])
         self.assertEqual(result.exit_code, 0)
 
-    def test_status_command_returns_2_if_fail(self):
-        path = '/packages/{}'.format(self.pkg_uid)
-        self.httpd.register_response(path, status_code=404)
-        result = self.runner.invoke(status_command, args=[self.pkg_uid])
+    @patch('uhu.cli.package.open_package')
+    @patch('uhu.cli.package.get_package_status', side_effect=UpdateHubError)
+    def test_returns_2_if_fail(self, mock, open_package):
+        result = self.runner.invoke(status_command, args=['pkg_uid'])
         self.assertEqual(result.exit_code, 2)
 
 

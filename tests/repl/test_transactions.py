@@ -2,39 +2,29 @@
 # SPDX-License-Identifier: GPL-2.0
 
 import copy
-import json
-import os
 import unittest
 from unittest.mock import Mock, patch
 
 from uhu.repl.repl import UHURepl
 from uhu.repl import functions
-from uhu.utils import SERVER_URL_VAR
-
-from utils import HTTPTestCaseMixin, UHUTestCase, EnvironmentFixtureMixin
 
 
-class PackageStatusTestCase(
-        EnvironmentFixtureMixin, HTTPTestCaseMixin, UHUTestCase):
+class PackageStatusTestCase(unittest.TestCase):
 
     def setUp(self):
         self.repl = UHURepl()
-        self.set_env_var(SERVER_URL_VAR, self.httpd.url(''))
         self.product = '1' * 64
         self.pkg_uid = '1'
 
-    def test_can_get_package_status(self):
-        path = '/packages/{}'.format(self.pkg_uid)
-        self.httpd.register_response(
-            path, status_code=200, body=json.dumps({'status': 'success'}))
-
+    @patch('uhu.repl.functions.get_package_status', return_value='Done')
+    def test_can_get_package_status(self, mock):
         builtins = copy.deepcopy(functions.__builtins__)
         builtins['print'] = Mock()
         with patch.dict(functions.__builtins__, builtins):
             self.repl.package.product = self.product
             self.repl.arg = self.pkg_uid
             functions.package_status(self.repl)
-            functions.__builtins__['print'].assert_called_once_with('success')
+            functions.__builtins__['print'].assert_called_once_with('Done')
 
     def test_raises_error_if_missing_product(self):
         self.assertIsNone(self.repl.package.product)
