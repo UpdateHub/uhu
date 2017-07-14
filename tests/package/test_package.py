@@ -1,9 +1,10 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # SPDX-License-Identifier: GPL-2.0
 
-import json
+import hashlib
 import os
 import zipfile
+import unittest
 from unittest.mock import patch
 
 from pkgschema import ValidationError
@@ -12,9 +13,68 @@ from uhu.core.hardware import SupportedHardwareManager
 from uhu.core.objects import ObjectsManager
 from uhu.core.package import Package
 from uhu.core.utils import dump_package, load_package, dump_package_archive
-from uhu.utils import get_local_config_file
+from uhu.utils import CHUNK_SIZE_VAR
 
-from . import PackageTestCase
+from utils import FileFixtureMixin, EnvironmentFixtureMixin, UHUTestCase
+
+
+class PackageTestCase(FileFixtureMixin, EnvironmentFixtureMixin, UHUTestCase):
+
+    def setUp(self):
+        self.set_env_var(CHUNK_SIZE_VAR, 2)
+        self.version = '2.0'
+        self.product = 'a' * 64
+        self.hardware = 'PowerX'
+        self.pkg_uid = 'pkg-uid'
+        content = b'spam'
+        self.obj_fn = self.create_file(content, name='object')
+        self.obj_sha256 = hashlib.sha256(content).hexdigest()
+        self.obj_options = {
+            'filename': self.obj_fn,
+            'mode': 'raw',
+            'target-type': 'device',
+            'target': '/dev/sda',
+        }
+
+
+class PackageConstructorsTestCase(PackageTestCase):
+
+    def test_can_create_package(self):
+        pkg = Package(version=self.version, product=self.product)
+        self.assertEqual(pkg.version, self.version)
+        self.assertEqual(pkg.product, self.product)
+        self.assertEqual(pkg.objects, ObjectsManager())
+        self.assertEqual(pkg.supported_hardware, SupportedHardwareManager())
+
+    def test_can_create_package_from_dump(self):
+        dump = {
+            'product': self.product,
+            'version': self.version,
+        }
+
+        # Supported hardware
+        hardware_dump = {'supported-hardware': 'any'}
+        dump.update(hardware_dump)
+        hardware = SupportedHardwareManager(dump=hardware_dump)
+
+        # Objects
+        object_dump = {
+            'filename': self.obj_fn,
+            'mode': 'copy',
+            'target-type': 'device',
+            'target': '/dev/sda',
+            'target-path': '/boot',
+            'filesystem': 'ext4',
+        }
+        objects_dump = {'objects': [[object_dump], [object_dump]]}
+        dump.update(objects_dump)
+        objects = ObjectsManager(dump=objects_dump)
+
+        pkg = Package(dump=dump)
+        self.assertEqual(pkg.version, self.version)
+        self.assertEqual(pkg.product, self.product)
+        self.assertEqual(pkg.supported_hardware, hardware)
+        self.assertEqual(pkg.objects, objects)
 
 
 class PackageSerializationTestCase(PackageTestCase):
@@ -173,3 +233,13 @@ class PackageSerializationTestCase(PackageTestCase):
         output = self.create_file()
         with self.assertRaises(ValueError):
             dump_package_archive(pkg, output, force=True)
+
+
+class PackagePushTestCase(unittest.TestCase):
+
+    @patch('uhu.core.package.push_package', return_value='42')
+    def test_push_sets_package_uid_when_successful(self, mock):
+        pkg = Package()
+        uid = pkg.push()
+        self.assertEqual(pkg.uid, '42')
+        self.assertEqual(uid, '42')

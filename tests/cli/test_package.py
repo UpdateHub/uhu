@@ -11,7 +11,7 @@ from click.testing import CliRunner
 from uhu.cli.package import (
     add_object_command, edit_object_command, remove_object_command,
     archive_command, export_command, show_command, set_version_command,
-    status_command, metadata_command)
+    status_command, metadata_command, push_command)
 from uhu.cli.utils import open_package
 from uhu.core.package import Package
 from uhu.core.utils import dump_package, load_package
@@ -423,3 +423,32 @@ class MetadataTestCase(PackageTestCase):
         dump_package(pkg.to_template(), self.pkg_fn)
         result = self.runner.invoke(metadata_command)
         self.assertEqual(result.exit_code, 1)
+
+
+class PushCommandTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.runner = CliRunner()
+
+    @patch('uhu.cli.package.open_package')
+    def test_returns_0_when_success(self, open_package):
+        open_package.return_value.__enter__.return_value = Mock()
+        result = self.runner.invoke(push_command)
+        self.assertEqual(result.exit_code, 0)
+
+    @patch('uhu.cli.package.open_package')
+    def test_returns_2_when_updatehub_error(self, open_package):
+        package = Mock()
+        package.push.side_effect = UpdateHubError
+        open_package.return_value.__enter__.return_value = package
+        result = self.runner.invoke(push_command)
+        self.assertEqual(result.exit_code, 2)
+
+    @patch('uhu.cli.utils.show_cursor')
+    def test_always_display_cursor_after_all(self, show_cursor):
+        effects = [None, UpdateHubError, Exception]
+        package = Mock()
+        package.push.side_effect = effects
+        for effect in effects:
+            result = self.runner.invoke(push_command)
+        self.assertEqual(show_cursor.call_count, len(effects))
