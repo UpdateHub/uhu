@@ -79,14 +79,14 @@ class SupportedHardwareSerialization(unittest.TestCase):
         manager.add('PowerX')
         manager.add('PowerY')
         manager.add('PowerZ')
-        with open('tests/hardware/fixtures/string_some.txt') as fp:
+        with open('tests/core/fixtures/hardware/string_some.txt') as fp:
             expected = fp.read().strip()
         observed = str(manager)
         self.assertEqual(observed, expected)
 
     def test_can_serialize_manager_as_string_when_any(self):
         manager = SupportedHardwareManager()
-        with open('tests/hardware/fixtures/string_any.txt') as fp:
+        with open('tests/core/fixtures/hardware/string_any.txt') as fp:
             expected = fp.read().strip()
         observed = str(manager)
         self.assertEqual(observed, expected)
