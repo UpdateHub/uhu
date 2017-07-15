@@ -48,7 +48,7 @@ def call(obj, name, *args, **kw):
 def indent(value, n_indents, all_lines=False):
     """Indent a multline string to right by n_indents.
 
-    If all_lines is set to True, the first line will also be indeted,
+    If all_lines is set to True, the first line will also be indented,
     otherwise, first line will be 0 padded. This is so since we can
     attach the generated string in an already indented line.
     """
