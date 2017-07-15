@@ -58,16 +58,6 @@ class UtilsTestCase(EnvironmentFixtureMixin, UHUTestCase):
 
 class StringUtilsTestCase(unittest.TestCase):
 
-    def test_yes_or_no_returns_yes_if_true(self):
-        expected = 'yes'
-        observed = utils.yes_or_no(True)
-        self.assertEqual(expected, observed)
-
-    def test_yes_or_no_returns_no_if_false(self):
-        expected = 'no'
-        observed = utils.yes_or_no(False)
-        self.assertEqual(expected, observed)
-
     def test_can_indent_text(self):
         expected = '1\n  2\n  3'
         observed = utils.indent('1\n2\n3\n', 2)

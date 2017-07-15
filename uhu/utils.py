@@ -52,18 +52,6 @@ def call(obj, name, *args, **kw):
     func(*args, **kw)
 
 
-# String utilities
-
-def yes_or_no(value):
-    """Helper function to humanize boolean values.
-
-    If value represents a True value, returns "yes", otherwise "no".
-    """
-    if value:
-        return 'yes'
-    return 'no'
-
-
 def indent(value, n_indents, all_lines=False):
     """Indent a multline string to right by n_indents.
 
