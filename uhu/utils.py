@@ -1,9 +1,7 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # SPDX-License-Identifier: GPL-2.0
 
-import json
 import os
-from collections import OrderedDict
 
 
 # Environment variables (only for testing)
@@ -36,11 +34,6 @@ def get_global_config_file():
 
 def get_local_config_file():
     return os.environ.get(LOCAL_CONFIG_VAR, DEFAULT_LOCAL_CONFIG_FILE)
-
-
-def get_local_config():
-    with open(get_local_config_file()) as fp:
-        return json.load(fp, object_pairs_hook=OrderedDict)
 
 
 def remove_local_config():

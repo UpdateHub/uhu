@@ -87,12 +87,6 @@ class LocalConfigTestCase(
         observed = utils.get_local_config_file()
         self.assertEqual(observed, utils.DEFAULT_LOCAL_CONFIG_FILE)
 
-    def test_can_load_local_config(self):
-        with open(self.config_fn, 'w') as fp:
-            fp.write('{"test": 42}')
-        config = utils.get_local_config()
-        self.assertEqual(config['test'], 42)
-
     def test_can_remove_package_file(self):
         open(self.config_fn, 'w').close()
         self.assertTrue(os.path.exists(self.config_fn))
