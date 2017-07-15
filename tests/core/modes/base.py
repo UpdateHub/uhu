@@ -17,7 +17,7 @@ class ModeTestCaseMixin(EnvironmentFixtureMixin, FileFixtureMixin):
     def setUp(self):
         super().setUp()
         cwd = os.getcwd()
-        os.chdir('tests/modes/fixtures')
+        os.chdir('tests/core/fixtures/modes')
         self.addCleanup(os.chdir, cwd)
 
         self.fn = __file__
