@@ -5,7 +5,7 @@ import unittest
 from datetime import datetime, timezone
 from unittest.mock import Mock
 
-from uhu.http.auth import UHV1Signature
+from uhu.updatehub.auth import UHV1Signature
 
 
 class UHV1SignatureTestCase(unittest.TestCase):

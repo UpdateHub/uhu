@@ -8,7 +8,7 @@ import click
 from pkgschema import validate_metadata, ValidationError
 
 from ..core.object import Modes
-from ..core.updatehub import get_package_status, UpdateHubError
+from ..updatehub.api import get_package_status, UpdateHubError
 from ..core.utils import dump_package, dump_package_archive
 from ..ui import get_callback, show_cursor
 

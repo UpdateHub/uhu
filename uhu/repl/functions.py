@@ -3,7 +3,7 @@
 """Main UHU REPL command functions."""
 
 from ..config import config
-from ..core.updatehub import get_package_status
+from ..updatehub.api import get_package_status
 from ..core.utils import dump_package
 from ..ui import get_callback
 

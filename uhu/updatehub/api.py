@@ -7,8 +7,8 @@ from enum import Enum
 
 from pkgschema import validate_metadata, ValidationError
 
-from .. import http
-from ..utils import call, get_server_url, get_chunk_size
+from uhu.utils import call, get_server_url, get_chunk_size
+from . import http
 
 
 # Utilities
