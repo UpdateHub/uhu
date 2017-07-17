@@ -25,8 +25,8 @@ def create_u_boot_file():
 class KernelVersionTestCase(unittest.TestCase):
 
     def get_kernel_fixture(self, fixture):
-        basedir = os.path.join(os.path.dirname(__file__), '../fixtures/kernel')
-        return os.path.join(basedir, fixture)
+        return os.path.join(
+            'tests/core/fixtures/install-condition/kernel', fixture)
 
     def test_can_get_kernel_version(self):
         images = [
@@ -254,7 +254,7 @@ class KnownVersionPatternObjectIntegrationTestCase(unittest.TestCase):
     def setUp(self):
         current_dir = os.getcwd()
         self.addCleanup(os.chdir, current_dir)
-        os.chdir(os.path.join(os.path.dirname(__file__), '../fixtures/kernel'))
+        os.chdir('tests/core/fixtures/install-condition/kernel')
 
         self.images = [
             ('arm-zImage', '4.4.1'),
@@ -462,7 +462,7 @@ class InstallConditionRepresentationTestCase(unittest.TestCase):
 
     def setUp(self):
         cwd = os.getcwd()
-        os.chdir('tests/fixtures/object')
+        os.chdir('tests/core/fixtures/install-condition')
         self.addCleanup(os.chdir, cwd)
 
     def get_fixture(self, fn):

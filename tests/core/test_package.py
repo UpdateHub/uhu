@@ -157,7 +157,7 @@ class PackageSerializationTestCase(PackageTestCase):
     def test_can_serialize_package_as_string(self):
         self.maxDiff = None
         cwd = os.getcwd()
-        os.chdir('tests/package/fixtures')
+        os.chdir('tests/core/fixtures')
         self.addCleanup(os.chdir, cwd)
         expected = self.read_file('package_string.txt')
         pkg = self.create_package()[0]
@@ -165,7 +165,7 @@ class PackageSerializationTestCase(PackageTestCase):
 
     def test_package_as_string_when_empty(self):
         cwd = os.getcwd()
-        os.chdir('tests/package/fixtures')
+        os.chdir('tests/core/fixtures')
         self.addCleanup(os.chdir, cwd)
         expected = self.read_file('package_string_empty.txt')
         pkg = Package()

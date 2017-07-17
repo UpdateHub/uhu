@@ -201,8 +201,7 @@ class ObjectsTestCase(unittest.TestCase):
         self.assertEqual(metadata, expected)
 
     def test_metadata_representation_with_compression(self):
-        base_dir = os.path.join(
-            os.path.dirname(__file__), '../fixtures/compressed/')
+        base_dir = 'tests/core/fixtures/compression/'
         uncompressed_fn = os.path.join(base_dir, 'base.txt')
         compressed_fn = os.path.join(base_dir, 'base.txt.gz')
         with open(compressed_fn, 'br') as fp:

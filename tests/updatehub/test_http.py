@@ -8,9 +8,10 @@ from unittest.mock import patch, Mock
 
 import requests
 
-from uhu.http._request import Request
-from uhu.http import format_server_error, HTTPError, request, UNKNOWN_ERROR
-from uhu.http.auth import UHV1Signature
+from uhu.updatehub._request import Request
+from uhu.updatehub.http import (
+    format_server_error, HTTPError, request, UNKNOWN_ERROR)
+from uhu.updatehub.auth import UHV1Signature
 
 
 class RequestTestCase(unittest.TestCase):
@@ -21,8 +22,8 @@ class RequestTestCase(unittest.TestCase):
         # 60 seconds of tolerance between expected and observed
         self.assertAlmostEqual(observed, expected, delta=60)
 
-    @patch('uhu.http._request.datetime')
-    @patch('uhu.http._request.get_version', return_value='2.0')
+    @patch('uhu.updatehub._request.datetime')
+    @patch('uhu.updatehub._request.get_version', return_value='2.0')
     def test_request_has_minimal_headers(self, mock_version, mock_date):
         mock_date.now.return_value = datetime(1970, 1, 1, tzinfo=timezone.utc)
         request = Request('https://localhost/', 'POST', b'\0')
@@ -75,13 +76,13 @@ class RequestTestCase(unittest.TestCase):
         for header in headers:
             self.assertEqual(str(headers[header]), prepared_headers[header])
 
-    @patch('uhu.http._request.requests.request')
+    @patch('uhu.updatehub._request.requests.request')
     def test_send_request(self, request):
         Request('localhost', 'GET').send()
         args, kwargs = request.call_args
         self.assertEqual(args, ('GET', 'localhost'))
 
-    @patch('uhu.http._request.requests.request')
+    @patch('uhu.updatehub._request.requests.request')
     def test_request_is_signed(self, request):
         Request('/signed', 'GET').send()
         headers = request.call_args[1]['headers']
@@ -99,7 +100,7 @@ class RequestTestCase(unittest.TestCase):
         observed = req.headers.get('Host')
         self.assertEqual(observed, expected)
 
-    @patch('uhu.http._request.requests.request')
+    @patch('uhu.updatehub._request.requests.request')
     def test_can_pass_extra_kwargs_to_requests(self, mock):
         Request('http://localhost', 'GET', stream=True).send()
         observed = list(mock.call_args)[1].get('stream')
@@ -108,8 +109,8 @@ class RequestTestCase(unittest.TestCase):
 
 class CanonicalRequestTestCase(unittest.TestCase):
 
-    @patch('uhu.http._request.datetime')
-    @patch('uhu.http._request.get_version', return_value='2.0')
+    @patch('uhu.updatehub._request.datetime')
+    @patch('uhu.updatehub._request.get_version', return_value='2.0')
     def test_canonical_request(self, mock_version, mock_date):
         mock_date.now.return_value = datetime(1970, 1, 1, tzinfo=timezone.utc)
         request = Request(
@@ -185,7 +186,7 @@ class SignedRequestTestCase(unittest.TestCase):
         header = request.headers.get('Authorization', None)
         self.assertIsNotNone(header)
 
-    @patch('uhu.http._request.requests.request')
+    @patch('uhu.updatehub._request.requests.request')
     def test_signatured_is_calculated_with_right_headers(self, mock):
         request = Request('localhost', 'POST')
         self.assertIsNone(request.headers.get('Authorization', None))
@@ -253,7 +254,7 @@ class FormatServerErrorTestCase(unittest.TestCase):
 
 class RequestErrorsTestCase(unittest.TestCase):
 
-    @patch('uhu.http.requests.request')
+    @patch('uhu.updatehub.http.requests.request')
     def test_raises_error_when_invalid_url(self, mock):
         exceptions = [
             requests.exceptions.MissingSchema,
@@ -266,7 +267,7 @@ class RequestErrorsTestCase(unittest.TestCase):
             with self.assertRaises(HTTPError):
                 request('GET', 'foo')
 
-    @patch('uhu.http.requests.request')
+    @patch('uhu.updatehub.http.requests.request')
     def test_raises_error_when_server_is_unavailable(self, mock):
         exceptions = [requests.ConnectionError, requests.ConnectTimeout]
         mock.side_effect = exceptions
@@ -274,7 +275,7 @@ class RequestErrorsTestCase(unittest.TestCase):
             with self.assertRaises(HTTPError):
                 request('GET', 'foo')
 
-    @patch('uhu.http.requests.request')
+    @patch('uhu.updatehub.http.requests.request')
     def test_raises_error_with_any_other_requests_exception(self, mock):
         exceptions = [
             requests.exceptions.HTTPError,
@@ -301,7 +302,7 @@ class RequestErrorsTestCase(unittest.TestCase):
             with self.assertRaises(HTTPError):
                 request('GET', 'foo')
 
-    @patch('uhu.http.requests.request')
+    @patch('uhu.updatehub.http.requests.request')
     def test_raises_error_when_unathorized(self, mock):
         mock.return_value.status_code = 401
         with self.assertRaises(HTTPError):

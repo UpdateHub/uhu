@@ -15,7 +15,7 @@ from uhu.cli.package import (
 from uhu.cli.utils import open_package
 from uhu.core.package import Package
 from uhu.core.utils import dump_package, load_package
-from uhu.core.updatehub import UpdateHubError
+from uhu.updatehub.api import UpdateHubError
 from uhu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
 
 

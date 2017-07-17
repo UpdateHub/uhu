@@ -5,10 +5,10 @@ import hashlib
 import math
 import os
 
-from ..utils import (
-    call, get_chunk_size, get_compressor_format, get_uncompressed_size)
+from ..utils import call, get_chunk_size
 
 from ._options import Options
+from .compression import get_compressor_format, get_uncompressed_size
 from .install_condition import get_version
 from .validators import validate_options
 

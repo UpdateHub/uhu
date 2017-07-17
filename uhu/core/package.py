@@ -1,11 +1,11 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # SPDX-License-Identifier: GPL-2.0
 
-from ..utils import call
+from uhu.updatehub.api import push_package
+from uhu.utils import call
 
 from .hardware import SupportedHardwareManager
 from .objects import ObjectsManager
-from .updatehub import push_package
 
 
 MODES = ['single', 'active-inactive']
