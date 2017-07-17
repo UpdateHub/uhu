@@ -6,7 +6,7 @@ import subprocess
 import pkg_resources
 
 
-__version__ = '1.0.0a1'
+__version__ = '1.0.0a2'
 
 
 def get_version():
