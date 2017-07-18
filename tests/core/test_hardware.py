@@ -43,6 +43,14 @@ class SupportedHardwareTestCase(unittest.TestCase):
         manager2.add('hardware')
         self.assertEqual(manager1, manager2)
 
+    def test_can_reset_list_of_hardware_identifiers(self):
+        manager = SupportedHardwareManager()
+        manager.add('h1')
+        manager.add('h2')
+        self.assertEqual(len(manager), 2)
+        manager.reset()
+        self.assertEqual(len(manager), 0)
+
 
 class SupportedHardwareSerialization(unittest.TestCase):
 

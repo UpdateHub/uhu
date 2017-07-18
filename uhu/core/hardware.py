@@ -50,6 +50,10 @@ class SupportedHardwareManager:
             err = 'Hardware "{}" does not exist or is already removed.'
             raise KeyError(err.format(hardware))
 
+    def reset(self):
+        """Removes all hardware indentifiers from set."""
+        self._hardware.clear()
+
     def to_metadata(self):
         """Serializes supported hardware as template."""
         if not self:
