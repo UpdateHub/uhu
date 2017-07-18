@@ -1,8 +1,14 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # SPDX-License-Identifier: GPL-2.0
 
+import unittest
+from unittest.mock import patch, Mock
+
+from click.testing import CliRunner
+
 from uhu.cli.hardware import (
-    add_supported_hardware, remove_supported_hardware)
+    add_supported_hardware, remove_supported_hardware,
+    reset_supported_hardware_list)
 from uhu.core import Package
 from uhu.core.utils import dump_package, load_package
 
@@ -40,3 +46,17 @@ class SupportedHardwareCommandsTestCase(PackageTestCase):
         dump_package(self.pkg.to_template(), self.pkg_fn)
         result = self.runner.invoke(remove_supported_hardware, args=['PowerY'])
         self.assertEqual(result.exit_code, 2)
+
+
+class ResetCommandTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.runner = CliRunner()
+
+    @patch('uhu.cli.hardware.open_package')
+    def test_reset_supported_hardware_returns_0_if_success(self, open_package):
+        pkg = Mock()
+        open_package.return_value.__enter__.return_value = pkg
+        result = self.runner.invoke(reset_supported_hardware_list)
+        self.assertEqual(result.exit_code, 0)
+        self.assertTrue(pkg.supported_hardware.reset.called)
