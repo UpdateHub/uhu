@@ -46,6 +46,7 @@ GROUPS = {
     'hardware': {
         'add': functions.add_hardware,
         'remove': functions.remove_hardware,
+        'reset': functions.reset_hardware,
     }
 }
 

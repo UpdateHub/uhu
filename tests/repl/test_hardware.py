@@ -31,3 +31,10 @@ class HardwareManagementTestCase(unittest.TestCase):
         self.assertEqual(len(self.repl.package.supported_hardware), 1)
         self.assertNotIn('PowerX', self.repl.package.supported_hardware)
         self.assertIn('PowerY', self.repl.package.supported_hardware)
+
+    def test_can_reset_supported_hardware_identifier_list(self):
+        self.repl.package.supported_hardware.add('PowerX')
+        self.repl.package.supported_hardware.add('PowerY')
+        self.assertEqual(len(self.repl.package.supported_hardware), 2)
+        functions.reset_hardware(self.repl)
+        self.assertEqual(len(self.repl.package.supported_hardware), 0)

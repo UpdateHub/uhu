@@ -120,3 +120,8 @@ def remove_hardware(ctx):
     identifier = prompt('Hardware identifier: ').strip()
     if identifier:
         ctx.package.supported_hardware.remove(identifier)
+
+
+def reset_hardware(ctx):
+    """Removes all supported hardware identifiers."""
+    ctx.package.supported_hardware.reset()
