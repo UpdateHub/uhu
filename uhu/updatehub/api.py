@@ -33,7 +33,6 @@ class ObjectReader:  # pylint: disable=too-few-public-methods
 
 
 def dummy_object_upload(filename, url, callback=None):
-    url = url.replace('updatehub-artifacts', 'nothing')
     data = ObjectReader(filename, callback)
     try:
         http.put(url, data=data, sign=False)
