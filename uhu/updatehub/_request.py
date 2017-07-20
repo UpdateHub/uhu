@@ -90,6 +90,7 @@ class Request:
             self.url,
             headers=headers,
             data=self.payload,
+            timeout=2,
             **self._requests_kwargs
         )
         return response

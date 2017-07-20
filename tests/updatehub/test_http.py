@@ -10,11 +10,21 @@ import requests
 
 from uhu.updatehub._request import Request
 from uhu.updatehub.http import (
-    format_server_error, HTTPError, request, UNKNOWN_ERROR)
+    format_server_error, HTTPError, request, UNKNOWN_ERROR, get, post, put)
 from uhu.updatehub.auth import UHV1Signature
 
 
 class RequestTestCase(unittest.TestCase):
+
+    @patch('uhu.updatehub.http.request')
+    def test_can_make_GET_POST_and_PUT_requests(self, mock):
+        url = 'localhost'
+        get(url)
+        mock.assert_called_with('GET', url)
+        post(url)
+        mock.assert_called_with('POST', url)
+        put(url)
+        mock.assert_called_with('PUT', url)
 
     def test_request_date_is_in_utc(self):
         expected = datetime.now(timezone.utc).timestamp()
@@ -81,6 +91,7 @@ class RequestTestCase(unittest.TestCase):
         Request('localhost', 'GET').send()
         args, kwargs = request.call_args
         self.assertEqual(args, ('GET', 'localhost'))
+        self.assertEqual(kwargs.get('timeout'), 2)
 
     @patch('uhu.updatehub._request.requests.request')
     def test_request_is_signed(self, request):
@@ -227,6 +238,11 @@ class FormatServerErrorTestCase(unittest.TestCase):
         observed = format_server_error(self.response)
         self.assertEqual(observed, UNKNOWN_ERROR)
 
+    def test_returns_unkown_error_when_cant_decode_error(self):
+        self.response.json.side_effect = ValueError
+        observed = format_server_error(self.response)
+        self.assertEqual(observed, UNKNOWN_ERROR)
+
     def test_returns_error_message_when_error_message(self):
         self.response.json.return_value = {'error_message': 'message'}
         observed = format_server_error(self.response)
@@ -253,6 +269,14 @@ class FormatServerErrorTestCase(unittest.TestCase):
 
 
 class RequestErrorsTestCase(unittest.TestCase):
+
+    @patch('uhu.updatehub.http.requests.request')
+    def test_returns_response_if_no_error_is_present(self, mock):
+        mock.return_value.ok = True
+        mock.return_value.status_code = 200
+        response = request('GET', 'foo', sign=False)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.ok)
 
     @patch('uhu.updatehub.http.requests.request')
     def test_raises_error_when_invalid_url(self, mock):
@@ -305,5 +329,11 @@ class RequestErrorsTestCase(unittest.TestCase):
     @patch('uhu.updatehub.http.requests.request')
     def test_raises_error_when_unathorized(self, mock):
         mock.return_value.status_code = 401
+        with self.assertRaises(HTTPError):
+            request('GET', 'foo')
+
+    @patch('uhu.updatehub.http.requests.request')
+    def test_raises_error_if_response_is_not_ok(self, mock):
+        mock.return_value.ok = False
         with self.assertRaises(HTTPError):
             request('GET', 'foo')
