@@ -68,11 +68,3 @@ def format_server_error(response):
             pass
 
     return UNKNOWN_ERROR
-
-
-def read_stream(response, chunk_size):
-    try:
-        for chunk in response.iter_content(chunk_size):
-            yield chunk
-    except requests.RequestException:
-        raise HTTPError('Could not stream data.')
