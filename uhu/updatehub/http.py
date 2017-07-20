@@ -18,7 +18,8 @@ def request(method, url, *args, sign=True, **kwargs):
         if sign:
             response = Request(url, method, *args, **kwargs).send()
         else:
-            response = requests.request(method, url, *args, **kwargs)
+            response = requests.request(
+                method, url, *args, timeout=2, **kwargs)
     except (requests.exceptions.MissingSchema,
             requests.exceptions.InvalidSchema,
             requests.exceptions.URLRequired,
