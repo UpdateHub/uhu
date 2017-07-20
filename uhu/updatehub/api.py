@@ -33,6 +33,7 @@ class ObjectReader:  # pylint: disable=too-few-public-methods
 
 
 def dummy_object_upload(filename, url, callback=None):
+    url = url.replace('updatehub-artifacts', 'nothing')
     data = ObjectReader(filename, callback)
     try:
         http.put(url, data=data, sign=False)
@@ -60,10 +61,6 @@ class ObjectUploadResult(Enum):
     SUCCESS = 1
     EXISTS = 2
     FAIL = 3
-
-    @classmethod
-    def is_ok(cls, result):
-        return result in (cls.SUCCESS, cls.EXISTS)
 
 
 class UpdateHubError(Exception):
@@ -125,10 +122,9 @@ def upload_objects(package_uid, objects, callback=None):
     call(callback, 'start_package_upload', objects)
     results = [upload_object(obj, package_uid, callback) for obj in objects]
     call(callback, 'finish_package_upload')
-    for result in results:
-        if not ObjectUploadResult.is_ok(result):
-            raise UpdateHubError(
-                'Some objects has not been fully uploaded. Try again later.')
+    if ObjectUploadResult.FAIL in results:
+        raise UpdateHubError(
+            'Some objects has not been fully uploaded. Try again later.')
 
 
 def finish_package(package_uid, callback=None):
