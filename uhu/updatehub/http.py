@@ -19,7 +19,7 @@ def request(method, url, *args, sign=True, **kwargs):
             response = Request(url, method, *args, **kwargs).send()
         else:
             response = requests.request(
-                method, url, *args, timeout=2, **kwargs)
+                method, url, *args, timeout=30, **kwargs)
     except (requests.exceptions.MissingSchema,
             requests.exceptions.InvalidSchema,
             requests.exceptions.URLRequired,
