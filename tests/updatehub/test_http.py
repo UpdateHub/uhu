@@ -91,7 +91,7 @@ class RequestTestCase(unittest.TestCase):
         Request('localhost', 'GET').send()
         args, kwargs = request.call_args
         self.assertEqual(args, ('GET', 'localhost'))
-        self.assertEqual(kwargs.get('timeout'), 2)
+        self.assertEqual(kwargs.get('timeout'), 30)
 
     @patch('uhu.updatehub._request.requests.request')
     def test_request_is_signed(self, request):
