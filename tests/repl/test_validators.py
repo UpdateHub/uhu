@@ -93,6 +93,20 @@ class ObjectOptionValueValidator(unittest.TestCase):
         with self.assertRaises(ValidationError):
             validator.validate(document(dirname))
 
+    def test_raises_when_invalid_choice(self):
+        option = Options.get('filesystem')
+        validator = validators.ObjectOptionValueValidator(
+            option, Modes.get('copy'))
+        with self.assertRaises(ValidationError):
+            validator.validate(document('invalid-filesystem'))
+
+    def test_raises_when_invalid_target_type(self):
+        option = Options.get('target-type')
+        validator = validators.ObjectOptionValueValidator(
+            option, Modes.get('copy'))
+        with self.assertRaises(ValidationError):
+            validator.validate(document('invalid-target-type'))
+
 
 class PackageUIDValidatorTestCase(unittest.TestCase):
 
