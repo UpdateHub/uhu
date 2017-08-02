@@ -9,14 +9,6 @@ from prompt_toolkit.validation import Validator
 from .exceptions import ValidationError
 
 
-def validate_filename(filename):
-    if not os.path.exists(filename):
-        raise ValidationError(
-            message='"{}" does not exist'.format(filename))
-    if os.path.isdir(filename):
-        raise ValidationError(message='Only files are allowed')
-
-
 # pylint: disable=too-few-public-methods
 class ContainerValidator(Validator):
 
@@ -52,21 +44,45 @@ class ObjectOptionValueValidator(Validator):
         super().__init__(*args, **kwargs)
         self.mode = mode
         self.option = option
+        self.value = None
 
     def validate(self, document):
-        value = document.text.strip()
-        if not value:
+        # Normalize
+        self.value = document.text.strip()
+
+        # Checks if a blank value is valid
+        if not self.value:
             if self.option.default is not None:
                 return None
             if self.mode.is_required(self.option):
                 raise ValidationError(message='You must provide a value')
+
+        # Validates against metadata rules
         try:
-            if self.option.metadata == 'filename':
-                validate_filename(value)
-            else:
-                self.option.validate(value, self.mode)
+            self.validate_value()
         except ValueError as err:
             raise ValidationError(message=str(err))
+
+    def validate_value(self):
+        if self.option.metadata == 'filename':
+            self.validate_filename()
+        elif self.option.metadata == 'target-type':
+            self.validate_target_type()
+        else:
+            self.option.validate(self.value)
+
+    def validate_filename(self):
+        if not os.path.exists(self.value):
+            raise ValidationError(
+                message='"{}" does not exist'.format(self.value))
+        if os.path.isdir(self.value):
+            raise ValidationError(message='Only files are allowed')
+
+    def validate_target_type(self):
+        if self.value not in self.mode.target_types:
+            message = 'You must pass a valid target type (eg. {})'.format(
+                ', '.join(self.mode.target_types))
+            raise ValidationError(message=message)
 
 
 class PackageUIDValidator(Validator):

@@ -52,7 +52,7 @@ class BaseOption(metaclass=OptionType):
     type_name = None
 
     @classmethod
-    def validate(cls, value, obj=None):
+    def validate(cls, value):
         """Must convert, validate and return a value."""
         raise NotImplementedError
 
@@ -60,17 +60,12 @@ class BaseOption(metaclass=OptionType):
     def humanize(cls, value):
         return value
 
-    @classmethod
-    def get_choices(cls, obj):
-        if obj is None:
-            return cls.choices
-
 
 class AbsolutePathOption(BaseOption):
     type_name = 'absolute_path'
 
     @classmethod
-    def validate(cls, value, obj=None):
+    def validate(cls, value):
         """Validates if value is an absolute path."""
         value = str(value)
         result = re.match(r'^/[^\0]*', value)
@@ -84,7 +79,7 @@ class BooleanOption(BaseOption):
     type_name = 'boolean'
 
     @classmethod
-    def validate(cls, value, obj=None):
+    def validate(cls, value):
         if isinstance(value, bool):
             return value
         if isinstance(value, str):
@@ -107,7 +102,7 @@ class IntegerOption(BaseOption):
     max = None
 
     @classmethod
-    def validate(cls, value, obj=None):
+    def validate(cls, value):
         # This must be checked this way since isintance(True, int) is
         # True in Python.
         # pylint: disable=unidiomatic-typecheck
@@ -134,12 +129,11 @@ class StringOption(BaseOption):
     choices = []
 
     @classmethod
-    def validate(cls, value, obj=None):
+    def validate(cls, value):
         value = str(value)
-        choices = cls.get_choices(obj)
-        if choices and value not in choices:
+        if cls.choices and value not in cls.choices:
             err = '"{}" is not in {}'
-            raise ValueError(err.format(value, choices))
+            raise ValueError(err.format(value, cls.choices))
         if cls.min is not None and len(value) < cls.min:
             err = '{} length is lesser than {}'
             raise ValueError(err.format(value, cls.min))

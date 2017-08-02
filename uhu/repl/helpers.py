@@ -104,7 +104,8 @@ def prompt_object_options(n_sets, object_mode):
     """
     options = {}
     mode = Modes.get(object_mode)
-    for option in [opt for opt in mode.options if not opt.volatile]:
+    mode_options = [opt for opt in mode.options if not opt.volatile]
+    for option in mode_options:
         try:
             validate_option_requirements(option, options)
         except ValueError:
@@ -183,14 +184,13 @@ def _get_object_option_value_message(option, set_=None):
 
 
 # pylint: disable=too-many-arguments
-def _prompt_object_option_value(
-        mode, option, msg, completer, default, validator):
+def _prompt_object_option_value(option, msg, completer, default, validator):
     """Retuns a value for object_option_value prompt."""
     value = prompt(
         msg, completer=completer, default=default, validator=validator).strip()
     if value == '':
         return option.default
-    return option.validate(value, obj=mode)
+    return option.validate(value)
 
 
 def _get_object_option_value_completer(option, obj=None):
@@ -219,7 +219,7 @@ def prompt_object_option_value(
     completer = _get_object_option_value_completer(option, mode)
     validator = ObjectOptionValueValidator(option, mode)
     value = _prompt_object_option_value(
-        mode, option, msg, completer, default, validator)
+        option, msg, completer, default, validator)
     return value
 
 

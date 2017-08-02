@@ -69,6 +69,7 @@ class BaseObject(metaclass=ObjectType):
     options = []
     required_options = []
     string_template = tuple()
+    target_types = None
 
     @classmethod
     def is_required(cls, option):
@@ -168,7 +169,7 @@ class BaseObject(metaclass=ObjectType):
         except ValueError:
             raise TypeError('You must provide a registered option')
         try:
-            self._values[option] = option.validate(value, self)
+            self._values[option] = option.validate(value)
         except ValueError:
             raise TypeError('You must provide a valid value.')
         values = {option.metadata: value
