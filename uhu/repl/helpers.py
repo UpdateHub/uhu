@@ -31,7 +31,7 @@ manager = KeyBindingManager.for_prompt()  # pylint: disable=invalid-name
 
 
 @manager.registry.add_binding(Keys.ControlD)
-def ctrl_d(event):
+def ctrl_d(_):
     """Ctrl D quits appliaction returning 0 to sys."""
     sys.exit(0)
 
