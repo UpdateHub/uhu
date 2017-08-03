@@ -10,6 +10,7 @@ from functools import partial, wraps
 
 from prompt_toolkit import prompt
 from prompt_toolkit.contrib.completers import WordCompleter
+from prompt_toolkit.filters import HasCompletions
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.keys import Keys
 
@@ -32,7 +33,7 @@ manager = KeyBindingManager.for_prompt()  # pylint: disable=invalid-name
 @manager.registry.add_binding(Keys.ControlD)
 def ctrl_d(event):
     """Ctrl D quits appliaction returning 0 to sys."""
-    event.cli.run_in_terminal(sys.exit(0))
+    sys.exit(0)
 
 
 @manager.registry.add_binding(Keys.ControlC)
@@ -43,6 +44,23 @@ def ctrl_c(_):
     must returns to main prompt.
     """
     raise CancelPromptException('Cancelled operation.')
+
+
+@manager.registry.add_binding(Keys.Enter, filter=HasCompletions())
+def enter(event):
+    """Enter selects a completion when has completions.
+
+    When there is no completion available, submit value.
+    """
+    buffer = event.current_buffer
+    state = buffer.complete_state
+    if len(state.current_completions) == 1:
+        state = state.go_to_index(0)
+        buffer.apply_completion(state.current_completion)
+    elif state.current_completion is None:
+        buffer.complete_next()
+    else:
+        buffer.apply_completion(buffer.complete_state.current_completion)
 
 
 def cancellable(func):
