@@ -6,7 +6,6 @@ import os
 from prompt_toolkit.contrib.completers import PathCompleter, WordCompleter
 
 from ..core.object import Modes
-from ..core.package import MODES as PKG_MODES
 
 
 # pylint: disable=too-few-public-methods
@@ -47,10 +46,3 @@ class YesNoCompleter(WordCompleter):
     def __init__(self):
         completions = ['y', 'n']
         super().__init__(completions)
-
-
-# pylint: disable=too-few-public-methods
-class PackageModeCompleter(WordCompleter):
-
-    def __init__(self):
-        super().__init__(PKG_MODES)

@@ -8,9 +8,6 @@ from .hardware import SupportedHardwareManager
 from .objects import ObjectsManager
 
 
-MODES = ['single', 'active-inactive']
-
-
 class Package:
     """A package represents a group of objects."""
 

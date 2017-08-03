@@ -16,11 +16,10 @@ from prompt_toolkit.keys import Keys
 from ..core.validators import validate_option_requirements
 from ..core.object import Modes
 from ..core._options import Options
-from ..core.package import MODES as PKG_MODES
 
 from .completers import (
     ObjectFilenameCompleter, ObjectModeCompleter, ObjectOptionValueCompleter,
-    ObjectUIDCompleter, YesNoCompleter, PackageModeCompleter)
+    ObjectUIDCompleter, YesNoCompleter)
 from .exceptions import CancelPromptException
 from .validators import (
     ObjectUIDValidator, ContainerValidator, ObjectOptionValueValidator,
@@ -249,12 +248,3 @@ def prompt_installation_set(package, msg=None):
     validator = ContainerValidator('installation set', indexes)
     installation_set = prompt(msg, completer=completer, validator=validator)
     return int(installation_set.strip())
-
-
-def prompt_package_mode():
-    """Prompts for a valid package mode."""
-    msg = 'Choose a package mode [{}]: '.format('/'.join(PKG_MODES))
-    completer = PackageModeCompleter()
-    validator = ContainerValidator('mode', PKG_MODES)
-    mode = prompt(msg, completer=completer, validator=validator)
-    return mode.strip().lower()
