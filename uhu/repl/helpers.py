@@ -175,7 +175,7 @@ def prompt_object_option(obj):
     :param obj: an uhu `Object` instance.
     """
     msg = 'Choose an option: '
-    options = sorted(opt.metadata for opt in obj.options if not opt.symmetric)
+    options = sorted(opt.metadata for opt in obj.options if not opt.volatile)
     completer = WordCompleter(options)
     validator = ContainerValidator('option', options)
     option = prompt(msg, completer=completer, validator=validator)
