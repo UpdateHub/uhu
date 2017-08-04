@@ -119,12 +119,12 @@ def prompt_object_options(n_sets, object_mode):
     :param n_sets: The number of installation sets in package.
     :param object_mode: A string indicating the object mode.
     """
-    options = {}
+    values = {}
     mode = Modes.get(object_mode)
     mode_options = [opt for opt in mode.options if not opt.volatile]
     for option in mode_options:
         try:
-            validate_option_requirements(option, options)
+            validate_option_requirements(option, values)
         except ValueError:
             continue  # requirements not satisfied, skip this option
         if option.symmetric:
@@ -141,8 +141,9 @@ def prompt_object_options(n_sets, object_mode):
                         default=default,
                     ))
             value = tuple(value)
-        options[option.metadata] = value
-    return options
+        values[option] = value
+    values = {opt.metadata: value for opt, value in values.items()}
+    return values
 
 
 def prompt_object_mode():
