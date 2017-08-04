@@ -10,17 +10,17 @@ from functools import partial, wraps
 
 from prompt_toolkit import prompt
 from prompt_toolkit.contrib.completers import WordCompleter
+from prompt_toolkit.filters import HasCompletions
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.keys import Keys
 
 from ..core.validators import validate_option_requirements
 from ..core.object import Modes
 from ..core._options import Options
-from ..core.package import MODES as PKG_MODES
 
 from .completers import (
     ObjectFilenameCompleter, ObjectModeCompleter, ObjectOptionValueCompleter,
-    ObjectUIDCompleter, YesNoCompleter, PackageModeCompleter)
+    ObjectUIDCompleter, YesNoCompleter)
 from .exceptions import CancelPromptException
 from .validators import (
     ObjectUIDValidator, ContainerValidator, ObjectOptionValueValidator,
@@ -31,9 +31,9 @@ manager = KeyBindingManager.for_prompt()  # pylint: disable=invalid-name
 
 
 @manager.registry.add_binding(Keys.ControlD)
-def ctrl_d(event):
+def ctrl_d(_):
     """Ctrl D quits appliaction returning 0 to sys."""
-    event.cli.run_in_terminal(sys.exit(0))
+    sys.exit(0)
 
 
 @manager.registry.add_binding(Keys.ControlC)
@@ -44,6 +44,23 @@ def ctrl_c(_):
     must returns to main prompt.
     """
     raise CancelPromptException('Cancelled operation.')
+
+
+@manager.registry.add_binding(Keys.Enter, filter=HasCompletions())
+def enter(event):
+    """Enter selects a completion when has completions.
+
+    When there is no completion available, submit value.
+    """
+    buffer = event.current_buffer
+    state = buffer.complete_state
+    if len(state.current_completions) == 1:
+        state = state.go_to_index(0)
+        buffer.apply_completion(state.current_completion)
+    elif state.current_completion is None:
+        buffer.complete_next()
+    else:
+        buffer.apply_completion(buffer.complete_state.current_completion)
 
 
 def cancellable(func):
@@ -249,12 +266,3 @@ def prompt_installation_set(package, msg=None):
     validator = ContainerValidator('installation set', indexes)
     installation_set = prompt(msg, completer=completer, validator=validator)
     return int(installation_set.strip())
-
-
-def prompt_package_mode():
-    """Prompts for a valid package mode."""
-    msg = 'Choose a package mode [{}]: '.format('/'.join(PKG_MODES))
-    completer = PackageModeCompleter()
-    validator = ContainerValidator('mode', PKG_MODES)
-    mode = prompt(msg, completer=completer, validator=validator)
-    return mode.strip().lower()

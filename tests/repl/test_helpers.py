@@ -189,12 +189,3 @@ class PromptsTestCase(unittest.TestCase):
         helpers.prompt.return_value = '1'
         observed = helpers.prompt_installation_set(self.repl.package)
         self.assertEqual(observed, 1)
-
-    @patch('uhu.repl.helpers.prompt')
-    def test_can_prompt_package_mode(self, prompt):
-        modes = ['single', 'active-inactive']
-        values = ['single ', ' SinGle', 'active-inactive', ' ActivE-inactive ']
-        for value in values:
-            prompt.return_value = value
-            observed = helpers.prompt_package_mode()
-            self.assertIn(observed, modes)
