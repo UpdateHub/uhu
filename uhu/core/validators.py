@@ -3,7 +3,7 @@
 
 from copy import deepcopy
 
-from ._options import Options
+from ._options import OptionType, Options
 from .install_condition import normalize_install_if_different
 
 
@@ -97,8 +97,15 @@ def validate_options_requirements(values):
 
 def validate_option_requirements(option, values):
     """Verifies if option requirements are satisfied."""
+    # validate values argument
+    for key in values.keys():
+        if not isinstance(key, OptionType):
+            err = 'values argument must have OptionType keys type (got {}).'
+            raise TypeError(err.format(type(key)))
+
     if not option.requirements:
         return
+
     for req_option, req_value in option.requirements.items():
         if req_option not in values:
             err = ('You must specify a value for "{}" '
