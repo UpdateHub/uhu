@@ -12,7 +12,7 @@ class CancelPromptException(Exception):
 class ValidationError(ValidationError):  # pylint: disable=function-redefined
     """Same as prompt_toolkit, but with extra message appended."""
 
-    def __init__(self, *args, **kwargs):
-        msg = kwargs.get('message', '')
-        kwargs['message'] = '{}. Type Ctrl-C to cancel.'.format(msg)
-        super().__init__(*args, **kwargs)
+    def __init__(self, document, message):
+        message = '{}. Type Ctrl-C to cancel.'.format(message)
+        position = len(document.text)
+        super().__init__(position, message)
