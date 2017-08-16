@@ -25,7 +25,9 @@ def request(method, url, *args, sign=True, **kwargs):
             requests.exceptions.URLRequired,
             requests.exceptions.InvalidURL):
         raise HTTPError('You have provided an invalid server URL.')
-    except (requests.ConnectionError, requests.ConnectTimeout):
+    except requests.ConnectTimeout:
+        raise HTTPError('Connection timed out. Try again later.')
+    except requests.ConnectionError:
         raise HTTPError('Server is not available. Try again later.')
     except requests.RequestException:
         raise HTTPError(UNKNOWN_ERROR)
