@@ -13,6 +13,10 @@ from ..config import config
 from .auth import UHV1Signature
 
 
+class HTTPError(requests.RequestException):
+    """A generic error for HTTP requests."""
+
+
 class Request:
 
     def __init__(self, url, method, payload='', json=False, **requests_kwargs):
@@ -68,9 +72,11 @@ class Request:
         )
 
     def _sign(self):
-        access_id = config.get('access_id', section='auth')
-        access_secret = config.get('access_secret', section='auth')
-        signature = UHV1Signature(self, access_id, access_secret)
+        try:
+            access, secret = config.get_credentials()
+        except ValueError:
+            raise HTTPError('Could not sign request. Missing credentials.')
+        signature = UHV1Signature(self, access, secret)
         self.headers['Authorization'] = signature.signature
 
     def _prepare_headers(self):

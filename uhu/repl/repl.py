@@ -11,7 +11,7 @@ from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter
 from prompt_toolkit.contrib.regular_languages import compiler
 
 from .. import get_version
-from ..config import config, AUTH_SECTION
+from ..config import config
 from ..core.package import Package
 from ..core.utils import dump_package, load_package
 from ..utils import get_local_config_file
@@ -187,8 +187,8 @@ def repl(package):
     Before creating a new instance, checks if server authentication is
     set. If not, prompts user for its credentials.
     """
-    access = config.get('access_id', AUTH_SECTION)
-    secret = config.get('access_secret', AUTH_SECTION)
-    if not all([access, secret]):
+    try:
+        config.get_credentials()
+    except ValueError:
         functions.set_authentication()
     return UHURepl(package).repl()

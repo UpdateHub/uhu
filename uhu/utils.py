@@ -4,17 +4,20 @@
 import os
 
 
-# Environment variables (only for testing)
+# Environment variables
 CHUNK_SIZE_VAR = 'UHU_CHUNK_SIZE'
 GLOBAL_CONFIG_VAR = 'UHU_GLOBAL_CONFIG'
 LOCAL_CONFIG_VAR = 'UHU_LOCAL_CONFIG'
 SERVER_URL_VAR = 'UHU_SERVER_URL'
+ACCESS_ID_VAR = 'UHU_ACCESS_ID'
+ACCESS_SECRET_VAR = 'UHU_ACCESS_SECRET'
+
 
 # Default values
 DEFAULT_CHUNK_SIZE = 1024 * 128  # 128 KiB
 DEFAULT_GLOBAL_CONFIG_FILE = os.path.expanduser('~/.uhu')
 DEFAULT_LOCAL_CONFIG_FILE = '.uhu'
-DEFAULT_SERVER_URL = 'http://0.0.0.0'  # TO DO: replace by the right URL
+DEFAULT_SERVER_URL = 'http://0.0.0.0'  # TODO: replace by the right URL
 
 
 def get_chunk_size():
@@ -34,6 +37,13 @@ def get_global_config_file():
 
 def get_local_config_file():
     return os.environ.get(LOCAL_CONFIG_VAR, DEFAULT_LOCAL_CONFIG_FILE)
+
+
+def get_credentials():
+    access = os.environ.get(ACCESS_ID_VAR)
+    secret = os.environ.get(ACCESS_SECRET_VAR)
+    if access and secret:
+        return access, secret
 
 
 def remove_local_config():

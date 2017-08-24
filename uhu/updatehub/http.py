@@ -3,14 +3,10 @@
 
 import requests
 
-from ._request import Request
+from ._request import Request, HTTPError
 
 
 UNKNOWN_ERROR = 'A unexpected request error ocurred. Try again later.'
-
-
-class HTTPError(requests.RequestException):
-    """A generic error for HTTP requests."""
 
 
 def request(method, url, *args, sign=True, **kwargs):
@@ -20,6 +16,8 @@ def request(method, url, *args, sign=True, **kwargs):
         else:
             response = requests.request(
                 method, url, *args, timeout=30, **kwargs)
+    except HTTPError as error:
+        raise error
     except (requests.exceptions.MissingSchema,
             requests.exceptions.InvalidSchema,
             requests.exceptions.URLRequired,

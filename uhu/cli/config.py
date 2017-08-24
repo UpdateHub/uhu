@@ -16,9 +16,9 @@ def config_cli():
 @config_cli.command(name='init')
 def init_command():
     """Sets uhu required initial configuration."""
-    access_id = input('UpdateHub Access Key ID: ')
-    access_secret = input('UpdateHub Systems Secret Access Key: ')
-    config.set_initial(access_id, access_secret)
+    access = input('UpdateHub Access Key ID: ')
+    secret = input('UpdateHub Systems Secret Access Key: ')
+    config.set_credentials(access, secret)
 
 
 @config_cli.command(name='set')

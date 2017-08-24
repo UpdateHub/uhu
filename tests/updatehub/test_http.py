@@ -2,19 +2,29 @@
 # SPDX-License-Identifier: GPL-2.0
 
 import hashlib
+import os
 import unittest
 from datetime import datetime, timezone
 from unittest.mock import patch, Mock
 
 import requests
 
+from uhu import utils
 from uhu.updatehub._request import Request
 from uhu.updatehub.http import (
     format_server_error, HTTPError, request, UNKNOWN_ERROR, get, post, put)
 from uhu.updatehub.auth import UHV1Signature
 
 
+def set_credentials():
+    os.environ[utils.ACCESS_ID_VAR] = 'access'
+    os.environ[utils.ACCESS_SECRET_VAR] = 'secret'
+
+
 class RequestTestCase(unittest.TestCase):
+
+    def setUp(self):
+        set_credentials()
 
     @patch('uhu.updatehub.http.request')
     def test_can_make_GET_POST_and_PUT_requests(self, mock):
@@ -188,6 +198,9 @@ timestamp:123456.1234'''
 
 class SignedRequestTestCase(unittest.TestCase):
 
+    def setUp(self):
+        set_credentials()
+
     def test_signed_request_has_the_authorization_header(self):
         request = Request('https://127.0.0.1/upload', 'POST')
         header = request.headers.get('Authorization', None)
@@ -202,7 +215,7 @@ class SignedRequestTestCase(unittest.TestCase):
         request = Request('localhost', 'POST')
         self.assertIsNone(request.headers.get('Authorization', None))
 
-        sig = UHV1Signature(request, None, None).signature
+        sig = UHV1Signature(request, 'access', 'secret').signature
         self.assertIsNone(request.headers.get('Authorization', None))
 
         # It is right when we sign the request
@@ -220,7 +233,7 @@ class SignedRequestTestCase(unittest.TestCase):
         request = Request('localhost', 'POST')
         self.assertIsNone(request.headers.get('Authorization', None))
 
-        sig = UHV1Signature(request, None, None).signature
+        sig = UHV1Signature(request, 'access', 'secret').signature
         self.assertIsNone(request.headers.get('Authorization', None))
         request.send()
 
@@ -269,6 +282,9 @@ class FormatServerErrorTestCase(unittest.TestCase):
 
 
 class RequestErrorsTestCase(unittest.TestCase):
+
+    def setUp(self):
+        set_credentials()
 
     @patch('uhu.updatehub.http.requests.request')
     def test_returns_response_if_no_error_is_present(self, mock):
@@ -335,5 +351,11 @@ class RequestErrorsTestCase(unittest.TestCase):
     @patch('uhu.updatehub.http.requests.request')
     def test_raises_error_if_response_is_not_ok(self, mock):
         mock.return_value.ok = False
+        with self.assertRaises(HTTPError):
+            request('GET', 'foo')
+
+    def test_raises_error_if_missing_credentials(self):
+        del os.environ[utils.ACCESS_ID_VAR]
+        del os.environ[utils.ACCESS_SECRET_VAR]
         with self.assertRaises(HTTPError):
             request('GET', 'foo')
