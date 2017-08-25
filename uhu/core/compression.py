@@ -86,3 +86,14 @@ def get_uncompressed_size(fn, compressor_name):
     cmd = compressor['cmd'] % fn
     size = subprocess.check_output(cmd, shell=True)
     return int(size.decode())
+
+
+def compression_to_metadata(filename):
+    compressor = get_compressor_format(filename)
+    size = get_uncompressed_size(filename, compressor)
+    if size is None:
+        return {}
+    return {
+        'compressed': True,
+        'required-uncompressed-size': size,
+    }

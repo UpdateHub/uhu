@@ -8,7 +8,7 @@ import os
 from ..utils import call, get_chunk_size
 
 from ._options import Options
-from .compression import get_compressor_format, get_uncompressed_size
+from .compression import compression_to_metadata
 from .install_condition import InstallCondition
 from .validators import validate_options
 
@@ -92,7 +92,7 @@ class BaseObject(metaclass=ObjectType):
         metadata = {opt.metadata: value for opt, value in self._values.items()}
         metadata['mode'] = self.mode
         metadata.update(self._metadata_install_condition(metadata))
-        self._metadata_compression(metadata)
+        metadata.update(self._metadata_compression())
         return metadata
 
     def _metadata_install_condition(self, metadata):
@@ -100,13 +100,10 @@ class BaseObject(metaclass=ObjectType):
             return {}
         return InstallCondition(metadata).to_metadata()
 
-    def _metadata_compression(self, metadata):
-        if self.allow_compression:
-            compressor = get_compressor_format(self['filename'])
-            size = get_uncompressed_size(self['filename'], compressor)
-            if size is not None:
-                metadata['compressed'] = True
-                metadata['required-uncompressed-size'] = size
+    def _metadata_compression(self):
+        if not self.allow_compression:
+            return {}
+        return compression_to_metadata(self.filename)
 
     @property
     def filename(self):
