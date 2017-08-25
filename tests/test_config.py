@@ -66,17 +66,13 @@ class ConfigTestCase(FileFixtureMixin, EnvironmentFixtureMixin, UHUTestCase):
         self.config.set(key, value, section=section)
         self.assertEqual(self.config.get(key, section=section), value)
 
-    def test_set_initial_configuration(self):
-        expected_id = 'id'
+    def test_can_set_and_get_crendetials(self):
+        expected_access = 'id'
         expected_secret = 'secret'
-
-        self.config.set_initial(expected_id, expected_secret)
-
-        observed_id = self.config.get('access_id', section=AUTH_SECTION)
-        observed_secret = self.config.get('access_secret', AUTH_SECTION)
-
-        self.assertEqual(observed_id, expected_id)
-        self.assertEqual(observed_secret, expected_secret)
+        self.config.set_credentials(expected_access, expected_secret)
+        access, secret = self.config.get_credentials()
+        self.assertEqual(access, expected_access)
+        self.assertEqual(secret, expected_secret)
 
     def test_set_command_does_not_override_previous_settings(self):
         self.config.set('foo', 'bar')
@@ -95,3 +91,7 @@ class ConfigTestCase(FileFixtureMixin, EnvironmentFixtureMixin, UHUTestCase):
         self.config.set('foo', 'foo bar')
         self.assertEqual(self.config.get('foo'), 'foo bar')
         self.assertEqual(self.config.get('control'), 'control')
+
+    def test_get_credentials_raises_error_if_no_credentials_are_set(self):
+        with self.assertRaises(ValueError):
+            self.config.get_credentials()

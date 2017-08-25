@@ -18,7 +18,7 @@ def set_authentication():
     """Sets user access and secret keys."""
     access = prompt('UpdateHub Access Key ID: ')
     secret = prompt('UpdateHub Systems Secret Access Key: ')
-    config.set_initial(access, secret)
+    config.set_credentials(access, secret)
 
 
 # Product

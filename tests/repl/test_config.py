@@ -11,7 +11,7 @@ from uhu.repl import functions
 class PackageTestCase(unittest.TestCase):
 
     @patch('uhu.repl.functions.prompt')
-    @patch('uhu.repl.functions.config.set_initial')
+    @patch('uhu.repl.functions.config.set_credentials')
     def test_can_set_authentication_credentials(self, set_initial, prompt):
         prompt.side_effect = ['access', 'secret']
         functions.set_authentication()
