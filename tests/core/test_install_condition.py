@@ -8,7 +8,7 @@ import unittest
 
 from uhu.core import install_condition as ic
 from uhu.core.install_condition import (
-    normalize_install_if_different, KNOWN_PATTERNS)
+    normalize_install_if_different, KNOWN_PATTERNS, InstallCondition)
 from uhu.core.object import Object
 
 from utils import FileFixtureMixin, UHUTestCase
@@ -588,3 +588,27 @@ class InstallIfDifferentNormalizationTestCase(unittest.TestCase):
                 'version': '2.0',
                 'pattern': {},
             }))
+
+
+class InstallConditionToMetadataTestCase(unittest.TestCase):
+
+    def test_raises_error_if_invalid_condition(self):
+        invalid_conditions = [None, 1, 'unknown', 'grub']
+        for condition in invalid_conditions:
+            with self.assertRaises(ValueError):
+                obj = {
+                    'filename': __file__,
+                    'install-condition': condition,
+                }
+                InstallCondition(obj).to_metadata()
+
+    def test_raises_error_if_invalid_pattern(self):
+        invalid_patterns = [None, 1, 'unknown', 'grub']
+        for pattern in invalid_patterns:
+            with self.assertRaises(ValueError):
+                obj = {
+                    'filename': __file__,
+                    'install-condition': InstallCondition.VERSION_DIVERGES,
+                    'install-condition-pattern-type': pattern,
+                }
+                InstallCondition(obj).to_metadata()

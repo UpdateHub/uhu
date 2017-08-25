@@ -9,7 +9,7 @@ from ..utils import call, get_chunk_size
 
 from ._options import Options
 from .compression import get_compressor_format, get_uncompressed_size
-from .install_condition import get_version
+from .install_condition import InstallCondition
 from .validators import validate_options
 
 
@@ -91,38 +91,14 @@ class BaseObject(metaclass=ObjectType):
         self.load(callback)
         metadata = {opt.metadata: value for opt, value in self._values.items()}
         metadata['mode'] = self.mode
-        self._metadata_install_condition(metadata)
+        metadata.update(self._metadata_install_condition(metadata))
         self._metadata_compression(metadata)
         return metadata
 
     def _metadata_install_condition(self, metadata):
         if not self.allow_install_condition:
-            return
-        condition = metadata.pop('install-condition')
-        if condition == 'content-diverges':
-            metadata['install-if-different'] = 'sha256sum'
-        elif condition == 'version-diverges':
-            backend = metadata.pop('install-condition-pattern-type')
-            if backend in ['linux-kernel', 'u-boot']:
-                metadata['install-if-different'] = {
-                    'version': get_version(self.filename, backend),
-                    'pattern': backend
-                }
-            else:
-                regexp = metadata.pop('install-condition-pattern')
-                seek = metadata.pop('install-condition-seek')
-                buffer_size = metadata.pop('install-condition-buffer-size')
-                version = get_version(
-                    self.filename, backend, pattern=regexp.encode(),
-                    seek=seek, buffer_size=buffer_size)
-                metadata['install-if-different'] = {
-                    'version': version,
-                    'pattern': {
-                        'regexp': regexp,
-                        'seek': seek,
-                        'buffer-size': buffer_size,
-                    }
-                }
+            return {}
+        return InstallCondition(metadata).to_metadata()
 
     def _metadata_compression(self, metadata):
         if self.allow_compression:
