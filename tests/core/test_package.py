@@ -98,11 +98,16 @@ class PackageSerializationTestCase(PackageTestCase):
         with zipfile.ZipFile(dest) as archive:
             files = archive.namelist()
             member = archive.extract(self.obj_sha256)
+            signature = archive.extract('signature')
             self.addCleanup(os.remove, member)
-        self.assertEqual(len(files), 2)
+            self.addCleanup(os.remove, 'signature')
+        self.assertEqual(len(files), 3)
         self.assertIn('metadata', files)
+        self.assertIn('signature', files)
         self.assertIn(self.obj_sha256, files)
         self.assertFalse(os.path.islink(member))
+        with open('signature') as fp:
+            self.assertEqual(fp.read(), 'uhupkg-signature')
 
     def test_can_serialize_package_as_metadata(self):
         pkg, hw, objs = self.create_package()
@@ -171,7 +176,8 @@ class PackageSerializationTestCase(PackageTestCase):
         pkg = Package()
         self.assertEqual(str(pkg), expected)
 
-    def test_can_archive_package(self):
+    @patch('uhu.core.utils.sign_dict', return_value='uhupkg-signature')
+    def test_can_archive_package(self, mock):
         pkg = self.create_package()[0]
         expected = '{}-{}.uhupkg'.format(self.product, self.version)
         self.addCleanup(os.remove, expected)
@@ -179,7 +185,8 @@ class PackageSerializationTestCase(PackageTestCase):
         self.assertEqual(expected, observed)
         self.verify_archive(observed)
 
-    def test_dump_package_archive_does_not_archive_links(self):
+    @patch('uhu.core.utils.sign_dict', return_value='uhupkg-signature')
+    def test_dump_package_archive_does_not_archive_links(self, mock):
         pkg = Package(version=self.version, product=self.product)
         expected = '{}-{}.uhupkg'.format(self.product, self.version)
 
@@ -207,7 +214,8 @@ class PackageSerializationTestCase(PackageTestCase):
         with self.assertRaises(FileExistsError):
             dump_package_archive(pkg, output)
 
-    def test_can_archive_package_when_output_exists_and_force(self):
+    @patch('uhu.core.utils.sign_dict', return_value='uhupkg-signature')
+    def test_can_archive_package_when_output_exists_and_force(self, mock):
         pkg = self.create_package()[0]
         output = self.create_file()
         self.assertTrue(os.path.exists(output))

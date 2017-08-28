@@ -8,6 +8,8 @@ from collections import OrderedDict
 
 import pkgschema
 
+from ..utils import sign_dict
+
 
 def dump_package(package, fn):
     """Dumps a package into a file."""
@@ -62,6 +64,7 @@ def dump_package_archive(package, output=None, force=False):
     # Writes archive
     cache = set()
     with zipfile.ZipFile(output, mode='w') as archive:
+        archive.writestr('signature', sign_dict(metadata))
         archive.writestr('metadata', json.dumps(metadata))
         for obj in package.objects.all():
             sha256sum = obj['sha256sum']
