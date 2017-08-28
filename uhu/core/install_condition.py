@@ -12,6 +12,7 @@ from copy import deepcopy
 
 PRINTABLE = string.printable.encode()
 KNOWN_PATTERNS = ['linux-kernel', 'u-boot']
+CUSTOM_PATTERN = 'regexp'
 
 
 def read(fp, seek, type_, buffer_size):
@@ -229,3 +230,61 @@ def normalize_install_if_different(values):
         'install-condition-buffer-size': pattern.get('buffer-size', -1),
     })
     return values
+
+
+class InstallCondition:  # pylint: disable=too-few-public-methods
+    METADATA_KEY = 'install-if-different'
+
+    # Conditions
+    ALWAYS = 'always'
+    CONTENT_DIVERGES = 'content-diverges'
+    VERSION_DIVERGES = 'version-diverges'
+
+    def __init__(self, metadata):
+        self.filename = metadata['filename']
+        self.condition = metadata.pop('install-condition', None)
+        self.metadata = metadata
+        self.pattern = None
+
+    def to_metadata(self):
+        if self.condition == self.CONTENT_DIVERGES:
+            return self._format_metadata('sha256sum')
+        elif self.condition == self.VERSION_DIVERGES:
+            return self._metadata_version_diverges()
+        elif self.condition == self.ALWAYS:
+            return {}
+        raise ValueError('Invalid install-condition condition.')
+
+    def _metadata_version_diverges(self):
+        self.pattern = self.metadata.pop(
+            'install-condition-pattern-type', None)
+        if self.pattern in KNOWN_PATTERNS:
+            return self._metadata_known_pattern()
+        elif self.pattern == CUSTOM_PATTERN:
+            return self._metadata_custom_pattern()
+        raise ValueError('Unknown install-condition pattern type.')
+
+    def _metadata_known_pattern(self):
+        return self._format_metadata({
+            'pattern': self.pattern,
+            'version': get_version(self.filename, self.pattern),
+        })
+
+    def _metadata_custom_pattern(self):
+        regexp = self.metadata.pop('install-condition-pattern')
+        seek = self.metadata.pop('install-condition-seek')
+        buffer_size = self.metadata.pop('install-condition-buffer-size')
+        version = get_version(
+            self.filename, CUSTOM_PATTERN, pattern=regexp.encode(),
+            seek=seek, buffer_size=buffer_size)
+        return self._format_metadata({
+            'version': version,
+            'pattern': {
+                'buffer-size': buffer_size,
+                'regexp': regexp,
+                'seek': seek,
+            },
+        })
+
+    def _format_metadata(self, value):
+        return {self.METADATA_KEY: value}

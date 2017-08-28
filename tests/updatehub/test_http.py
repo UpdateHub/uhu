@@ -25,6 +25,7 @@ class RequestTestCase(unittest.TestCase):
 
     def setUp(self):
         set_credentials()
+        self.n_headers = 6
 
     @patch('uhu.updatehub.http.request')
     def test_can_make_GET_POST_and_PUT_requests(self, mock):
@@ -44,20 +45,27 @@ class RequestTestCase(unittest.TestCase):
 
     @patch('uhu.updatehub._request.datetime')
     @patch('uhu.updatehub._request.get_version', return_value='2.0')
-    def test_request_has_minimal_headers(self, mock_version, mock_date):
-        mock_date.now.return_value = datetime(1970, 1, 1, tzinfo=timezone.utc)
+    @patch('uhu.updatehub._request.hashlib.sha256')
+    def test_request_has_minimal_headers(self, msha256, mversion, mdate):
+        mdate.now.return_value = datetime(1970, 1, 1, tzinfo=timezone.utc)
+        msha256.return_value.hexdigest.return_value = 'sha256sum'
+        headers = [
+            ('Host', 'localhost'),
+            ('Timestamp', 0),
+            ('Api-Content-Type', 'application/vnd.updatehub-v1+json'),
+            ('Content-sha256', 'sha256sum'),
+            ('User-Agent', 'updatehub-utils/2.0'),
+        ]
         request = Request('https://localhost/', 'POST', b'\0')
-        self.assertEqual(len(request.headers), 6)
-        self.assertEqual(request.headers.get('Host'), 'localhost')
-        self.assertEqual(request.headers.get('Timestamp'), 0)
-        self.assertEqual(
-            request.headers.get('Api-Content-Type'),
-            'application/vnd.updatehub-v1+json')
-        self.assertEqual(
-            request.headers.get('Content-sha256'),
-            '6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d')
-        self.assertEqual(
-            request.headers.get('User-Agent'), 'updatehub-utils/2.0')
+        self.assertEqual(len(request.headers), self.n_headers)
+        for header, value in headers:
+            self.assertEqual(request.headers.get(header), value)
+
+    def test_can_add_custom_headers(self):
+        headers = {'another': 'header'}
+        request = Request('https://localhost/', 'POST', b'\0', headers=headers)
+        self.assertEqual(len(request.headers), self.n_headers + 1)
+        self.assertEqual(request.headers.get('another'), 'header')
 
     def test_request_does_not_send_json_content_type_by_default(self):
         request = Request('https://localhost/', 'POST')
@@ -87,12 +95,9 @@ class RequestTestCase(unittest.TestCase):
         request = Request('localhost', 'POST')
         headers = request.headers
         prepared_headers = request._prepare_headers()
-
         self.assertEqual(prepared_headers.keys(), headers.keys())
-
         for value in prepared_headers.values():
             self.assertIs(type(value), str)
-
         for header in headers:
             self.assertEqual(str(headers[header]), prepared_headers[header])
 

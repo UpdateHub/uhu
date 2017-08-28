@@ -19,7 +19,9 @@ class HTTPError(requests.RequestException):
 
 class Request:
 
-    def __init__(self, url, method, payload='', json=False, **requests_kwargs):
+    # pylint: disable=too-many-arguments
+    def __init__(self, url, method, payload='', json=False,
+                 headers=None, **requests_kwargs):
         self.url = url
         self._url = urlparse(self.url)
         self.method = method.upper()
@@ -29,6 +31,7 @@ class Request:
         self.date = datetime.now(timezone.utc)
         self.payload_sha256 = self._generate_payload_sha256()
 
+        headers = headers if headers else {}
         self.headers = {
             'User-Agent': 'updatehub-utils/{}'.format(get_version()),
             'Host': self._url.netloc,
@@ -37,6 +40,7 @@ class Request:
             'Api-Content-Type': 'application/vnd.updatehub-v1+json',
             'Accept': 'application/json',
         }
+        self.headers.update(headers)
         if json:
             self.headers['Content-Type'] = 'application/json'
 
