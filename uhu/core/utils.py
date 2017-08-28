@@ -8,6 +8,7 @@ from collections import OrderedDict
 
 import pkgschema
 
+from ..config import config
 from ..utils import sign_dict
 
 
@@ -63,8 +64,9 @@ def dump_package_archive(package, output=None, force=False):
 
     # Writes archive
     cache = set()
+    signature = sign_dict(metadata, config.get_private_key_path())
     with zipfile.ZipFile(output, mode='w') as archive:
-        archive.writestr('signature', sign_dict(metadata))
+        archive.writestr('signature', signature)
         archive.writestr('metadata', json.dumps(metadata))
         for obj in package.objects.all():
             sha256sum = obj['sha256sum']

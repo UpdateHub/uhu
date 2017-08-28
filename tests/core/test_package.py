@@ -176,8 +176,9 @@ class PackageSerializationTestCase(PackageTestCase):
         pkg = Package()
         self.assertEqual(str(pkg), expected)
 
+    @patch('uhu.core.utils.config.get_private_key_path', return_value='fn')
     @patch('uhu.core.utils.sign_dict', return_value='uhupkg-signature')
-    def test_can_archive_package(self, mock):
+    def test_can_archive_package(self, mock, conf):
         pkg = self.create_package()[0]
         expected = '{}-{}.uhupkg'.format(self.product, self.version)
         self.addCleanup(os.remove, expected)
@@ -185,8 +186,9 @@ class PackageSerializationTestCase(PackageTestCase):
         self.assertEqual(expected, observed)
         self.verify_archive(observed)
 
+    @patch('uhu.core.utils.config.get_private_key_path', return_value='fn')
     @patch('uhu.core.utils.sign_dict', return_value='uhupkg-signature')
-    def test_dump_package_archive_does_not_archive_links(self, mock):
+    def test_dump_package_archive_does_not_archive_links(self, mock, conf):
         pkg = Package(version=self.version, product=self.product)
         expected = '{}-{}.uhupkg'.format(self.product, self.version)
 
@@ -214,8 +216,9 @@ class PackageSerializationTestCase(PackageTestCase):
         with self.assertRaises(FileExistsError):
             dump_package_archive(pkg, output)
 
+    @patch('uhu.core.utils.config.get_private_key_path', return_value='fn')
     @patch('uhu.core.utils.sign_dict', return_value='uhupkg-signature')
-    def test_can_archive_package_when_output_exists_and_force(self, mock):
+    def test_can_archive_package_with_force(self, mock, conf):
         pkg = self.create_package()[0]
         output = self.create_file()
         self.assertTrue(os.path.exists(output))
