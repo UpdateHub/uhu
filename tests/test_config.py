@@ -1,8 +1,10 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # SPDX-License-Identifier: GPL-2.0
 
+import os
+
 from uhu.config import Config, AUTH_SECTION
-from uhu.utils import GLOBAL_CONFIG_VAR
+from uhu.utils import GLOBAL_CONFIG_VAR, PRIVATE_KEY_FN
 
 from utils import UHUTestCase, EnvironmentFixtureMixin, FileFixtureMixin
 
@@ -73,6 +75,27 @@ class ConfigTestCase(FileFixtureMixin, EnvironmentFixtureMixin, UHUTestCase):
         access, secret = self.config.get_credentials()
         self.assertEqual(access, expected_access)
         self.assertEqual(secret, expected_secret)
+
+    def test_can_set_and_get_private_key_path(self):
+        self.config.set_private_key_path(__file__)
+        path = self.config.get_private_key_path()
+        self.assertEqual(path, __file__)
+
+    def test_set_private_key_path_raises_error_if_invalid_path(self):
+        # files = [not found file, directory]
+        files = ['invalid', os.path.dirname(__file__)]
+        for fn in files:
+            with self.assertRaises(ValueError):
+                self.config.set_private_key_path(fn)
+
+    def test_can_get_private_key_path_from_environment(self):
+        self.set_env_var(PRIVATE_KEY_FN, 'some-path')
+        observed = self.config.get_private_key_path()
+        self.assertEqual(observed, 'some-path')
+
+    def test_get_private_key_path_raises_error_if_not_set(self):
+        with self.assertRaises(ValueError):
+            self.config.get_private_key_path()
 
     def test_set_command_does_not_override_previous_settings(self):
         self.config.set('foo', 'bar')
