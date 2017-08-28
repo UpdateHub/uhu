@@ -1,7 +1,13 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # SPDX-License-Identifier: GPL-2.0
 
+import base64
+import json
 import os
+
+from Crypto.Hash import SHA256
+from Crypto.PublicKey import RSA
+from Crypto.Signature import PKCS1_v1_5
 
 
 # Environment variables
@@ -11,6 +17,7 @@ LOCAL_CONFIG_VAR = 'UHU_LOCAL_CONFIG'
 SERVER_URL_VAR = 'UHU_SERVER_URL'
 ACCESS_ID_VAR = 'UHU_ACCESS_ID'
 ACCESS_SECRET_VAR = 'UHU_ACCESS_SECRET'
+PRIVATE_KEY_FN = 'UHU_PRIVATE_KEY'
 
 
 # Default values
@@ -69,3 +76,23 @@ def indent(value, n_indents, all_lines=False):
     if all_lines:
         return text
     return text.strip()
+
+
+def sign_dict(dict_):
+    """Serializes a dict to JSON and sign it using RSA."""
+    # Get private key
+    key_fn = os.environ.get(PRIVATE_KEY_FN)
+    try:
+        with open(key_fn) as fp:
+            key = RSA.importKey(fp.read())
+    except (FileNotFoundError, ValueError, IndexError):
+        raise ValueError('Invalid private key file.')
+
+    signer = PKCS1_v1_5.new(key)
+
+    # encodes message
+    message = SHA256.new(json.dumps(dict_, sort_keys=True).encode())
+
+    # sign
+    signature = signer.sign(message)
+    return base64.b64encode(signature).decode()

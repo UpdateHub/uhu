@@ -1,9 +1,17 @@
 # Copyright (C) 2017 O.S. Systems Software LTDA.
 # SPDX-License-Identifier: GPL-2.0
 
+import base64
+import hashlib
+import json
 import os
+import tempfile
 import unittest
 from unittest.mock import patch
+
+from Crypto.Hash import SHA256
+from Crypto.PublicKey import RSA
+from Crypto.Signature import PKCS1_v1_5
 
 from uhu import utils
 
@@ -97,3 +105,34 @@ class LocalConfigTestCase(
         self.assertFalse(os.path.exists(self.config_fn))
         with self.assertRaises(FileNotFoundError):
             utils.remove_local_config()
+
+
+class SignDictTestCase(unittest.TestCase):
+
+    def test_can_sign_dict(self):
+        _, fn = tempfile.mkstemp()
+        self.addCleanup(os.remove, fn)
+        os.environ[utils.PRIVATE_KEY_FN] = fn
+
+        key = RSA.generate(1024)
+        with open(fn, 'wb') as fp:
+            fp.write(key.exportKey())
+
+        dict_ = {}
+        message = SHA256.new(json.dumps(dict_).encode())
+        result = utils.sign_dict(dict_)
+
+        signature = base64.b64decode(result)
+        verifier = PKCS1_v1_5.new(key)
+        is_valid = verifier.verify(message, signature)
+        self.assertTrue(is_valid)
+
+    def test_raises_error_if_invalid_file(self):
+        os.environ[utils.PRIVATE_KEY_FN] = __file__
+        with self.assertRaises(ValueError):
+            utils.sign_dict({})
+
+        _, fn = tempfile.mkstemp()
+        os.environ[utils.PRIVATE_KEY_FN] = fn
+        with self.assertRaises(ValueError):
+            utils.sign_dict({})
