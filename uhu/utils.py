@@ -78,14 +78,12 @@ def indent(value, n_indents, all_lines=False):
     return text.strip()
 
 
-def sign_dict(dict_):
+def sign_dict(dict_, private_key):
     """Serializes a dict to JSON and sign it using RSA."""
-    # Get private key
-    key_fn = os.environ.get(PRIVATE_KEY_FN)
     try:
-        with open(key_fn) as fp:
+        with open(private_key) as fp:
             key = RSA.importKey(fp.read())
-    except (FileNotFoundError, ValueError, IndexError):
+    except (FileNotFoundError, ValueError, IndexError, TypeError):
         raise ValueError('Invalid private key file.')
 
     signer = PKCS1_v1_5.new(key)

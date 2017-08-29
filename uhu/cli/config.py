@@ -19,6 +19,8 @@ def init_command():
     access = input('UpdateHub Access Key ID: ')
     secret = input('UpdateHub Systems Secret Access Key: ')
     config.set_credentials(access, secret)
+    path = input('UpdateHub Private Key path: ')
+    config.set_private_key_path(path)
 
 
 @config_cli.command(name='set')

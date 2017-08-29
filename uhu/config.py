@@ -4,7 +4,7 @@
 import configparser
 import os
 
-from .utils import get_global_config_file, get_credentials
+from .utils import get_global_config_file, get_credentials, PRIVATE_KEY_FN
 
 
 MAIN_SECTION = 'settings'
@@ -32,6 +32,14 @@ class Config:
             raise ValueError('Could not find any crendentials.')
         return credentials
 
+    def get_private_key_path(self):
+        env_fn = os.environ.get(PRIVATE_KEY_FN)
+        pub_fn = self.get('private_key_path', AUTH_SECTION)
+        private_key = env_fn or pub_fn
+        if not private_key:
+            raise ValueError('Could not find any private key.')
+        return private_key
+
     def set_credentials(self, access_id, access_secret):
         """Set server requried credentials."""
         self.set('access_id', access_id, section=AUTH_SECTION)
@@ -42,6 +50,11 @@ class Config:
         secret = self.get('access_secret', AUTH_SECTION)
         if access and secret:
             return access, secret
+
+    def set_private_key_path(self, fn):
+        if not os.path.isfile(fn):
+            raise ValueError('Private key is not a valid file.')
+        self.set('private_key_path', fn, section=AUTH_SECTION)
 
     def _read(self):
         if os.path.exists(self._filename):

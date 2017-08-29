@@ -191,4 +191,8 @@ def repl(package):
         config.get_credentials()
     except ValueError:
         functions.set_authentication()
+    try:
+        config.get_private_key_path()
+    except ValueError:
+        functions.set_private_key()
     return UHURepl(package).repl()

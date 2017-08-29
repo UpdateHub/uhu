@@ -112,7 +112,6 @@ class SignDictTestCase(unittest.TestCase):
     def test_can_sign_dict(self):
         _, fn = tempfile.mkstemp()
         self.addCleanup(os.remove, fn)
-        os.environ[utils.PRIVATE_KEY_FN] = fn
 
         key = RSA.generate(1024)
         with open(fn, 'wb') as fp:
@@ -120,7 +119,7 @@ class SignDictTestCase(unittest.TestCase):
 
         dict_ = {}
         message = SHA256.new(json.dumps(dict_).encode())
-        result = utils.sign_dict(dict_)
+        result = utils.sign_dict(dict_, fn)
 
         signature = base64.b64decode(result)
         verifier = PKCS1_v1_5.new(key)
@@ -128,11 +127,10 @@ class SignDictTestCase(unittest.TestCase):
         self.assertTrue(is_valid)
 
     def test_raises_error_if_invalid_file(self):
-        os.environ[utils.PRIVATE_KEY_FN] = __file__
         with self.assertRaises(ValueError):
-            utils.sign_dict({})
+            utils.sign_dict({}, __file__)
 
         _, fn = tempfile.mkstemp()
-        os.environ[utils.PRIVATE_KEY_FN] = fn
+        self.addCleanup(os.remove, fn)
         with self.assertRaises(ValueError):
-            utils.sign_dict({})
+            utils.sign_dict({}, fn)

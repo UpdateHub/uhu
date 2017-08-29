@@ -16,3 +16,10 @@ class PackageTestCase(unittest.TestCase):
         prompt.side_effect = ['access', 'secret']
         functions.set_authentication()
         set_initial.assert_called_with('access', 'secret')
+
+    @patch('uhu.repl.functions.prompt')
+    @patch('uhu.repl.functions.config.set_private_key_path')
+    def test_can_set_private_key_path(self, set_initial, prompt):
+        prompt.side_effect = ['path']
+        functions.set_private_key()
+        set_initial.assert_called_with('path')

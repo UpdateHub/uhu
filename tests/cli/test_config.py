@@ -66,11 +66,17 @@ class ConfigCommandTestCase(
         result = self.runner.invoke(get_command, args=['no-existent'])
         self.assertEqual(result.output, '')
 
-    def test_can_set_init_command_configuration(self):
-        self.runner.invoke(init_command, input='1234\nasdf')
+    def test_can_set_init_settings(self):
+        lines = '\n'.join(['access', 'secret', __file__])
+        result = self.runner.invoke(init_command, input=lines)
+        self.assertEqual(result.exit_code, 0)
+
         access, secret = self.config.get_credentials()
-        self.assertEqual(access, '1234')
-        self.assertEqual(secret, 'asdf')
+        self.assertEqual(access, 'access')
+        self.assertEqual(secret, 'secret')
+
+        path = self.config.get_private_key_path()
+        self.assertEqual(path, __file__)
 
 
 class CleanupCommandTestCase(unittest.TestCase):

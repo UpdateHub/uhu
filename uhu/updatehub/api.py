@@ -7,6 +7,7 @@ from enum import Enum
 
 from pkgschema import validate_metadata, ValidationError
 
+from uhu.config import config
 from uhu.utils import call, get_server_url, get_chunk_size, sign_dict
 from . import http
 
@@ -81,7 +82,7 @@ def upload_metadata(metadata):
     except ValidationError:
         raise UpdateHubError('You have an invalid package metadata.')
     url = get_server_url('/packages')
-    signature = sign_dict(metadata)
+    signature = sign_dict(metadata, config.get_private_key_path())
     payload = json.dumps(metadata)
     headers = {'UH-SIGNATURE': signature}
     try:

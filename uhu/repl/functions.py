@@ -17,8 +17,15 @@ from .helpers import prompt
 def set_authentication():
     """Sets user access and secret keys."""
     access = prompt('UpdateHub Access Key ID: ')
-    secret = prompt('UpdateHub Systems Secret Access Key: ')
+    secret = prompt('UpdateHub Access Secret Key: ')
     config.set_credentials(access, secret)
+
+
+@helpers.cancellable
+def set_private_key():
+    """Sets private key path for signing packages."""
+    path = prompt('UpdateHub Private Key path: ')
+    config.set_private_key_path(path)
 
 
 # Product

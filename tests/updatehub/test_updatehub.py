@@ -22,19 +22,21 @@ class PushPackageTestCase(unittest.TestCase):
 
 class UploadMetadataTestCase(unittest.TestCase):
 
+    @patch('uhu.updatehub.api.config.get_private_key_path', return_value='fn')
     @patch('uhu.updatehub.api.sign_dict', return_value='signature')
     @patch('uhu.updatehub.api.validate_metadata')
     @patch('uhu.updatehub.api.http.post')
-    def test_returns_package_uid_when_successful(self, http, mock, sign):
+    def test_returns_package_uid_when_successful(self, http, mock, sign, conf):
         http.return_value.status_code = 201
         http.return_value.json.return_value = {'uid': '1234'}
         uid = upload_metadata({})
         self.assertEqual(uid, '1234')
 
+    @patch('uhu.updatehub.api.config.get_private_key_path', return_value='fn')
     @patch('uhu.updatehub.api.sign_dict', return_value='signature')
     @patch('uhu.updatehub.api.validate_metadata')
     @patch('uhu.updatehub.api.http.post')
-    def test_sends_header_with_package_signature(self, http, mock, sign):
+    def test_sends_header_with_package_signature(self, http, mock, sign, conf):
         upload_metadata({})
         headers = {'UH-SIGNATURE': 'signature'}
         self.assertTrue(sign.called)
@@ -45,10 +47,11 @@ class UploadMetadataTestCase(unittest.TestCase):
         with self.assertRaises(UpdateHubError):
             upload_metadata({})
 
+    @patch('uhu.updatehub.api.config.get_private_key_path', return_value='fn')
     @patch('uhu.updatehub.api.sign_dict', return_value='signature')
     @patch('uhu.updatehub.api.validate_metadata')
     @patch('uhu.updatehub.api.http.post', side_effect=HTTPError)
-    def test_raises_error_if_invalid_request(self, http, mock, sign):
+    def test_raises_error_if_invalid_request(self, http, mock, sign, conf):
         with self.assertRaises(UpdateHubError):
             upload_metadata({})
 
