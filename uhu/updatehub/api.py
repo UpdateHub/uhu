@@ -83,7 +83,7 @@ def upload_metadata(metadata):
         raise UpdateHubError('You have an invalid package metadata.')
     url = get_server_url('/packages')
     signature = sign_dict(metadata, config.get_private_key_path())
-    payload = json.dumps(metadata)
+    payload = json.dumps(metadata, sort_keys=True)
     headers = {'UH-SIGNATURE': signature}
     try:
         response = http.post(
