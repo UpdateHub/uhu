@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 from uhu.core.object import Object
-from uhu.core.objects import InstallationSet, ObjectsManager
+from uhu.core.objects import ObjectsManager
 
 
 def verify_all_modes(fn):
@@ -42,8 +42,12 @@ class ObjectsManagerTestCase(unittest.TestCase):
         dump = {ObjectsManager.metadata: [[self.options] for _ in range(sets)]}
         manager = ObjectsManager(dump=dump)
         self.assertEqual(len(manager), sets)
-        for set_ in manager:
-            self.assertEqual(set_, InstallationSet([self.options]))
+        self.assertEqual(len(manager.all()), sets)
+        for objs in manager.objects:
+            self.assertEqual(len(objs), sets)
+        base_object = Object(self.options)
+        for obj in manager.all():
+            self.assertEqual(base_object.to_metadata(), obj.to_metadata())
 
     def test_create_from_dump_raises_error_if_missing_objects(self):
         with self.assertRaises(ValueError):
@@ -54,25 +58,27 @@ class ObjectsManagerTestCase(unittest.TestCase):
             ObjectsManager(dump={ObjectsManager.metadata: 1})
 
     @verify_all_modes
-    def test_installation_set_as_metadata(self, sets):
+    def test_manager_as_metadata(self, sets):
         manager = ObjectsManager(sets)
         manager.create(self.options)
         metadata = manager.to_metadata()[manager.metadata]
+        expected = [Object(self.options).to_metadata()]
         self.assertEqual(len(metadata), sets)
-        for index, installation_set in enumerate(manager):
-            self.assertEqual(metadata[index], installation_set.to_metadata())
+        for index in range(sets):
+            self.assertEqual(metadata[index], expected)
 
     @verify_all_modes
-    def test_installation_set_as_template(self, sets):
+    def test_manager_as_template(self, sets):
         manager = ObjectsManager(sets)
         manager.create(self.options)
         template = manager.to_template()[manager.metadata]
+        expected = [Object(self.options).to_template()]
         self.assertEqual(len(template), sets)
-        for index, installation_set in enumerate(manager):
-            self.assertEqual(template[index], installation_set.to_template())
+        for index in range(sets):
+            self.assertEqual(template[index], expected)
 
     @verify_all_modes
-    def test_installation_set_manager_as_string(self, sets):
+    def test_manager_as_string(self, sets):
         self.addCleanup(os.chdir, os.getcwd())
         fixtures_dir = 'fixtures/objects'
         os.chdir(os.path.join(os.path.dirname(__file__), fixtures_dir))
@@ -101,7 +107,7 @@ class ObjectsManagerTestCase(unittest.TestCase):
     def test_can_get_installation_set(self, sets):
         manager = ObjectsManager(sets)
         installation_set = manager[0]
-        self.assertIsInstance(installation_set, InstallationSet)
+        self.assertIsInstance(installation_set, list)
 
     @verify_all_modes
     def test_get_installation_set_raises_error_if_missing_index(self, sets):
@@ -119,11 +125,10 @@ class ObjectsManagerTestCase(unittest.TestCase):
     def test_can_create_object(self, sets):
         manager = ObjectsManager(sets)
         self.assertEqual(len(manager.all()), 0)
-        index = manager.create(self.options)
-        self.assertEqual(len(manager.all()), sets * 1)
-        for set_index, installation_set in enumerate(manager):
-            self.assertEqual(len(installation_set), 1)
-            obj = manager.get(index=index, installation_set=set_index)
+        obj_index = manager.create(self.options)
+        self.assertEqual(len(manager.all()), sets)
+        for set_index in range(sets):
+            obj = manager.get(obj_index=obj_index, set_index=set_index)
             self.assertEqual(obj.filename, __file__)
             self.assertEqual(obj.mode, 'raw')
             self.assertEqual(obj['target'], '/dev/sda')
@@ -132,18 +137,18 @@ class ObjectsManagerTestCase(unittest.TestCase):
         manager = ObjectsManager(2)
         self.assertEqual(len(manager.all()), 0)
         self.options['target'] = ('/dev/sda', '/dev/sdb')
-        index = manager.create(self.options)
-        obj0 = manager.get(index=0, installation_set=0)
-        obj1 = manager.get(index=0, installation_set=1)
+        obj_index = manager.create(self.options)
+        obj0 = manager.get(obj_index=obj_index, set_index=0)
+        obj1 = manager.get(obj_index=obj_index, set_index=1)
         self.assertEqual(obj0['target'], '/dev/sda')
         self.assertEqual(obj1['target'], '/dev/sdb')
 
     @verify_all_modes
     def test_can_get_object(self, sets):
         manager = ObjectsManager(sets)
-        index = manager.create(self.options)
-        for set_index, installation_set in enumerate(manager):
-            obj = manager.get(index=index, installation_set=set_index)
+        obj_index = manager.create(self.options)
+        for set_index in range(sets):
+            obj = manager.get(obj_index=obj_index, set_index=set_index)
             self.assertEqual(obj.filename, __file__)
             self.assertEqual(obj.mode, 'raw')
             self.assertEqual(obj['target'], '/dev/sda')
@@ -151,17 +156,17 @@ class ObjectsManagerTestCase(unittest.TestCase):
     @verify_all_modes
     def test_can_update_asymmetrical_object_option(self, sets):
         manager = ObjectsManager(sets)
-        index = manager.create(self.options)
-        for set_index, installation_set in enumerate(manager):
-            obj = manager.get(index=index, installation_set=set_index)
+        obj_index = manager.create(self.options)
+        for set_index in range(sets):
+            obj = manager.get(obj_index=obj_index, set_index=set_index)
             self.assertEqual(obj['target'], '/dev/sda')
 
         manager.update(
-            index=0, installation_set=0,
+            obj_index=obj_index, set_index=0,
             option='target', value='/dev/sdb')
 
-        for set_index, installation_set in enumerate(manager):
-            obj = manager.get(index=index, installation_set=set_index)
+        for set_index in range(sets):
+            obj = manager.get(obj_index=obj_index, set_index=set_index)
             if set_index == 0:
                 self.assertEqual(obj['target'], '/dev/sdb')
             else:
@@ -170,56 +175,54 @@ class ObjectsManagerTestCase(unittest.TestCase):
     @verify_all_modes
     def test_can_update_symmetrical_object_option(self, sets):
         manager = ObjectsManager(sets)
-        index = manager.create(self.options)
-        for set_index, installation_set in enumerate(manager):
-            obj = manager.get(index=index, installation_set=set_index)
+        obj_index = manager.create(self.options)
+        for set_index in range(sets):
+            obj = manager.get(obj_index=obj_index, set_index=set_index)
             self.assertEqual(obj.filename, __file__)
 
         manager.update(
-            index=0, option='filename', value='new-filename')
+            obj_index=obj_index,
+            option='filename', value='new-filename')
 
-        for set_index, installation_set in enumerate(manager):
-            obj = manager.get(index=index, installation_set=set_index)
+        for set_index in range(sets):
+            obj = manager.get(obj_index=obj_index, set_index=set_index)
             self.assertEqual(obj.filename, 'new-filename')
 
     @verify_all_modes
     def test_update_asymmetrical_option_raises_without_install_set(self, sets):
         manager = ObjectsManager(sets)
-        index = manager.create(self.options)
+        obj_index = manager.create(self.options)
 
         with self.assertRaises(ValueError):
-            manager.update(index, 'target', '/dev/sdb')
+            manager.update(obj_index, 'target', '/dev/sdb')
 
-        for set_index, installation_set in enumerate(manager):
-            obj = manager.get(index=index, installation_set=set_index)
+        for set_index in range(sets):
+            obj = manager.get(obj_index=obj_index, set_index=set_index)
             self.assertEqual(obj['target'], '/dev/sda')
-
-    @verify_all_modes
-    def test_update_symmetrical_option_raises_error_if_install_set(self, sets):
-        manager = ObjectsManager(sets)
-        self.options['count'] = 100
-        index = manager.create(self.options)
-        with self.assertRaises(ValueError):
-            manager.update(index, 'count', 200, installation_set=0)
-
-        for set_index, installation_set in enumerate(manager):
-            obj = manager.get(index=index, installation_set=set_index)
-            self.assertEqual(obj['count'], 100)
 
     @verify_all_modes
     def test_can_remove_object(self, sets):
         manager = ObjectsManager(sets)
-        index = manager.create(self.options)
+        obj_index = manager.create(self.options)
         self.assertEqual(len(manager.all()), 1 * sets)
-        manager.remove(index)
+        manager.remove(obj_index)
         self.assertEqual(len(manager.all()), 0)
+
+    @verify_all_modes
+    def test_remove_object_raises_error_if_invalid_index(self, sets):
+        manager = ObjectsManager(sets)
+        obj_index = manager.create(self.options)
+        self.assertEqual(len(manager.all()), sets)
+        with self.assertRaises(ValueError):
+            manager.remove(100)
+        self.assertEqual(len(manager.all()), sets)
 
     @verify_all_modes
     def test_can_get_all_objects(self, sets):
         manager = ObjectsManager(sets)
-        index = manager.create(self.options)
-        expected = [set_.get(index) for set_ in manager]
-        observed = manager.all()
+        obj_index = manager.create(self.options)
+        expected = [Object(self.options).to_metadata() for _ in range(sets)]
+        observed = [obj.to_metadata() for obj in manager.all()]
         self.assertEqual(observed, expected)
 
     @verify_all_modes
@@ -232,94 +235,12 @@ class ObjectsManagerTestCase(unittest.TestCase):
         manager2.create(self.options)
         self.assertEqual(manager1, manager2)
 
-
-class InstallationSetTestCase(unittest.TestCase):
-
-    def setUp(self):
-        self.fn = __file__
-        self.mode = 'raw'
-        self.options = {
-            'filename': __file__,
-            'mode': self.mode,
-            'target-type': 'device',
-            'target': '/dev/sda',
-        }
-        self.obj = Object(self.options)
-
-    def test_can_create_object(self):
-        installation_set = InstallationSet()
-        self.assertEqual(len(installation_set), 0)
-        index = installation_set.create(self.options)
-        self.assertEqual(index, 0)
-        self.assertEqual(len(installation_set), 1)
-        obj = installation_set.get(index)
-        self.assertEqual(obj.filename, self.fn)
-        self.assertEqual(obj.mode, self.mode)
-        self.assertEqual(obj['target'], '/dev/sda')
-
-    def test_can_get_object_by_index(self):
-        installation_set = InstallationSet()
-        installation_set.create(self.options)
-        obj = installation_set.get(0)
-        self.assertEqual(obj.filename, self.fn)
-        self.assertEqual(obj.mode, self.mode)
-        self.assertEqual(obj['target'], '/dev/sda')
-
-    def test_get_object_raises_error_with_invalid_index(self):
-        installation_set = InstallationSet()
-        with self.assertRaises(ValueError):
-            installation_set.get(100)
-
-    def test_can_update_object(self):
-        installation_set = InstallationSet()
-        index = installation_set.create(self.options)
-        obj = installation_set.get(index)
-        self.assertEqual(obj['target'], '/dev/sda')
-        installation_set.update(index, 'target', '/')
-        self.assertEqual(obj['target'], '/')
-
-    def test_update_object_raises_with_invalid_index(self):
-        installation_set = InstallationSet()
-        with self.assertRaises(ValueError):
-            installation_set.update(100, 'target', '/dev/sda')
-
-    def test_can_remove_object(self):
-        installation_set = InstallationSet()
-        self.assertEqual(len(installation_set), 0)
-        index = installation_set.create(self.options)
-        self.assertEqual(len(installation_set), 1)
-        installation_set.remove(index)
-        self.assertEqual(len(installation_set), 0)
-
-    def test_remove_object_raises_error_with_invalid_index(self):
-        installation_set = InstallationSet()
-        with self.assertRaises(ValueError):
-            installation_set.remove(100)
-
-    def test_installation_set_as_metadata(self):
-        installation_set = InstallationSet()
-        installation_set.create(self.options)
-        metadata = installation_set.to_metadata()
-        self.assertEqual(len(metadata), 1)
-        # First object metadata
-        self.assertEqual(metadata[0], self.obj.to_metadata())
-
-    def test_installation_set_as_template(self):
-        installation_set = InstallationSet()
-        installation_set.create(self.options)
-        template = installation_set.to_template()
-        self.assertEqual(len(template), 1)
-        # First object template
-        self.assertEqual(template[0], self.obj.to_template())
-
-    def test_installation_set_as_string(self):
-        cwd = os.getcwd()
-        os.chdir('tests/core/fixtures/objects')
-        self.addCleanup(os.chdir, cwd)
-        with open('set.txt') as fp:
-            expected = fp.read()
-        installation_set = InstallationSet()
-        self.options['filename'] = 'set.txt'
-        for _ in range(3):
-            installation_set.create(self.options)
-        self.assertEqual(str(installation_set), expected)
+    def test_can_sort_objects(self):
+        manager = ObjectsManager()
+        names = [str(n) for n in range(9, 0, -1)]
+        for name in names:
+            self.options['filename'] = name
+            manager.create(self.options)
+        observed = [objs[0].filename for objs in manager.objects]
+        expected = [str(n) for n in range(1, 10)]
+        self.assertEqual(observed, expected)

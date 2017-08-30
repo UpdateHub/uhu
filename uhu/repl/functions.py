@@ -70,28 +70,27 @@ def add_object(ctx):
 @helpers.cancellable
 def remove_object(ctx):
     """Removes an object from the current package."""
-    index = helpers.prompt_object_uid(ctx.package)
-    ctx.package.objects.remove(index)
+    obj_index = helpers.prompt_object_uid(ctx.package)
+    ctx.package.objects.remove(obj_index)
 
 
 @helpers.cancellable
 def edit_object(ctx):
     """Edit an object within the current package."""
-    index = helpers.prompt_object_uid(ctx.package, 0)
-    obj = ctx.package.objects.get(index=index, installation_set=0)
+    obj_index = helpers.prompt_object_uid(ctx.package, 0)
+    obj = ctx.package.objects.get(obj_index=obj_index, set_index=0)
     option = helpers.prompt_object_option(obj)
 
-    installation_set = None
+    set_index = None
     if not option.symmetric:
-        installation_set = helpers.prompt_installation_set(ctx.package)
-        obj = ctx.package.objects.get(
-            index=index, installation_set=installation_set)
+        set_index = helpers.prompt_installation_set(ctx.package)
+        obj = ctx.package.objects.get(obj_index=obj_index, set_index=set_index)
     current_value = obj[option.metadata]
     default = current_value if current_value else ''
     value = helpers.prompt_object_option_value(
         option, obj.mode, default=default)
     ctx.package.objects.update(
-        index, option.metadata, value, installation_set=installation_set)
+        obj_index, option.metadata, value, set_index=set_index)
 
 
 # Transactions

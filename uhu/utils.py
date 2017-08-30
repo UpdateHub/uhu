@@ -78,6 +78,23 @@ def indent(value, n_indents, all_lines=False):
     return text.strip()
 
 
+def list_to_str(title, lst):
+    """Given a title and a list prints a named ordered list.
+
+    Ex. title=Menu and lst=[eggs, spam] gives:
+
+        Menu:
+            0# eggs
+            1# spam
+    """
+    lines = ['{}:'.format(title)]
+    for index, elm in enumerate(lst):
+        line = '    {}# {}'.format(index, indent(elm, 4))
+        lines.append('')
+        lines.append(line)
+    return '\n'.join(lines)
+
+
 def sign_dict(dict_, private_key):
     """Serializes a dict to JSON and sign it using RSA."""
     try:
