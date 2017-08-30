@@ -234,3 +234,13 @@ class ObjectsManagerTestCase(unittest.TestCase):
         self.assertNotEqual(manager1, manager2)
         manager2.create(self.options)
         self.assertEqual(manager1, manager2)
+
+    def test_can_sort_objects(self):
+        manager = ObjectsManager()
+        names = [str(n) for n in range(9, 0, -1)]
+        for name in names:
+            self.options['filename'] = name
+            manager.create(self.options)
+        observed = [objs[0].filename for objs in manager.objects]
+        expected = [str(n) for n in range(1, 10)]
+        self.assertEqual(observed, expected)

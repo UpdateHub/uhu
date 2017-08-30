@@ -37,6 +37,7 @@ class ObjectsManager:
         self.n_sets = self._validate_n_sets(len(sets))
         self.objects = [tuple(Object(obj) for obj in objs)
                         for objs in zip(*sets)]
+        self.sort()
 
     def _validate_n_sets(self, n_sets):
         if n_sets < self.MIN_N_SETS or n_sets > self.MAX_N_SETS:
@@ -56,7 +57,8 @@ class ObjectsManager:
         normalized_options = self._normalize_create_options_values(options)
         entry = self._create_object_entry(normalized_options)
         self.objects.append(entry)
-        return len(self.objects) - 1
+        self.sort()
+        return self.objects.index(entry)
 
     def _normalize_create_options_values(self, options):
         """Returns a tuple of options with n_sets size."""
@@ -112,6 +114,9 @@ class ObjectsManager:
     def all(self):
         """Returns all objects from all sets."""
         return list(chain.from_iterable(self.objects))
+
+    def sort(self):
+        self.objects.sort(key=lambda objs: objs[0].filename)
 
     def is_single(self):
         """Checks if it is single mode."""
