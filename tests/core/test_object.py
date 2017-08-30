@@ -122,6 +122,27 @@ class ObjectTestCase(EnvironmentFixtureMixin, FileFixtureMixin, UHUTestCase):
         }
         self.assertEqual(obj.to_template(), expected)
 
+    def test_can_generate_upload_body(self):
+        obj = Object({
+            'filename': __file__,
+            'mode': 'raw',
+            'target-type': 'device',
+            'target': '/dev/sda',
+        })
+        obj.load()
+        with open(__file__) as fp:
+            data = fp.read().encode()
+        sha = hashlib.sha256(data).hexdigest()
+        md5 = hashlib.md5(data).hexdigest()
+        expected = {
+            'filename': __file__,
+            'size': os.path.getsize(__file__),
+            'sha256sum': sha,
+            'md5': md5,
+            'chunks': 1,
+        }
+        self.assertEqual(obj.to_upload(), expected)
+
     def test_can_update_object(self):
         obj = Object(self.options)
         self.assertEqual(obj['target'], '/dev/sda')

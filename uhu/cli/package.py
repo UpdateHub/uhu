@@ -81,7 +81,7 @@ def edit_object_command(index, installation_set, option, value):
     with open_package() as package:
         try:
             package.objects.update(
-                index, option, value, installation_set=installation_set)
+                index, option, value, set_index=installation_set)
         except ValueError as err:
             error(3, err)
 

@@ -105,6 +105,15 @@ class BaseObject(metaclass=ObjectType):
             return {}
         return compression_to_metadata(self.filename)
 
+    def to_upload(self):
+        return {
+            'filename': self['filename'],
+            'size': self['size'],
+            'sha256sum': self['sha256sum'],
+            'md5': self.md5,
+            'chunks': len(self)
+        }
+
     @property
     def filename(self):
         """Shortcut to returns object filename option."""

@@ -53,7 +53,7 @@ class AddObjectCommandTestCase(PackageTestCase):
 
         self.assertEqual(result.exit_code, 0)
         package = load_package(self.pkg_fn)
-        obj = package.objects.get(index=0, installation_set=0)
+        obj = package.objects.get(obj_index=0, set_index=0)
         self.assertEqual(obj.filename, self.obj_fn)
         self.assertEqual(obj.mode, 'raw')
         self.assertEqual(obj['target'], '/dev/sda')
@@ -241,7 +241,7 @@ class EditObjectCommandTestCase(PackageTestCase):
             '--value', '/dev/sdb']
         self.runner.invoke(edit_object_command, args=args)
         pkg = load_package(self.pkg_fn)
-        obj = pkg.objects.get(index=0, installation_set=0)
+        obj = pkg.objects.get(obj_index=0, set_index=0)
         self.assertEqual(obj['target'], '/dev/sdb')
 
     def test_can_edit_object_filename_with_edit_object_command(self):
@@ -251,7 +251,7 @@ class EditObjectCommandTestCase(PackageTestCase):
             '--value', self.pkg_fn]
         self.runner.invoke(edit_object_command, args=args)
         pkg = load_package(self.pkg_fn)
-        obj = pkg.objects.get(index=0, installation_set=0)
+        obj = pkg.objects.get(obj_index=0, set_index=0)
         self.assertEqual(obj.filename, self.pkg_fn)
 
     def test_edit_command_returns_0_if_successful(self):

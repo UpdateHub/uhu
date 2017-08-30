@@ -75,8 +75,8 @@ class ObjectManagementTestCase(BaseTestCase):
         self.assertEqual(len(self.repl.package.objects.all()), 0)
         functions.add_object(self.repl)
         self.assertEqual(len(self.repl.package.objects.all()), 2)
-        obj0 = self.repl.package.objects.get(index=0, installation_set=0)
-        obj1 = self.repl.package.objects.get(index=0, installation_set=1)
+        obj0 = self.repl.package.objects.get(obj_index=0, set_index=0)
+        obj1 = self.repl.package.objects.get(obj_index=0, set_index=1)
         self.assertEqual(obj0['target'], '/dev/sda')
         self.assertEqual(obj1['target'], '/dev/sdb')
         self.assertEqual(obj0['target-path'], '/home/user1')
@@ -112,18 +112,18 @@ class ObjectManagementTestCase(BaseTestCase):
             '0',  # installation set index
             '/dev/sdb',  # value
         ]
-        index = self.repl.package.objects.create(self.options)
+        obj_index = self.repl.package.objects.create(self.options)
         for set_index in range(len(self.repl.package.objects)):
             obj = self.repl.package.objects.get(
-                index=index, installation_set=set_index)
+                obj_index=obj_index, set_index=set_index)
             self.assertEqual(obj['target'], '/dev/sda')
 
         functions.edit_object(self.repl)
 
-        obj = self.repl.package.objects.get(index=index, installation_set=0)
+        obj = self.repl.package.objects.get(obj_index=obj_index, set_index=0)
         self.assertEqual(obj['target'], '/dev/sdb')
 
-        obj = self.repl.package.objects.get(index=index, installation_set=1)
+        obj = self.repl.package.objects.get(obj_index=obj_index, set_index=1)
         self.assertEqual(obj['target'], '/dev/sda')
 
     @patch('uhu.repl.helpers.prompt')
@@ -134,17 +134,17 @@ class ObjectManagementTestCase(BaseTestCase):
             '200',  # value
         ]
         self.options['count'] = 100
-        index = self.repl.package.objects.create(self.options)
+        obj_index = self.repl.package.objects.create(self.options)
         for set_index in range(len(self.repl.package.objects)):
             obj = self.repl.package.objects.get(
-                index=index, installation_set=set_index)
+                obj_index=obj_index, set_index=set_index)
             self.assertEqual(obj['count'], 100)
 
         functions.edit_object(self.repl)
 
         for set_index in range(len(self.repl.package.objects)):
             obj = self.repl.package.objects.get(
-                index=index, installation_set=set_index)
+                obj_index=obj_index, set_index=set_index)
             self.assertEqual(obj['count'], 200)
 
     @patch('uhu.repl.helpers.prompt')
@@ -156,7 +156,7 @@ class ObjectManagementTestCase(BaseTestCase):
                 'filename',  # option
                 fp.name,  # value
             ]
-            obj = self.repl.package.objects.get(index=0, installation_set=1)
+            obj = self.repl.package.objects.get(obj_index=0, set_index=1)
             self.assertEqual(obj.filename, __file__)
             functions.edit_object(self.repl)
             self.assertEqual(obj.filename, fp.name)
