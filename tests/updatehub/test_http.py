@@ -22,6 +22,7 @@ def set_credentials():
 
 
 class RequestTestCase(unittest.TestCase):
+    FAKE_CA_CERTS = '/tmp/ca-certificates.crt'
 
     def setUp(self):
         set_credentials()
@@ -36,6 +37,15 @@ class RequestTestCase(unittest.TestCase):
         mock.assert_called_with('POST', url)
         put(url)
         mock.assert_called_with('PUT', url)
+
+    @patch('uhu.updatehub.http.requests.request')
+    @patch('uhu.updatehub.http.get_custom_ca_certs_file',
+           return_value=FAKE_CA_CERTS)
+    def test_can_use_custom_ca_certs_in_requests(self, ca_cert_mock, mock):
+        url = 'https://localhost'
+        get(url)
+        ca_cert_mock.assert_called_once_with()
+        self.assertEqual(self.FAKE_CA_CERTS, mock.call_args[1]['verify'])
 
     def test_request_date_is_in_utc(self):
         expected = datetime.now(timezone.utc).timestamp()

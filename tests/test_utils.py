@@ -25,6 +25,7 @@ class UtilsTestCase(EnvironmentFixtureMixin, UHUTestCase):
         self.addCleanup(self.remove_env_var, utils.GLOBAL_CONFIG_VAR)
         self.addCleanup(self.remove_env_var, utils.LOCAL_CONFIG_VAR)
         self.addCleanup(self.remove_env_var, utils.SERVER_URL_VAR)
+        self.addCleanup(self.remove_env_var, utils.CUSTOM_CA_CERTS_VAR)
 
     def test_get_chunk_size_by_environment_variable(self):
         os.environ[utils.CHUNK_SIZE_VAR] = '1'
@@ -62,6 +63,15 @@ class UtilsTestCase(EnvironmentFixtureMixin, UHUTestCase):
         os.environ[utils.GLOBAL_CONFIG_VAR] = '/tmp/super_file'
         observed = utils.get_global_config_file()
         self.assertEqual(observed, '/tmp/super_file')
+
+    def test_can_get_custom_ca_certificates_variable(self):
+        os.environ[utils.CUSTOM_CA_CERTS_VAR] = '/tmp/ca-certificates.crt'
+        observed = utils.get_custom_ca_certs_file()
+        self.assertEqual(observed, '/tmp/ca-certificates.crt')
+
+    def test_get_default_custom_ca_certificates_variable(self):
+        observed = utils.get_custom_ca_certs_file()
+        self.assertEqual(observed, None)
 
 
 class StringUtilsTestCase(unittest.TestCase):

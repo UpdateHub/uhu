@@ -18,6 +18,7 @@ SERVER_URL_VAR = 'UHU_SERVER_URL'
 ACCESS_ID_VAR = 'UHU_ACCESS_ID'
 ACCESS_SECRET_VAR = 'UHU_ACCESS_SECRET'
 PRIVATE_KEY_FN = 'UHU_PRIVATE_KEY'
+CUSTOM_CA_CERTS_VAR = 'UHU_CUSTOM_CA_CERTS'
 
 
 # Default values
@@ -51,6 +52,10 @@ def get_credentials():
     secret = os.environ.get(ACCESS_SECRET_VAR)
     if access and secret:
         return access, secret
+
+
+def get_custom_ca_certs_file():
+    return os.environ.get(CUSTOM_CA_CERTS_VAR, None)
 
 
 def remove_local_config():
