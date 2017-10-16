@@ -3,6 +3,7 @@
 
 import requests
 
+from ..utils import get_custom_ca_certs_file
 from ._request import Request, HTTPError
 
 
@@ -10,6 +11,11 @@ UNKNOWN_ERROR = 'A unexpected request error ocurred. Try again later.'
 
 
 def request(method, url, *args, sign=True, **kwargs):
+    custom_ca_certs_file = get_custom_ca_certs_file()
+
+    if custom_ca_certs_file is not None and 'verify' not in kwargs:
+        kwargs['verify'] = custom_ca_certs_file
+
     try:
         if sign:
             response = Request(url, method, *args, **kwargs).send()
