@@ -155,7 +155,7 @@ def get_kernel_version(fp):
 
 def get_uboot_version(fp):
     """Returns U-Boot object version."""
-    pattern = br'U-Boot (\S+) \(.*\)'
+    pattern = br'U-Boot(?: SPL)? (\S+) \(.*\)'
     iterable = iter(lambda: fp.read(30), b'')
     result = find(fp, pattern, iterable, 0)
     if result is not None:
