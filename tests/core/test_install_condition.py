@@ -22,6 +22,14 @@ def create_u_boot_file():
     return fp.name
 
 
+def create_u_boot_spl_file():
+    with tempfile.NamedTemporaryFile(delete=False) as fp:
+        # U-Boot SPL 13.08.1988 (13/08/1988)
+        fp.write(bytearray.fromhex(
+            '01552d426f6f742053504c2031332e30382e31393838202831332f30382f313938382902'))  # nopep8
+    return fp.name
+
+
 class KernelVersionTestCase(unittest.TestCase):
 
     def get_kernel_fixture(self, fixture):
@@ -114,6 +122,14 @@ class UBootVersionTestCase(unittest.TestCase):
 
     def test_can_get_uboot_version(self):
         fn = create_u_boot_file()
+        self.addCleanup(os.remove, fn)
+        expected = '13.08.1988'
+        with open(fn, 'br') as fp:
+            observed = ic.get_uboot_version(fp)
+            self.assertEqual(observed, expected)
+
+    def test_can_get_uboot_spl_version(self):
+        fn = create_u_boot_spl_file()
         self.addCleanup(os.remove, fn)
         expected = '13.08.1988'
         with open(fn, 'br') as fp:
