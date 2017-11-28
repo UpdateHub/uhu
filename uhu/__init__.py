@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0
 
 
-__version__ = '1.0.0'
+__version__ = '1.0.1a1'
 
 
 def get_version():
