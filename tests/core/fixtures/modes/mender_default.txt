@@ -1,0 +1,1 @@
+mender_default.txt [mode: mender]
