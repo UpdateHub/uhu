@@ -167,3 +167,17 @@ class UBIFSObject(BaseObject):
     string_template = [
         ('target', ()),
     ]
+
+
+class MenderObject(BaseObject):
+    mode = 'mender'
+    allow_compression = False
+    allow_install_condition = False
+    options = [
+        'filename',
+        'sha256sum',
+        'size',
+    ]
+    required_options = [
+        'filename',
+    ]
