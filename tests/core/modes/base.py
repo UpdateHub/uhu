@@ -90,11 +90,13 @@ class ModeTestCaseMixin(EnvironmentFixtureMixin, FileFixtureMixin):
 
     def test_default_string_representation(self):
         obj = Object(self.default_options)
-        self.assertEqual(str(obj), self.get_fixture(self.default_string_file))
+        self.assertEqual(str(obj).strip(),
+                         self.get_fixture(self.default_string_file))
 
     def test_full_string_representation(self):
         obj = Object(self.full_options)
-        self.assertEqual(str(obj), self.get_fixture(self.full_string_file))
+        self.assertEqual(str(obj).strip(),
+                         self.get_fixture(self.full_string_file))
 
     def test_template_keeps_equal_after_object_load(self):
         obj = Object(self.default_options)
