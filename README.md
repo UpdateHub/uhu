@@ -8,7 +8,7 @@ packages for [UpdateHub](https://github.com/UpdateHub/updatehub) agent.
 uhu is available in PyPI and can be install with `pip`:
 
 ```
-pip install uhu
+pip3 install uhu
 ```
 
 ### System Dependencies
