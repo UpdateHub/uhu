@@ -87,6 +87,7 @@ class FormatOption(BooleanOption):
 
 class FormatOptionsOption(StringOption):
     metadata = 'format-options'
+    symmetric = False
     help = 'Options to format target-device'
     cli = ['--format-options']
     verbose_name = 'options'
