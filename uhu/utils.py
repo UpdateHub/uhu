@@ -23,7 +23,7 @@ CUSTOM_CA_CERTS_VAR = 'UHU_CUSTOM_CA_CERTS'
 
 # Default values
 DEFAULT_CHUNK_SIZE = 1024 * 128  # 128 KiB
-DEFAULT_GLOBAL_CONFIG_FILE = os.path.expanduser('~/.uhu')
+DEFAULT_GLOBAL_CONFIG_FILE = os.path.expanduser('~/.config/.uhu')
 DEFAULT_LOCAL_CONFIG_FILE = '.uhu'
 DEFAULT_SERVER_URL = 'http://0.0.0.0'  # TODO: replace by the right URL
 
