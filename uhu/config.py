@@ -12,7 +12,7 @@ AUTH_SECTION = 'auth'
 
 
 class Config:
-    """This is the wrapper to manage ~/.uhu configuration file."""
+    """This is the wrapper to manage ~/.config/.uhu configuration file."""
 
     def __new__(cls):
         if not hasattr(cls, 'instance'):
