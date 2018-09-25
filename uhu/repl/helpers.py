@@ -9,9 +9,9 @@ import sys
 from functools import partial, wraps
 
 from prompt_toolkit import prompt
-from prompt_toolkit.contrib.completers import WordCompleter
+from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.filters import HasCompletions
-from prompt_toolkit.key_binding.manager import KeyBindingManager
+from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.keys import Keys
 
 from ..core.validators import validate_option_requirements
@@ -27,16 +27,16 @@ from .validators import (
     PackageUIDValidator)
 
 
-manager = KeyBindingManager.for_prompt()  # pylint: disable=invalid-name
+registry = KeyBindings()  # pylint: disable=invalid-name
 
 
-@manager.registry.add_binding(Keys.ControlD)
+@registry.add(Keys.ControlD)
 def ctrl_d(_):
     """Ctrl D quits appliaction returning 0 to sys."""
     sys.exit(0)
 
 
-@manager.registry.add_binding(Keys.ControlC)
+@registry.add(Keys.ControlC)
 def ctrl_c(_):
     """Ctrl C raises an exception to be caught by functions.
 
@@ -46,7 +46,7 @@ def ctrl_c(_):
     raise CancelPromptException('Cancelled operation.')
 
 
-@manager.registry.add_binding(Keys.Enter, filter=HasCompletions())
+@registry.add(Keys.Enter, filter=HasCompletions())
 def enter(event):
     """Enter selects a completion when has completions.
 
@@ -75,7 +75,7 @@ def cancellable(func):
 
 
 # pylint: disable=invalid-name
-prompt = partial(prompt, key_bindings_registry=manager.registry)
+prompt = partial(prompt, key_bindings_registry=registry)
 
 
 def check_arg(ctx, msg):

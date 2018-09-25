@@ -19,7 +19,7 @@ setup(
         'click>=6.5',
         'humanize>=0.5.1',
         'progress>=1.1',
-        'prompt-toolkit>=0.57, <2.0.0',
+        'prompt-toolkit>=2.0.0,<3.0.0',
         'pycrypto',
         'updatehub-package-schema>=1.0.2',
         'requests>=2',

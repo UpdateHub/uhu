@@ -4,7 +4,7 @@
 import os
 
 from prompt_toolkit.completion import Completer, Completion
-from prompt_toolkit.contrib.completers import WordCompleter
+from prompt_toolkit.completion import WordCompleter
 
 from ..core.object import Modes
 

@@ -5,7 +5,7 @@
 import os
 import sys
 
-from prompt_toolkit.contrib.completers import WordCompleter
+from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter  # nopep8
 from prompt_toolkit.contrib.regular_languages import compiler
