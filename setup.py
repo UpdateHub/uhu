@@ -22,7 +22,7 @@ setup(
         'prompt-toolkit>=2.0.0,<3.0.0',
         'pycrypto',
         'updatehub-package-schema>=1.0.2',
-        'requests>=2',
+        'requests>=2.20.0',
         'rfc3987>=1.3',
     ],
     author='O.S. Systems Software LTDA',
