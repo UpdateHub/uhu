@@ -6,7 +6,7 @@ Includes reusable prompts, auto-completers, constraint checkers.
 """
 
 import sys
-from functools import partial, wraps
+from functools import wraps
 
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter
@@ -72,10 +72,6 @@ def cancellable(func):
         except CancelPromptException:
             pass  # Do nothing cancelling the current command
     return wrapper
-
-
-# pylint: disable=invalid-name
-prompt = partial(prompt, key_bindings_registry=registry)
 
 
 def check_arg(ctx, msg):
