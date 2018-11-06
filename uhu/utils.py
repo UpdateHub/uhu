@@ -40,6 +40,9 @@ def get_server_url(path=None):
 
 
 def get_global_config_file():
+    if os.path.exists(os.path.expanduser('~/.config/')):
+        return os.environ.get(GLOBAL_CONFIG_VAR, DEFAULT_GLOBAL_CONFIG_FILE)
+    os.mkdir(os.path.expanduser('~/.config/'))
     return os.environ.get(GLOBAL_CONFIG_VAR, DEFAULT_GLOBAL_CONFIG_FILE)
 
 
