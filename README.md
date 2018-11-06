@@ -1,4 +1,4 @@
-# uhu - UpdateHub Utilities [![Build Status](https://travis-ci.org/updatehub/uhu.svg?branch=master)](https://travis-ci.org/updatehub/uhu) [![Coverage Status](https://coveralls.io/repos/github/UpdateHub/uhu/badge.svg?branch=master)](https://coveralls.io/github/UpdateHub/uhu?branch=master)
+# uhu - UpdateHub Utilities [![Build Status](https://travis-ci.org/UpdateHub/uhu.svg?branch=master)](https://travis-ci.org/UpdateHub/uhu) [![Coverage Status](https://coveralls.io/repos/github/UpdateHub/uhu/badge.svg?branch=master)](https://coveralls.io/github/UpdateHub/uhu?branch=master)
 
 uhu is an interactive prompt and a command line utility to manage update
 packages for [UpdateHub](https://github.com/UpdateHub/updatehub) agent.
