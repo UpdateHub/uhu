@@ -74,10 +74,6 @@ def cancellable(func):
     return wrapper
 
 
-# pylint: disable=invalid-name
-prompt = partial(prompt, key_bindings_registry=registry)
-
-
 def check_arg(ctx, msg):
     """Checks if user has passed an argument.
 
