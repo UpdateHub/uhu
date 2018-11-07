@@ -34,7 +34,7 @@ autocomplete or to check available commands.
 ### Setting credentials
 
 In the first run `uhu`, you will be prompted to provide your UpdateHub
-credentials. You can get your access and secrete keys in UpdateHub web
+credentials. You can get your access and secret keys in UpdateHub web
 interface.
 
 After that you are ready to start creating update packages.
