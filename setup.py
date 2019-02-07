@@ -21,7 +21,7 @@ setup(
         'progress>=1.1',
         'prompt-toolkit>=2.0.0,<3.0.0',
         'pycrypto',
-        'updatehub-package-schema>=1.0.2',
+        'updatehub-package-schema>=1.0.3',
         'requests>=2.20.0',
         'rfc3987>=1.3',
     ],
