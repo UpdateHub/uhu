@@ -181,3 +181,17 @@ class MenderObject(BaseObject):
     required_options = [
         'filename',
     ]
+
+
+class ZephyrObject(BaseObject):
+    mode = 'zephyr'
+    allow_compression = False
+    allow_install_condition = False
+    options = [
+        'filename',
+        'sha256sum',
+        'size',
+    ]
+    required_options = [
+        'filename',
+    ]
