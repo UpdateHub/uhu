@@ -93,10 +93,6 @@ class ConfigTestCase(FileFixtureMixin, EnvironmentFixtureMixin, UHUTestCase):
         observed = self.config.get_private_key_path()
         self.assertEqual(observed, 'some-path')
 
-    def test_get_private_key_path_raises_error_if_not_set(self):
-        with self.assertRaises(ValueError):
-            self.config.get_private_key_path()
-
     def test_set_command_does_not_override_previous_settings(self):
         self.config.set('foo', 'bar')
         self.config.set('bar', 'foo')

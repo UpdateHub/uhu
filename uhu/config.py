@@ -3,6 +3,7 @@
 
 import configparser
 import os
+import logging
 
 from .utils import get_global_config_file, get_credentials, PRIVATE_KEY_FN
 
@@ -37,7 +38,10 @@ class Config:
         pub_fn = self.get('private_key_path', AUTH_SECTION)
         private_key = env_fn or pub_fn
         if not private_key:
-            raise ValueError('Could not find any private key.')
+            logging.debug(
+                'The private key path is not set.'
+                'Update package won\'t be signed.')
+            return
         return private_key
 
     def set_credentials(self, access_id, access_secret):

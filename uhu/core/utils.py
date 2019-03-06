@@ -67,7 +67,10 @@ def dump_package_archive(package, output=None, force=False):
     signature = sign_dict(metadata, config.get_private_key_path())
     metadata = json.dumps(metadata, sort_keys=True)
     with zipfile.ZipFile(output, mode='w') as archive:
-        archive.writestr('signature', signature)
+        if signature is None:
+            archive.writestr('signature', "")
+        else:
+            archive.writestr('signature', signature)
         archive.writestr('metadata', metadata)
         for obj in package.objects.all():
             sha256sum = obj['sha256sum']
