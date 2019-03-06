@@ -108,7 +108,9 @@ def sign_dict(dict_, private_key):
     try:
         with open(private_key) as fp:
             key = RSA.importKey(fp.read())
-    except (FileNotFoundError, ValueError, IndexError, TypeError):
+    except TypeError:
+        return
+    except (FileNotFoundError, ValueError, IndexError):
         raise ValueError('Invalid private key file.')
 
     signer = PKCS1_v1_5.new(key)
