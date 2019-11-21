@@ -6,7 +6,7 @@ import json
 import click
 
 from pkgschema import validate_metadata, ValidationError
-
+from uhu.core.objects import DuplicateObjectEntryError
 from ..core.object import Modes
 from ..updatehub.api import get_package_status, UpdateHubError
 from ..core.utils import dump_package, dump_package_archive
@@ -61,6 +61,8 @@ def add_object_command(filename, mode, **options):
         try:
             package.objects.create(options)
         except ValueError as err:
+            error(2, err)
+        except DuplicateObjectEntryError as err:
             error(2, err)
 
 

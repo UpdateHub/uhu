@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-2.0
 
 from itertools import chain
-
 from .object import Object
 from ._options import Options
 
@@ -52,10 +51,21 @@ class ObjectsManager:
             obj.load(callback=callback)
         call(callback, 'finish_objects_load')
 
+    def _check_duplicate_object_entry(self, options):
+        for obj in self.objects:
+            metadata = [{'filename': entry.filename,
+                         'mode': entry.mode}
+                        for entry in obj]
+            for meta in metadata:
+                if meta['filename'] == options['filename'] and \
+                   meta['mode'] == options['mode']:
+                    raise DuplicateObjectEntryError("Object duplicate.")
+
     def create(self, options):
         """Creates a new object in all installation sets."""
         normalized_options = self._normalize_create_options_values(options)
         entry = self._create_object_entry(normalized_options)
+        self._check_duplicate_object_entry(options)
         self.objects.append(entry)
         self.sort()
         return self.objects.index(entry)
@@ -168,3 +178,8 @@ class ObjectsManager:
         """Returns a installation set string representation."""
         lst = [str(obj) for obj in objects]
         return list_to_str('Installation Set', lst)
+
+
+class DuplicateObjectEntryError(Exception):
+    """Exception raised upon an attempt to add an existing package."""
+    pass
