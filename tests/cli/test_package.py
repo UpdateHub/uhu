@@ -17,7 +17,7 @@ from uhu.core.package import Package
 from uhu.core.utils import dump_package, load_package
 from uhu.updatehub.api import UpdateHubError
 from uhu.utils import LOCAL_CONFIG_VAR, SERVER_URL_VAR
-
+from tempfile import NamedTemporaryFile
 
 from utils import UHUTestCase, FileFixtureMixin, EnvironmentFixtureMixin
 
@@ -185,6 +185,39 @@ class AddObjectCommandTestCase(PackageTestCase):
         for cmd in cmds:
             result = self.runner.invoke(add_object_command, cmd)
             self.assertEqual(result.exit_code, 2)
+
+    def test_add_duplicate_object(self):
+        h1 = NamedTemporaryFile()
+        h2 = NamedTemporaryFile()
+        dummy_fn_1 = h1.name
+        dummy_fn_2 = h2.name
+        # Same file and mode.
+        cmd = [dummy_fn_1,
+               '-m',
+               'zephyr']
+        result = self.runner.invoke(add_object_command, cmd)
+        self.assertEqual(result.exit_code, 0)
+        result = self.runner.invoke(add_object_command, cmd)
+        self.assertEqual(result.exit_code, 2)
+        # Same file and different mode.
+        cmd = [dummy_fn_1,
+               '-m',
+               'raw',
+               '-t',
+               '/dev/sda',
+               '-tt',
+               'device']
+        result = self.runner.invoke(add_object_command, cmd)
+        self.assertEqual(result.exit_code, 0)
+        # Different package and mode.
+        cmd = [dummy_fn_2,
+               '--mode', 'copy',
+               '--target-type', 'device',
+               '--target', '/dev/sda',
+               '--target-path', '/path',
+               '--filesystem', 'ext4']
+        result = self.runner.invoke(add_object_command, cmd)
+        self.assertEqual(result.exit_code, 0)
 
 
 class ArchiveCommand(PackageTestCase):
