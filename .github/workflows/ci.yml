@@ -22,7 +22,7 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Install Dependencies
         run: |
-          sudo apt-get update; sudo apt-get install lzop xz-utils gzip
+          sudo apt-get update; sudo apt-get install lzop xz-utils gzip libarchive-dev
           pip install tox coveralls
       - name: Run Tox
         run: tox -e py

@@ -4,8 +4,8 @@
 import re
 import string
 import struct
-import zlib
 from copy import deepcopy
+import libarchive
 
 
 # Utilities
@@ -94,10 +94,16 @@ def get_arm_z_image_version(fp):
     start = bytearray.fromhex('1f 8b 08 00 00 00 00 00')
     # This could be improved so we don't have to read all file in memory
     fp.seek(fp.read().index(start))
-    pattern = br'Linux version (\S+).*'
-    decompressor = zlib.decompressobj(zlib.MAX_WBITS | 16)
-    iterable = iter(lambda: decompressor.decompress(fp.read(512)), b'')
-    return find(pattern, iterable)
+    with libarchive.stream_reader(
+            fp,
+            format_name='raw',
+            filter_name='all',
+            block_size=512,
+    ) as archive:
+        data_entry = next(iter(archive))
+        iterable = data_entry.get_blocks(512)
+        pattern = br'Linux version (\S+).*'
+        return find(pattern, iterable)
 
 
 def get_arm_u_image_version(fp):
