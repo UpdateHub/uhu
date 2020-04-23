@@ -96,7 +96,7 @@ def get_arm_z_image_version(fp):
     fp.seek(fp.read().index(start))
     pattern = br'Linux version (\S+).*'
     decompressor = zlib.decompressobj(zlib.MAX_WBITS | 16)
-    iterable = iter(lambda: decompressor.decompress(fp.read(30)), b'')
+    iterable = iter(lambda: decompressor.decompress(fp.read(512)), b'')
     return find(pattern, iterable)
 
 
