@@ -89,21 +89,39 @@ def get_arm_z_image_version(fp):
     # its version, we need find the compressed kernel, uncompress it,
     # and extract the version from the uncompressed data.
 
-    fp.seek(0)
-    # "0x1f 0x8b 0x08" is the beginning of the gzipped kernel file
-    start = bytearray.fromhex('1f 8b 08 00 00 00 00 00')
-    # This could be improved so we don't have to read all file in memory
-    fp.seek(fp.read().index(start))
-    with libarchive.stream_reader(
-            fp,
-            format_name='raw',
-            filter_name='all',
-            block_size=512,
-    ) as archive:
-        data_entry = next(iter(archive))
-        iterable = data_entry.get_blocks(512)
-        pattern = br'Linux version (\S+).*'
-        return find(pattern, iterable)
+    for header in [
+            # Headers taken from:
+            # https://github.com/torvalds/linux/blob/master/scripts/extract-vmlinux
+            b'\x1f\x8b\x08',  # gzip
+            b'\xfd7zXZ\x00',  # xz
+            b'CZh',           # bzip2
+            b'\x5d\x00\x00',  # lzma
+            b'\x89\x4c\x5a',  # lzo
+            b'\x02!L\x18',    # lz4
+            b'(\xb5/\xfd',    # zstd
+    ]:
+        fp.seek(0)
+        try:
+            # This could be improved to avoid to reading all file in memory
+            fp.seek(fp.read().index(header))
+
+            with libarchive.stream_reader(
+                    fp,
+                    format_name='raw',
+                    filter_name='all',
+                    block_size=512,
+            ) as archive:
+                data_entry = next(iter(archive))
+                iterable = data_entry.get_blocks(512)
+                pattern = br'Linux version (\S+).*'
+                result = find(pattern, iterable)
+                if result:
+                    return result
+        except ValueError:
+            continue
+        except libarchive.exception.ArchiveError:
+            continue
+    return
 
 
 def get_arm_u_image_version(fp):
