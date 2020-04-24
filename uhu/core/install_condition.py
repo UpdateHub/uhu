@@ -31,9 +31,8 @@ def check(phrase, regexp):
         return results[0].decode()
 
 
-def find(fp, pattern, iterable, seek=0):
+def find(pattern, iterable):
     """Generic function to find some text in some iterable."""
-    fp.seek(seek)
     regexp = re.compile(pattern)
     phrase = b''
     for chunk in iterable:
@@ -94,11 +93,11 @@ def get_arm_z_image_version(fp):
     # "0x1f 0x8b 0x08" is the beginning of the gzipped kernel file
     start = bytearray.fromhex('1f 8b 08 00 00 00 00 00')
     # This could be improved so we don't have to read all file in memory
-    seek = fp.read().index(start)
+    fp.seek(fp.read().index(start))
     pattern = br'Linux version (\S+).*'
     decompressor = zlib.decompressobj(zlib.MAX_WBITS | 16)
     iterable = iter(lambda: decompressor.decompress(fp.read(30)), b'')
-    return find(fp, pattern, iterable, seek)
+    return find(pattern, iterable)
 
 
 def get_arm_u_image_version(fp):
@@ -155,9 +154,10 @@ def get_kernel_version(fp):
 
 def get_uboot_version(fp):
     """Returns U-Boot object version."""
+    fp.seek(0)
     pattern = br'U-Boot(?: SPL)? (\S+) \(.*\)'
     iterable = iter(lambda: fp.read(30), b'')
-    result = find(fp, pattern, iterable, 0)
+    result = find(pattern, iterable)
     if result is not None:
         return result
     raise ValueError('Cannot retrive U-Boot version')
@@ -167,8 +167,9 @@ def get_uboot_version(fp):
 
 def get_object_version(fp, pattern, seek=0, buffer_size=-1):
     """Returns version of any type of object."""
+    fp.seek(seek)
     iterable = iter(lambda: fp.read(buffer_size), b'')
-    result = find(fp, pattern, iterable, seek)
+    result = find(pattern, iterable)
     if result is not None:
         return result
     raise ValueError('Cannot retrive object version')
