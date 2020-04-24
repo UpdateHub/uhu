@@ -6,7 +6,7 @@ from copy import deepcopy
 from ._object import Modes
 
 
-class Object:  # pylint: disable=too-few-public-methods
+class Object:  # pylint: disable=too-few-public-methods, self-cls-assignment
 
     def __new__(cls, options):
         opts = deepcopy(options)

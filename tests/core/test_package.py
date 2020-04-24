@@ -8,9 +8,9 @@ import zipfile
 import unittest
 from unittest.mock import patch
 
-from Crypto.PublicKey import RSA
-from Crypto.Hash import SHA256
-from Crypto.Signature import PKCS1_v1_5
+from Cryptodome.PublicKey import RSA
+from Cryptodome.Hash import SHA256
+from Cryptodome.Signature import PKCS1_v1_5
 from pkgschema import ValidationError
 
 from uhu.core.hardware import SupportedHardwareManager

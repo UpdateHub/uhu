@@ -178,9 +178,9 @@ def get_version(fn, type_, **kwargs):
     with open(fn, 'rb') as fp:
         if type_ == 'linux-kernel':
             return get_kernel_version(fp)
-        elif type_ == 'u-boot':
+        if type_ == 'u-boot':
             return get_uboot_version(fp)
-        elif type_ == 'regexp':
+        if type_ == 'regexp':
             kwargs = {k: v for k, v in kwargs.items() if v is not None}
             return get_object_version(fp, **kwargs)
 
@@ -249,9 +249,9 @@ class InstallCondition:  # pylint: disable=too-few-public-methods
     def to_metadata(self):
         if self.condition == self.CONTENT_DIVERGES:
             return self._format_metadata('sha256sum')
-        elif self.condition == self.VERSION_DIVERGES:
+        if self.condition == self.VERSION_DIVERGES:
             return self._metadata_version_diverges()
-        elif self.condition == self.ALWAYS:
+        if self.condition == self.ALWAYS:
             return {}
         raise ValueError('Invalid install-condition condition.')
 
@@ -260,7 +260,7 @@ class InstallCondition:  # pylint: disable=too-few-public-methods
             'install-condition-pattern-type', None)
         if self.pattern in KNOWN_PATTERNS:
             return self._metadata_known_pattern()
-        elif self.pattern == CUSTOM_PATTERN:
+        if self.pattern == CUSTOM_PATTERN:
             return self._metadata_custom_pattern()
         raise ValueError('Unknown install-condition pattern type.')
 

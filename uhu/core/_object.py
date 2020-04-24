@@ -25,7 +25,7 @@ class Modes:
 
     @classmethod
     def names(cls):
-        return sorted([mode for mode in cls.registry])
+        return sorted(list(cls.registry))
 
 
 class ObjectType(type):

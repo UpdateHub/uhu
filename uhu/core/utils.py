@@ -11,6 +11,8 @@ import pkgschema
 from ..config import config
 from ..utils import sign_dict
 
+from .package import Package
+
 
 def dump_package(package, fn):
     """Dumps a package into a file."""
@@ -21,7 +23,6 @@ def dump_package(package, fn):
 
 def load_package(fn):
     """Loads a package from package dump file."""
-    from .package import Package
     with open(fn) as fp:
         dump = json.load(fp, object_pairs_hook=OrderedDict)
     return Package(dump=dump)

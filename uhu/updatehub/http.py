@@ -37,7 +37,7 @@ def request(method, url, *args, sign=True, **kwargs):
         raise HTTPError(UNKNOWN_ERROR)
     if response.status_code == 401:
         raise HTTPError('Unautorized. Did you set your credentials?')
-    elif not response.ok:
+    if not response.ok:
         raise HTTPError(format_server_error(response))
     return response
 

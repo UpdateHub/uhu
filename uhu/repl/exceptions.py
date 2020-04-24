@@ -6,7 +6,6 @@ from prompt_toolkit.validation import ValidationError
 
 class CancelPromptException(Exception):
     """Exception that must be raised when user types Ctrl C."""
-    pass
 
 
 class ValidationError(ValidationError):  # pylint: disable=function-redefined

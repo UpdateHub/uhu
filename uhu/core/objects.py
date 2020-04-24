@@ -182,4 +182,3 @@ class ObjectsManager:
 
 class DuplicateObjectEntryError(Exception):
     """Exception raised upon an attempt to add an existing package."""
-    pass

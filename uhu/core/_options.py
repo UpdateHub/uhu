@@ -16,7 +16,7 @@ class Options:
 
     @classmethod
     def all(cls):
-        return [option for option in cls.registry.values()]
+        return list(cls.registry.values())
 
 
 class OptionType(type):

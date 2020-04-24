@@ -211,11 +211,11 @@ def _get_object_option_value_completer(option, obj=None):
     """Retuns a completer for object_option_value prompt."""
     if option.choices:
         return ObjectOptionValueCompleter(option)
-    elif option.type_name == 'boolean':
+    if option.type_name == 'boolean':
         return YesNoCompleter()
-    elif option.metadata == 'filename':
+    if option.metadata == 'filename':
         return ObjectFilenameCompleter()
-    elif option.metadata == 'target-type':
+    if option.metadata == 'target-type':
         return WordCompleter(obj.target_types)
 
 
@@ -255,7 +255,7 @@ def prompt_installation_set(package, msg=None):
     if package.objects.is_single():
         return None
 
-    objects = [(index, objs) for index, objs in enumerate(package.objects)]
+    objects = list(enumerate(package.objects))
     indexes = [str(i) for i, _ in objects]
 
     msg = msg if msg is not None else 'Select an installation set: '
