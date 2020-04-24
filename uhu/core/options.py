@@ -216,9 +216,9 @@ class InstallConditionOption(StringOption):
     def humanize(cls, value):
         if value == 'always':
             return 'always install'
-        elif value == 'content-diverges':
+        if value == 'content-diverges':
             return 'install when CONTENT diverges'
-        elif value == 'version-diverges':
+        if value == 'version-diverges':
             return 'install when VERSION diverges'
 
 
