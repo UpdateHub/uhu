@@ -1,4 +1,9 @@
-# uhu - UpdateHub Utilities [![Build Status](https://travis-ci.org/UpdateHub/uhu.svg?branch=master)](https://travis-ci.org/UpdateHub/uhu) [![Coverage Status](https://coveralls.io/repos/github/UpdateHub/uhu/badge.svg?branch=master)](https://coveralls.io/github/UpdateHub/uhu?branch=master)
+![Tests](https://github.com/UpdateHub/uhu/workflows/CI/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/UpdateHub/uhu/badge.svg?branch=master)](https://coveralls.io/github/UpdateHub/uhu?branch=master)
+[![PyPI](https://img.shields.io/pypi/v/uhu)](https://pypi.python.org/pypi/uhu/)
+[![PyPI - Supported Python Versions](https://img.shields.io/pypi/pyversions/uhu)](https://pypi.python.org/pypi/uhu/)
+
+# uhu - UpdateHub Utilities
 
 uhu is an interactive prompt and a command line utility to manage update
 packages for [UpdateHub](https://github.com/UpdateHub/updatehub) agent.
