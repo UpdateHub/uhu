@@ -9,9 +9,12 @@ COMPRESSORS = {
     # GZIP format: http://www.gzip.org/zlib/rfc-gzip.html#file-format
     'gzip': {
         'signature': b'\x1f\x8b',
-        'test': 'gzip -t %s',
-        # gzip requires -f if pigz is used.
-        'cmd': "gzip -lf %s | tail -n 1 | awk '{ print $2}'"
+        # pigz does not follow symlinks by default so we use 'readlink' to
+        # workaround this limitation. The Yocto Project prefer pigz due its
+        # better performance and uses it as a gzip alternative thus we need to
+        # support both here.
+        'test': 'gzip -t $(readlink -f %s)',
+        'cmd': "gzip -l $(readlink -f %s) | tail -n 1 | awk '{ print $2}'"
     },
     # LZO format: http://www.lzop.org/download/lzop-1.03.tar.gz
     'lzop': {
