@@ -169,6 +169,20 @@ class UBIFSObject(BaseObject):
     ]
 
 
+class UbootEnv(BaseObject):
+    mode = 'uboot-env'
+    allow_compression = False
+    allow_install_condition = False
+    options = [
+        'filename',
+        'size',
+        'sha256sum',
+    ]
+    required_options = [
+        'filename',
+    ]
+
+
 class MenderObject(BaseObject):
     mode = 'mender'
     allow_compression = False
