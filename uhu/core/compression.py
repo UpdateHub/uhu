@@ -28,6 +28,14 @@ COMPRESSORS = {
         'test': 'xz -t %s',
         'cmd': "xz -l %s --robot | tail -n 1 | awk '{ print $5}'"
     },
+    # LZMA format: http://tukaani.org/xz/xz-file-format.txt
+    'lzma': {
+        'signature': b'\x5d\x00\x00',
+        'test': 'xz -t --format=lzma %s',
+        # Since lzma compression doen't add uncompressed size
+        # information to the header to set the field to 0
+        'cmd': "ls %s | echo 0"
+    },
 }
 
 
