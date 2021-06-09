@@ -209,3 +209,23 @@ class ZephyrObject(BaseObject):
     required_options = [
         'filename',
     ]
+
+
+class RawDeltaObject(BaseObject):
+    mode = 'raw-delta'
+    using_delta = True
+    allow_compression = False
+    allow_install_condition = False
+    target_types = ['device']
+    options = [
+        'filename',
+        'sha256sum',
+        'size',
+        'target-type',
+        'target',
+    ]
+    required_options = [
+        'filename',
+        'target-type',
+        'target',
+    ]
