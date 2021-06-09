@@ -9,6 +9,7 @@ from ..utils import call, get_chunk_size
 
 from ._options import Options
 from .compression import compression_to_metadata
+from .delta import validate_delta
 from .install_condition import InstallCondition
 from .validators import validate_options
 
@@ -64,6 +65,7 @@ class ObjectType(type):
 
 class BaseObject(metaclass=ObjectType):
     mode = None
+    using_delta = False
     allow_compression = False
     allow_install_condition = False
     options = []
@@ -93,6 +95,7 @@ class BaseObject(metaclass=ObjectType):
         metadata['mode'] = self.mode
         metadata.update(self._metadata_install_condition(metadata))
         metadata.update(self._metadata_compression())
+        metadata.update(self._metadata_delta())
         return metadata
 
     def _metadata_install_condition(self, metadata):
@@ -104,6 +107,11 @@ class BaseObject(metaclass=ObjectType):
         if not self.allow_compression:
             return {}
         return compression_to_metadata(self.filename)
+
+    def _metadata_delta(self):
+        if not self.using_delta:
+            return {}
+        return validate_delta(self.filename)
 
     def to_upload(self):
         return {
