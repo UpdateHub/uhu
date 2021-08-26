@@ -223,6 +223,8 @@ class RawDeltaObject(BaseObject):
         'size',
         'target-type',
         'target',
+        'chunk-size',
+        'seek',
     ]
     required_options = [
         'filename',
