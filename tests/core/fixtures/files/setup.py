@@ -25,7 +25,7 @@ setup(
     install_requires=[
         'click==6.6',
         'progress==1.2',
-        'requests==2.10.0',
+        'requests==2.32.4',
     ],
     author='O.S. Systems Software LTDA',
     author_email='contato@ossystems.com.br',
